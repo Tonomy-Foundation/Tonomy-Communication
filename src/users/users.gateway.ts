@@ -5,55 +5,82 @@ import {
   ConnectedSocket,
   WebSocketServer,
   OnGatewayConnection,
+  OnGatewayDisconnect,
+  WsException,
+  BaseWsExceptionFilter,
 } from '@nestjs/websockets';
 import { UsersService } from './users.service';
-import { RegisterUserDto } from './dto/register-user.dto';
-import { Socket } from 'socket.io';
+import { RegisterUserDto as ConnectUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
-import { Logger, UsePipes, ValidationPipe } from '@nestjs/common';
+import {
+  ArgumentsHost,
+  BadRequestException,
+  Catch,
+  Logger,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
+import { AsyncApiPub, AsyncApiSub } from 'nestjs-asyncapi';
+import { SocketDto } from './dto/socket.dto';
+import { SendJwtDto } from './dto/send-jwt-.dto';
 
-@WebSocketGateway()
-export class UsersGateway implements OnGatewayConnection {
-  constructor(
-    private readonly usersService: UsersService,
-    private logger: Logger,
-  ) {}
+@UsePipes(
+  new ValidationPipe({
+    transform: true,
+    //   exceptionFactory(validationErrors = []) {
+    //     if (this.isDetailedOutputDisabled) {
+    //       return new WsException('Bad request');
+    //     }
+    //     const errors = this.flattenValidationErrors(validationErrors);
 
-  handleConnection() {
-    return 'hello world';
+    //     return new WsException(errors);
+    //   },
+  }),
+)
+@WebSocketGateway({
+  cors: '*',
+})
+export class UsersGateway implements OnGatewayDisconnect {
+  private readonly logger = new Logger(UsersGateway.name);
+  constructor(private readonly usersService: UsersService) {}
+
+  handleDisconnect(client: SocketDto) {
+    // this.usersService.safeDisconnect(client);
   }
-
-  @SubscribeMessage('registerUser')
-  registerUser(
-    @MessageBody() registerUserDto: RegisterUserDto,
-    @ConnectedSocket() client: Socket,
+  /**
+   * connects notLoggedin user on the website to the app
+   * @param connectUserDto the not Loggedin user data needed to connect clients with each other
+   * @param client user socket
+   * @returns void
+   */
+  @SubscribeMessage('connectTonomy')
+  connectUser(
+    @MessageBody() connectUserDto: ConnectUserDto,
+    @ConnectedSocket() client: SocketDto,
   ) {
-    console.log(registerUserDto.randomSeed);
-    this.logger.debug(registerUserDto);
-    return this.usersService.register(registerUserDto, client);
+    this.logger.debug(`user connected to  ${connectUserDto.randomSeed}`);
+    const result = this.usersService.register(connectUserDto, client);
+    const message = result ? 'succeed' : 'User already registered';
+    return { message };
   }
 
+  @SubscribeMessage('sendLoginJwt')
+  @AsyncApiPub()
+  sendLoginJwt(
+    @MessageBody() data: SendJwtDto,
+    @ConnectedSocket() client: SocketDto,
+  ) {
+    this.usersService.sendLoginJwt(data, client);
+  }
+
+  //TODO: change this to connect users based on did:key
   @SubscribeMessage('loginUser')
+  @AsyncApiSub()
   loginUser(
     @MessageBody()
     data: LoginUserDto,
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: SocketDto,
   ) {
     this.usersService.login(client, data);
   }
-
-  // @SubscribeMessage('findAllUsers')
-  // findAll() {
-  //   return this.usersService.findAll();
-  // }
-
-  // @SubscribeMessage('updateUser')
-  // update(@MessageBody() updateUserDto: UpdateUserDto) {
-  //   return this.usersService.update(updateUserDto.id, updateUserDto);
-  // }
-
-  // @SubscribeMessage('removeUser')
-  // remove(@MessageBody() id: number) {
-  //   return this.usersService.remove(id);
-  // }
 }
