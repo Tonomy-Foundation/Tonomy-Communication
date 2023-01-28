@@ -38,7 +38,11 @@ import { SendJwtDto } from './dto/send-jwt-.dto';
   }),
 )
 @WebSocketGateway({
-  cors: '*',
+  cors: {
+    origin: '*',
+    allowedHeaders: '*',
+    credentials: true,
+  },
 })
 export class UsersGateway implements OnGatewayDisconnect {
   private readonly logger = new Logger(UsersGateway.name);
