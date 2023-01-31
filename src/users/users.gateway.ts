@@ -51,6 +51,7 @@ export class UsersGateway implements OnGatewayDisconnect {
   handleDisconnect(client: SocketDto) {
     // this.usersService.safeDisconnect(client);
   }
+
   /**
    * connects notLoggedin user on the website to the app
    * @param connectUserDto the not Loggedin user data needed to connect clients with each other
@@ -58,6 +59,13 @@ export class UsersGateway implements OnGatewayDisconnect {
    * @returns void
    */
   @SubscribeMessage('connectTonomy')
+  @AsyncApiPub({
+    channel: 'connectTonomy',
+    message: {
+      payload: ConnectUserDto,
+    },
+    description: 'Connects Client to the channel',
+  })
   connectUser(
     @MessageBody() connectUserDto: ConnectUserDto,
     @ConnectedSocket() client: SocketDto,
@@ -69,7 +77,12 @@ export class UsersGateway implements OnGatewayDisconnect {
   }
 
   @SubscribeMessage('sendLoginJwt')
-  @AsyncApiPub()
+  @AsyncApiPub({
+    channel: 'sendLoginJwt',
+    message: {
+      payload: SendJwtDto,
+    },
+  })
   sendLoginJwt(
     @MessageBody() data: SendJwtDto,
     @ConnectedSocket() client: SocketDto,
@@ -79,7 +92,12 @@ export class UsersGateway implements OnGatewayDisconnect {
 
   //TODO: change this to connect users based on did:key
   @SubscribeMessage('loginUser')
-  @AsyncApiSub()
+  @AsyncApiPub({
+    channel: 'loginUser',
+    message: {
+      payload: LoginUserDto,
+    },
+  })
   loginUser(
     @MessageBody()
     data: LoginUserDto,

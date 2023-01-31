@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { AsyncApiDocumentBuilder, AsyncApiModule } from 'nestjs-asyncapi';
 import { AppModule } from './app.module';
 import { UsersModule } from './users/users.module';
+import { UsersService } from './users/users.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -25,10 +26,6 @@ async function bootstrap() {
   const asyncapiDocument = await AsyncApiModule.createDocument(
     app,
     asyncApiOptions,
-    {
-      include: [UsersModule],
-      deepScanRoutes: true,
-    },
   );
   await AsyncApiModule.setup('/api', app, asyncapiDocument);
 
