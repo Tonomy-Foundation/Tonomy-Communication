@@ -28,6 +28,6 @@ async function bootstrap() {
   );
   await AsyncApiModule.setup('/api', app, asyncapiDocument);
 
-  await app.listen(process.env.REACT_APP_COMMUNICATION_URL ?? 5000);
+  await app.listen(5000);
 }
 bootstrap();
