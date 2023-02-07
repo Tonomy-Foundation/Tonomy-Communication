@@ -27,14 +27,14 @@ import { SendJwtDto } from './dto/send-jwt-.dto';
 @UsePipes(
   new ValidationPipe({
     transform: true,
-    //   exceptionFactory(validationErrors = []) {
-    //     if (this.isDetailedOutputDisabled) {
-    //       return new WsException('Bad request');
-    //     }
-    //     const errors = this.flattenValidationErrors(validationErrors);
+    exceptionFactory(validationErrors = []) {
+      if (this.isDetailedOutputDisabled) {
+        return new WsException('Bad request');
+      }
+      const errors = this.flattenValidationErrors(validationErrors);
 
-    //     return new WsException(errors);
-    //   },
+      return new WsException(errors);
+    },
   }),
 )
 @WebSocketGateway({
@@ -49,7 +49,7 @@ export class UsersGateway implements OnGatewayDisconnect {
   constructor(private readonly usersService: UsersService) {}
 
   handleDisconnect(client: SocketDto) {
-    // this.usersService.safeDisconnect(client);
+    this.usersService.safeDisconnect(client);
   }
 
   /**

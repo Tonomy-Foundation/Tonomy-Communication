@@ -2,8 +2,8 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsString } from 'class-validator';
 
 export enum Client {
-  browser = 'browser',
-  app = 'app',
+  BROWSER = 'BROWSER',
+  APP = 'APP',
 }
 
 export class LoginUserDto {

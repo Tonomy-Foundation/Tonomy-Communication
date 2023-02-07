@@ -16,10 +16,9 @@ async function bootstrap() {
     )
     .setVersion('0.0.1')
     .setDefaultContentType('application/json')
-    // .addSecurity('user-password', { type: 'userPassword' })
     .addServer('users', {
       protocol: 'socket.io',
-      url: 'localhost:3002',
+      url: 'localhost:5000',
     })
     .build();
 
@@ -29,6 +28,6 @@ async function bootstrap() {
   );
   await AsyncApiModule.setup('/api', app, asyncapiDocument);
 
-  await app.listen(3002);
+  await app.listen(process.env.REACT_APP_COMMUNICATION_URL ?? 5000);
 }
 bootstrap();
