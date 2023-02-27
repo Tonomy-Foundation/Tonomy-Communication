@@ -10277,7 +10277,7 @@ __metadata:
 
 "tonomy-id-sdk@github:Tonomy-Foundation/Tonomy-ID-SDK#development":
   version: 0.2.0
-  resolution: "tonomy-id-sdk@https://github.com/Tonomy-Foundation/Tonomy-ID-SDK.git#commit=19d247cfc42c13148126f19c3e1b40aa4dae3fa6"
+  resolution: "tonomy-id-sdk@git+ssh://git@github.com/Tonomy-Foundation/Tonomy-ID-SDK.git#commit=19d247cfc42c13148126f19c3e1b40aa4dae3fa6"
   dependencies:
     "@consento/sync-randombytes": ^1.0.5
     "@greymass/eosio": ^0.6.4
