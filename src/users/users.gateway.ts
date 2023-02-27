@@ -23,6 +23,8 @@ import {
 import { AsyncApiPub, AsyncApiSub } from 'nestjs-asyncapi';
 import { SocketDto } from './dto/socket.dto';
 import { SendJwtDto } from './dto/send-jwt-.dto';
+import { TransformVcPipe } from './transform-vc/transform-vc.pipe';
+import { MessageDto } from './dto/message.dto';
 
 @UsePipes(
   new ValidationPipe({
@@ -36,6 +38,7 @@ import { SendJwtDto } from './dto/send-jwt-.dto';
       return new WsException(errors);
     },
   }),
+  new TransformVcPipe(),
 )
 @WebSocketGateway({
   cors: {
@@ -58,51 +61,34 @@ export class UsersGateway implements OnGatewayDisconnect {
    * @param client user socket
    * @returns void
    */
-  @SubscribeMessage('connectTonomy')
+  @SubscribeMessage('login')
   @AsyncApiPub({
-    channel: 'connectTonomy',
+    channel: 'login',
+    message: {
+      payload: '',
+    },
+    description: 'login to the messaging service ',
+  })
+  connectUser(
+    @MessageBody() message: MessageDto,
+    @ConnectedSocket() client: SocketDto,
+  ) {
+    const result = this.usersService.login(message.getSender(), client.id);
+    return result ? 'succeed' : 'You are already loggedIn';
+  }
+
+  @SubscribeMessage('message')
+  @AsyncApiPub({
+    channel: 'message',
     message: {
       payload: ConnectUserDto,
     },
-    description: 'Connects Client to the channel',
+    description: 'send message to client',
   })
-  connectUser(
-    @MessageBody() connectUserDto: ConnectUserDto,
+  relayMessage(
+    @MessageBody() message: MessageDto,
     @ConnectedSocket() client: SocketDto,
   ) {
-    this.logger.debug(`user connected to  ${connectUserDto.randomSeed}`);
-    const result = this.usersService.register(connectUserDto, client);
-    const message = result ? 'succeed' : 'User already registered';
-    return { message };
-  }
-
-  @SubscribeMessage('sendLoginJwt')
-  @AsyncApiPub({
-    channel: 'sendLoginJwt',
-    message: {
-      payload: SendJwtDto,
-    },
-  })
-  sendLoginJwt(
-    @MessageBody() data: SendJwtDto,
-    @ConnectedSocket() client: SocketDto,
-  ) {
-    this.usersService.sendLoginJwt(data, client);
-  }
-
-  //TODO: change this to connect users based on did:key
-  @SubscribeMessage('loginUser')
-  @AsyncApiPub({
-    channel: 'loginUser',
-    message: {
-      payload: LoginUserDto,
-    },
-  })
-  loginUser(
-    @MessageBody()
-    data: LoginUserDto,
-    @ConnectedSocket() client: SocketDto,
-  ) {
-    this.usersService.login(client, data);
+    return this.usersService.sendMessage(client, message);
   }
 }

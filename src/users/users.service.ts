@@ -2,64 +2,43 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { WebSocketServer } from '@nestjs/websockets';
 import { AsyncApiSub, AsyncApi } from 'nestjs-asyncapi';
 import { Server, Socket } from 'socket.io';
-import { LoginUserDto } from './dto/login-user.dto';
-import { MessageRto } from './dto/message.rto';
-import { RegisterUserDto } from './dto/register-user.dto';
-import { SendJwtDto } from './dto/send-jwt-.dto';
-import { SocketDto } from './dto/socket.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { MessageDto } from './dto/message.dto';
 
 @AsyncApi()
 @Injectable()
 export class UsersService {
-  safeDisconnect(socket: Socket) {
-    this.unRegisteredSockets.delete(socket.id);
-  }
-  private readonly unRegisteredSockets = new Map<Socket['id'], string>();
   private readonly loggedInUsers = new Map<string, Socket['id']>();
   @WebSocketServer()
   private server: Server;
 
-  /**
-   *
-   * @param createUserDto
-   * @param socket
-   * @returns boolean if the user registered or already registered
-   */
-  @AsyncApiSub({
-    channel: 'connectTonomy',
-    message: {
-      payload: MessageRto,
-    },
-  })
-  register(createUserDto: RegisterUserDto, socket: SocketDto): boolean {
-    const seed = createUserDto.randomSeed;
-    if (this.unRegisteredSockets.get(socket.id)) return false;
-    this.unRegisteredSockets.set(socket.id, seed);
-    socket.join(seed);
-    socket.broadcast.to(seed).emit('connectTonomy', { message: 'connected' });
+  safeDisconnect(socket: Socket) {
+    const key = this.getByValue(this.loggedInUsers, socket.id);
+    this.loggedInUsers.delete(key);
+  }
+
+  login(did: string, socketId: Socket['id']): boolean {
+    if (this.loggedInUsers.get(did)) return false;
+    this.loggedInUsers.set(did, socketId);
     return true;
   }
 
   @AsyncApiSub({
-    channel: 'sendLoginJwt',
+    channel: 'message',
     message: {
-      payload: SendJwtDto,
+      payload: '',
     },
+    description: 'receive message from client',
   })
-  sendLoginJwt(data: SendJwtDto, socket: SocketDto) {
-    const room = this.unRegisteredSockets.get(socket.id);
-    if (!room) return false;
-    socket.to(room).emit('sendLoginJwt', data);
+  sendMessage(socket: Socket, message: MessageDto) {
+    const recipient = this.loggedInUsers.get(message.getRecipient());
+    if (!recipient) throw new NotFoundException();
+    socket.to(recipient).emit('message', message.jwt);
+    return 'message sent';
   }
 
-  login(client: SocketDto, data: LoginUserDto): boolean {
-    const room = this.unRegisteredSockets.get(client.id);
-    if (room) {
-      client.leave(room);
+  private getByValue(map, searchValue) {
+    for (const [key, value] of map.entries()) {
+      if (value === searchValue) return key;
     }
-    client.platform = data.client;
-    this.loggedInUsers.set(data.client + '@' + data.username, client.id);
-    return true;
   }
 }

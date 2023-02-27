@@ -4,6 +4,6 @@ import { MessageDto } from '../dto/message.dto';
 @Injectable()
 export class TransformVcPipe implements PipeTransform {
   transform(value: string, metadata: ArgumentMetadata) {
-    return MessageDto.from(value);
+    return new MessageDto(value);
   }
 }
