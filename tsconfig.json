@@ -15,5 +15,6 @@
     "noImplicitAny": false,
     "strict": true,
     "useUnknownInCatchVariables": false,
+    "emitDecoratorMetadata": true
   }
 }

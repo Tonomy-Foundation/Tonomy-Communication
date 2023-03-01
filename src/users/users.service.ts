@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { AsyncApiSub, AsyncApi } from 'nestjs-asyncapi';
 import { Socket } from 'socket.io';
+import { Client } from './dto/client.dto';
 import { MessageDto } from './dto/message.dto';
 
 @AsyncApi()
@@ -8,34 +9,28 @@ import { MessageDto } from './dto/message.dto';
 export class UsersService {
   private readonly loggedInUsers = new Map<string, Socket['id']>();
 
-  safeDisconnect(socket: Socket) {
-    const key = this.getByValue(this.loggedInUsers, socket.id);
-    this.loggedInUsers.delete(key);
+  safeDisconnect(socket: Client) {
+    this.loggedInUsers.delete(socket.did);
   }
 
-  login(did: string, socketId: Socket['id']): boolean {
+  login(did: string, socket: Client): boolean {
     if (this.loggedInUsers.get(did)) return false;
-    this.loggedInUsers.set(did, socketId);
+    this.loggedInUsers.set(did, socket.id);
+    socket.did = did;
     return true;
   }
 
-  @AsyncApiSub({
-    channel: 'message',
-    message: {
-      payload: '',
-    },
-    description: 'receive message from client',
-  })
-  sendMessage(socket: Socket, message: MessageDto) {
+  // @AsyncApiSub({
+  //   channel: 'message',
+  //   message: {
+  //     payload: '',
+  //   },
+  //   description: 'receive message from client',
+  // })
+  sendMessage(socket: Client, message: MessageDto): boolean {
     const recipient = this.loggedInUsers.get(message.getRecipient());
     if (!recipient) throw new NotFoundException();
     socket.to(recipient).emit('message', message.jwt);
-    return 'message sent';
-  }
-
-  private getByValue(map, searchValue) {
-    for (const [key, value] of map.entries()) {
-      if (value === searchValue) return key;
-    }
+    return true;
   }
 }
