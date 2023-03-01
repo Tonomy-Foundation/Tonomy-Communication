@@ -1,15 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { WebSocketServer } from '@nestjs/websockets';
 import { AsyncApiSub, AsyncApi } from 'nestjs-asyncapi';
-import { Server, Socket } from 'socket.io';
+import { Socket } from 'socket.io';
 import { MessageDto } from './dto/message.dto';
 
 @AsyncApi()
 @Injectable()
 export class UsersService {
   private readonly loggedInUsers = new Map<string, Socket['id']>();
-  @WebSocketServer()
-  private server: Server;
 
   safeDisconnect(socket: Socket) {
     const key = this.getByValue(this.loggedInUsers, socket.id);
