@@ -46,6 +46,7 @@ export class UsersService {
   })
   sendMessage(socket: Client, message: MessageDto): boolean {
     const recipient = this.loggedInUsers.get(message.getRecipient());
+
     if (!recipient) throw new NotFoundException();
     socket.to(recipient).emit('message', message.jwt);
     return true;

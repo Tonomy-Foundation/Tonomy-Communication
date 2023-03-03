@@ -4,19 +4,10 @@ import {
   MessageBody,
   ConnectedSocket,
   OnGatewayDisconnect,
-  WsException,
-  BaseWsExceptionFilter,
 } from '@nestjs/websockets';
 import { UsersService } from './users.service';
-import { Socket } from 'socket.io';
-import {
-  Catch,
-  Logger,
-  UseGuards,
-  UsePipes,
-  ValidationPipe,
-} from '@nestjs/common';
-import { AsyncApiPub, AsyncApiSub } from 'nestjs-asyncapi';
+import { Logger, UsePipes } from '@nestjs/common';
+import { AsyncApiPub } from 'nestjs-asyncapi';
 import { TransformVcPipe } from './transform-vc/transform-vc.pipe';
 import { MessageDto, MessageRto } from './dto/message.dto';
 import { Client } from './dto/client.dto';

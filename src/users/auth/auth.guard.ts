@@ -4,9 +4,10 @@ import { Observable } from 'rxjs';
 @Injectable()
 export class AuthGuard implements CanActivate {
   canActivate(
-    context: ExecutionContext,
+    _context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    const data = context.switchToWs().getData();
+    // const data = context.switchToWs().getData();
+
     return true;
   }
 }

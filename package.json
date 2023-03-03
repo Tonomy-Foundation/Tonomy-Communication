@@ -32,7 +32,7 @@
     "nestjs-asyncapi": "^1.0.4",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0",
-    "tonomy-id-sdk": "https://github.com/Tonomy-Foundation/Tonomy-ID-SDK.git#feature/234-messaging"
+    "@tonomy/tonomy-id-sdk": "https://github.com/Tonomy-Foundation/Tonomy-ID-SDK.git#development"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",
