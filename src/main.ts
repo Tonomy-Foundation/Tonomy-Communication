@@ -2,6 +2,12 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AsyncApiDocumentBuilder, AsyncApiModule } from 'nestjs-asyncapi';
 import { AppModule } from './app.module';
+import { setSettings } from '@tonomy/tonomy-id-sdk';
+import settings from './settings';
+
+setSettings({
+  blockchainUrl: settings.config.blockchainUrl,
+});
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
