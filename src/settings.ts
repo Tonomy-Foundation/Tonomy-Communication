@@ -1,5 +1,6 @@
 import * as configDefault from './config/config.json';
 import * as configStaging from './config/config.staging.json';
+
 const env = process.env.NODE_ENV || 'development';
 
 console.log(`NODE_ENV=${env}`);
@@ -29,9 +30,9 @@ switch (env) {
   case 'staging':
     config = configStaging;
     break;
-  case 'production':
-    // TODO add production config when ready
-    break;
+  // case 'production':
+  //   // TODO add production config when ready
+  //   break;
   default:
     throw new Error('Unknown environment: ' + env);
 }
@@ -40,6 +41,7 @@ if (process.env.BLOCKCHAIN_URL) {
   console.log(`Using BLOCKCHAIN_URL from env:  ${process.env.BLOCKCHAIN_URL}`);
   config.blockchainUrl = process.env.BLOCKCHAIN_URL;
 }
+
 settings.config = config;
 
 export default settings;
