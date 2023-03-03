@@ -2791,13 +2791,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tonomy/antelope-did-resolver@npm:^0.2.1":
-  version: 0.2.1
-  resolution: "@tonomy/antelope-did-resolver@npm:0.2.1"
+"@tonomy/antelope-did-resolver@npm:^0.2.2":
+  version: 0.2.2
+  resolution: "@tonomy/antelope-did-resolver@npm:0.2.2"
   dependencies:
     base64url: ^3.0.1
     eosjs: ^21.0.4
-  checksum: a6600c28ed91462185945106a1b2343e538b70f106c9b7adccedafb6eccffbb952628382ef306bbb339fca66fe5a0b28301fe076b79c844a3222697adecccb88
+  checksum: cf340c4ea0bb5a9f7fc1b6639f10bf5a5a95d531fa21a25788ecbc304bd25f968b6364ed843891ecec1a57ab942473f4c63680f1d7e87e89cd0b2c3db8fa6583
   languageName: node
   linkType: hard
 
@@ -2837,9 +2837,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tonomy/did-jwt@npm:^6.10.0, @tonomy/did-jwt@npm:^6.9.2":
-  version: 6.10.0
-  resolution: "@tonomy/did-jwt@npm:6.10.0"
+"@tonomy/did-jwt@npm:^6.10.0, @tonomy/did-jwt@npm:^6.10.1, @tonomy/did-jwt@npm:^6.9.2":
+  version: 6.10.1
+  resolution: "@tonomy/did-jwt@npm:6.10.1"
   dependencies:
     "@stablelib/ed25519": ^1.0.2
     "@stablelib/random": ^1.0.1
@@ -2853,7 +2853,7 @@ __metadata:
     js-sha3: ^0.8.0
     multiformats: ^9.6.5
     uint8arrays: ^3.0.0
-  checksum: 2e5913333d57b95bb3694f521b03529d4ab84acf8e1a1804f1ef5c28ac55ccaa54b92e09794dfa5798d21c6346698bb0531dbf4ff707e1e058e58c12f3e572dd
+  checksum: 7b57947456e4a824c2a5d178a7d9d45a9553f6444bcf3d480eb89a0d7aa89cc450ecc1c9b0ec8cdfc0c3494d7900e6e496805c84e19aa32f70b8450e6e164fd3
   languageName: node
   linkType: hard
 
@@ -2861,6 +2861,25 @@ __metadata:
   version: 4.0.4
   resolution: "@tonomy/did-resolver@npm:4.0.4"
   checksum: 63998b014fbb50b4fb4f6f854de41daad970a9ce96b3f4f48b776bde45861d1579ab5f82a44f414c5dfcd7c08a2a3e9e73e299f0106e6b9c1b5ef832952b9abe
+  languageName: node
+  linkType: hard
+
+"@tonomy/tonomy-id-sdk@https://github.com/Tonomy-Foundation/Tonomy-ID-SDK.git#development":
+  version: 0.2.0
+  resolution: "@tonomy/tonomy-id-sdk@https://github.com/Tonomy-Foundation/Tonomy-ID-SDK.git#commit=2d75faf25bc291c4e98f6fa5a0cc2ec68d072548"
+  dependencies:
+    "@consento/sync-randombytes": ^1.0.5
+    "@greymass/eosio": ^0.6.4
+    "@tonomy/antelope-did": ^0.1.5
+    "@tonomy/antelope-did-resolver": ^0.2.2
+    "@tonomy/antelope-ssi-toolkit": ^1.1.0
+    "@tonomy/did-jwt": ^6.10.1
+    "@tonomy/did-jwt-vc": ^3.1.3
+    "@tonomy/did-resolver": ^4.0.4
+    cross-fetch: ^3.1.5
+    elliptic: ^6.5.4
+    socket.io-client: ^4.5.4
+  checksum: 54668f6a1c98edf9216422e73573e2535dbc85e2eb7ba151f21daf950d48f53829daafd8d5f2c2360096826b6da1b08834764567acfd285e61332f0293464f49
   languageName: node
   linkType: hard
 
@@ -3121,9 +3140,9 @@ __metadata:
   linkType: hard
 
 "@types/node@npm:*, @types/node@npm:>=10.0.0":
-  version: 18.14.2
-  resolution: "@types/node@npm:18.14.2"
-  checksum: 53c07e721f6ae33de71306f6a0b75dae6066a4f55bd5484c93bd59ff25f0c5f004ceafeef509a4d0cb9e24a247efc34d50489bcc1b05a53ecc68e2fc088e65cb
+  version: 18.14.5
+  resolution: "@types/node@npm:18.14.5"
+  checksum: 415fb0edc132baa9580f1b7a381a3f10b662f5d7a7d11641917fa0961788ccede3272badc414aadc47306e9fc35c5f6c59159ac470b46d3f3a15fb0446224c8c
   languageName: node
   linkType: hard
 
@@ -3213,9 +3232,9 @@ __metadata:
   linkType: hard
 
 "@types/validator@npm:^13.7.10":
-  version: 13.7.12
-  resolution: "@types/validator@npm:13.7.12"
-  checksum: 98fc9cb0e0af31a8cf7f3234dbd8391a937b1596cdfea16f21f4228f46d70eea2ebc1128ff6c4041ec7db2d94f093eeb441e66ce1eb9902157b6c44d01066fe2
+  version: 13.7.13
+  resolution: "@types/validator@npm:13.7.13"
+  checksum: 7a80d3da763f3d00342a0b14c09ca3f891c9b503ce1d4e39cde4c2ccba00b9592cde33950844fd557a2f666cfe0aff905b5ca9789b61d178729b7df783034df5
   languageName: node
   linkType: hard
 
@@ -4378,9 +4397,9 @@ __metadata:
   linkType: hard
 
 "caniuse-lite@npm:^1.0.30001449":
-  version: 1.0.30001458
-  resolution: "caniuse-lite@npm:1.0.30001458"
-  checksum: 258cc5a25babbbfe483bf788c6f321a19400ff80b2bf156b360bac09a6f9f4da44516350d187a30395667cb142c682d9ea96577ea0df236d35f76234b07ccb41
+  version: 1.0.30001460
+  resolution: "caniuse-lite@npm:1.0.30001460"
+  checksum: dad91eb82aa65aecf33ad6a04ad620b9df6f0152020dc6c1874224e8c6f4aa50695f585201b3dfcd2760b3c43326a86c9505cc03af856698fbef67b267ef786f
   languageName: node
   linkType: hard
 
@@ -5099,9 +5118,9 @@ __metadata:
   linkType: hard
 
 "dompurify@npm:^2.2.7":
-  version: 2.4.4
-  resolution: "dompurify@npm:2.4.4"
-  checksum: 6a29c2a1b76c0723564d009a26b9123e23ea61ac5d6f30cdcdd01f4d48b257a99adb5952c7a08390a7323353dbb333ad7d650c7cf3f5b6b5bb81eab5826a7f7c
+  version: 2.4.5
+  resolution: "dompurify@npm:2.4.5"
+  checksum: d6d3c3b320f15cdb5b26aa1902c3275a3ab2c3705a9df4420bb94691d7c4df67959ec7b91e486c308320791b0ee000456f042734c45d76721e61c2768eac706e
   languageName: node
   linkType: hard
 
@@ -5132,9 +5151,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.4.284":
-  version: 1.4.314
-  resolution: "electron-to-chromium@npm:1.4.314"
-  checksum: c6d0c7158e663e5a3ea90c2adeb242b182d8c9c453a530158e3c10292c8507615e469c680771f6fab0166e59afc146546e4bfd8fec952a8c26c315ddcedf0b21
+  version: 1.4.317
+  resolution: "electron-to-chromium@npm:1.4.317"
+  checksum: 7b7765cdc28fe107f40c21952efd2dd62952d625a28b0700b7302b53b347f5f3c22ab7fae56088b6e32af0de4512a430bd5b1fd2edcc25fd7c5a7619987b38c8
   languageName: node
   linkType: hard
 
@@ -5498,11 +5517,11 @@ __metadata:
   linkType: hard
 
 "esquery@npm:^1.4.2":
-  version: 1.4.2
-  resolution: "esquery@npm:1.4.2"
+  version: 1.5.0
+  resolution: "esquery@npm:1.5.0"
   dependencies:
     estraverse: ^5.1.0
-  checksum: 2f4ad89c5aafaca61cc2c15e256190f0d6deb4791cae6552d3cb4b1eb8867958cdf27a56aaa3272ff17435e3eaa19ee0d4129fac336ca6373d7354d7b5da7966
+  checksum: aefb0d2596c230118656cd4ec7532d447333a410a48834d80ea648b1e7b5c9bc9ed8b5e33a89cb04e487b60d622f44cf5713bf4abed7c97343edefdc84a35900
   languageName: node
   linkType: hard
 
@@ -10349,6 +10368,7 @@ __metadata:
     "@nestjs/swagger": ^6.1.4
     "@nestjs/testing": ^9.0.0
     "@nestjs/websockets": ^9.2.1
+    "@tonomy/tonomy-id-sdk": "https://github.com/Tonomy-Foundation/Tonomy-ID-SDK.git#development"
     "@types/express": ^4.17.13
     "@types/jest": 29.2.4
     "@types/node": 18.11.18
@@ -10367,7 +10387,6 @@ __metadata:
     rxjs: ^7.2.0
     source-map-support: ^0.5.20
     supertest: ^6.1.3
-    tonomy-id-sdk: "https://github.com/Tonomy-Foundation/Tonomy-ID-SDK.git#feature/234-messaging"
     ts-jest: 29.0.3
     ts-loader: ^9.2.3
     ts-node: ^10.0.0
@@ -10375,25 +10394,6 @@ __metadata:
     typescript: ^4.7.4
   languageName: unknown
   linkType: soft
-
-"tonomy-id-sdk@https://github.com/Tonomy-Foundation/Tonomy-ID-SDK.git#feature/234-messaging":
-  version: 0.2.0
-  resolution: "tonomy-id-sdk@https://github.com/Tonomy-Foundation/Tonomy-ID-SDK.git#commit=1b51c8ba3d210884c11accc54f41d75c824d1fcf"
-  dependencies:
-    "@consento/sync-randombytes": ^1.0.5
-    "@greymass/eosio": ^0.6.4
-    "@tonomy/antelope-did": ^0.1.5
-    "@tonomy/antelope-did-resolver": ^0.2.1
-    "@tonomy/antelope-ssi-toolkit": ^1.1.0
-    "@tonomy/did-jwt": ^6.10.0
-    "@tonomy/did-jwt-vc": ^3.1.3
-    "@tonomy/did-resolver": ^4.0.4
-    cross-fetch: ^3.1.5
-    elliptic: ^6.5.4
-    socket.io-client: ^4.5.4
-  checksum: 1f165d2601ec95194da532a3f746ffae1d4cb0c65a2bb45e68f0907c04ad8cd1cdd5975b7e7ce69d01f0c35530fb5430c7f6d9bd5dc52f17406643ceecae06ca
-  languageName: node
-  linkType: hard
 
 "tough-cookie@npm:^4.0.0":
   version: 4.1.2

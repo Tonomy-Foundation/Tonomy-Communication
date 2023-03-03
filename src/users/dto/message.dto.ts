@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Message } from 'tonomy-id-sdk';
+import { Message } from '@tonomy/tonomy-id-sdk';
 
 export class MessageDto extends Message {}
 
