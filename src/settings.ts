@@ -1,3 +1,5 @@
+import * as configDefault from './config/config.json';
+import * as configStaging from './config/config.staging.json';
 const env = process.env.NODE_ENV || 'development';
 
 console.log(`NODE_ENV=${env}`);
@@ -22,14 +24,13 @@ switch (env) {
   case 'test':
   case 'local':
   case 'development':
-    config = require('./config/config.json');
+    config = configDefault;
     // TODO find a better way switch images
     break;
   case 'staging':
-    config = require('./config/config.staging.json');
+    config = configStaging;
     break;
   case 'production':
-    config = require('./config/config.json');
     // TODO add production config when ready
     break;
   default:
