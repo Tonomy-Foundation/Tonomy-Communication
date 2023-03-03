@@ -9,27 +9,19 @@ import {
 } from '@nestjs/websockets';
 import { UsersService } from './users.service';
 import { Socket } from 'socket.io';
-import { Catch, Logger, UsePipes, ValidationPipe } from '@nestjs/common';
+import {
+  Catch,
+  Logger,
+  UseGuards,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { AsyncApiPub, AsyncApiSub } from 'nestjs-asyncapi';
 import { TransformVcPipe } from './transform-vc/transform-vc.pipe';
 import { MessageDto, MessageRto } from './dto/message.dto';
 import { Client } from './dto/client.dto';
 
-@UsePipes(
-  // new ValidationPipe({
-  //   transform: true,
-
-  //   exceptionFactory(validationErrors = []) {
-  //     if (this.isDetailedOutputDisabled) {
-  //       return new WsException('Bad request');
-  //     }
-  //     const errors = flattenValidationErrors(validationErrors);
-
-  //     return new WsException(errors);
-  //   },
-  // }),
-  new TransformVcPipe(),
-)
+@UsePipes(new TransformVcPipe())
 @WebSocketGateway({
   cors: {
     origin: '*',
@@ -42,19 +34,19 @@ export class UsersGateway implements OnGatewayDisconnect {
   constructor(private readonly usersService: UsersService) {}
 
   /**
-   * connects notLoggedin user on the website to the app
-   * @param connectUserDto the not Loggedin user data needed to connect clients with each other
+   * logges in the user and added it to the loggedIn map
+   * @param message the VC the user sent
    * @param client user socket
    * @returns void
    */
   @SubscribeMessage('login')
-  // @AsyncApiPub({
-  //   channel: 'login',
-  //   message: {
-  //     payload: '',
-  //   },
-  //   description: 'login to the messaging service ',
-  // })
+  @AsyncApiPub({
+    channel: 'login',
+    message: {
+      payload: MessageRto,
+    },
+    description: 'login to the messaging service ',
+  })
   connectUser(
     @MessageBody() message: MessageDto,
     @ConnectedSocket() client: Client,
@@ -62,6 +54,12 @@ export class UsersGateway implements OnGatewayDisconnect {
     return this.usersService.login(message.getSender(), client);
   }
 
+  /**
+   * sends the message to the VC recipient if is connected and loggedIn
+   * @param message the VC the user sent
+   * @param client user socket
+   * @returns void
+   */
   @SubscribeMessage('message')
   @AsyncApiPub({
     channel: 'message',
@@ -78,6 +76,10 @@ export class UsersGateway implements OnGatewayDisconnect {
     return this.usersService.sendMessage(client, message);
   }
 
+  /**
+   * safely disconnect the user from the server when user disconnects
+   * @param socket user socket
+   */
   handleDisconnect(socket: Client) {
     this.usersService.safeDisconnect(socket);
   }
