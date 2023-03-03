@@ -25,7 +25,6 @@ switch (env) {
   case 'local':
   case 'development':
     config = configDefault;
-    // TODO find a better way switch images
     break;
   case 'staging':
     config = configStaging;
