@@ -27,6 +27,7 @@
     "@nestjs/platform-socket.io": "^9.2.1",
     "@nestjs/swagger": "^6.1.4",
     "@nestjs/websockets": "^9.2.1",
+    "@tonomy/tonomy-id-sdk": "https://github.com/Tonomy-Foundation/Tonomy-ID-SDK.git#development",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
     "nestjs-asyncapi": "^1.0.4",
@@ -73,5 +74,8 @@
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
   },
-  "packageManager": "yarn@3.1.1"
+  "packageManager": "yarn@3.1.1",
+  "resolutions": {
+    "@greymass/eosio": "^0.6.4"
+  }
 }

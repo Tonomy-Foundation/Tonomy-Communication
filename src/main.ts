@@ -2,11 +2,16 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AsyncApiDocumentBuilder, AsyncApiModule } from 'nestjs-asyncapi';
 import { AppModule } from './app.module';
-import { UsersModule } from './users/users.module';
-import { UsersService } from './users/users.service';
+import { setSettings } from '@tonomy/tonomy-id-sdk';
+import settings from './settings';
+
+setSettings({
+  blockchainUrl: settings.config.blockchainUrl,
+});
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
   const asyncApiOptions = new AsyncApiDocumentBuilder()
@@ -26,8 +31,10 @@ async function bootstrap() {
     app,
     asyncApiOptions,
   );
+
   await AsyncApiModule.setup('/api', app, asyncapiDocument);
 
   await app.listen(5000);
 }
+
 bootstrap();

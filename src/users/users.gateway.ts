@@ -3,40 +3,16 @@ import {
   SubscribeMessage,
   MessageBody,
   ConnectedSocket,
-  WebSocketServer,
-  OnGatewayConnection,
   OnGatewayDisconnect,
-  WsException,
-  BaseWsExceptionFilter,
 } from '@nestjs/websockets';
 import { UsersService } from './users.service';
-import { RegisterUserDto as ConnectUserDto } from './dto/register-user.dto';
-import { LoginUserDto } from './dto/login-user.dto';
-import {
-  ArgumentsHost,
-  BadRequestException,
-  Catch,
-  Logger,
-  UsePipes,
-  ValidationPipe,
-} from '@nestjs/common';
-import { AsyncApiPub, AsyncApiSub } from 'nestjs-asyncapi';
-import { SocketDto } from './dto/socket.dto';
-import { SendJwtDto } from './dto/send-jwt-.dto';
+import { Logger, UsePipes } from '@nestjs/common';
+import { AsyncApiPub } from 'nestjs-asyncapi';
+import { TransformVcPipe } from './transform-vc/transform-vc.pipe';
+import { MessageDto, MessageRto } from './dto/message.dto';
+import { Client } from './dto/client.dto';
 
-@UsePipes(
-  new ValidationPipe({
-    transform: true,
-    exceptionFactory(validationErrors = []) {
-      if (this.isDetailedOutputDisabled) {
-        return new WsException('Bad request');
-      }
-      const errors = this.flattenValidationErrors(validationErrors);
-
-      return new WsException(errors);
-    },
-  }),
-)
+@UsePipes(new TransformVcPipe())
 @WebSocketGateway({
   cors: {
     origin: '*',
@@ -48,61 +24,54 @@ export class UsersGateway implements OnGatewayDisconnect {
   private readonly logger = new Logger(UsersGateway.name);
   constructor(private readonly usersService: UsersService) {}
 
-  handleDisconnect(client: SocketDto) {
-    this.usersService.safeDisconnect(client);
-  }
-
   /**
-   * connects notLoggedin user on the website to the app
-   * @param connectUserDto the not Loggedin user data needed to connect clients with each other
+   * logges in the user and added it to the loggedIn map
+   * @param message the VC the user sent
    * @param client user socket
    * @returns void
    */
-  @SubscribeMessage('connectTonomy')
+  @SubscribeMessage('login')
   @AsyncApiPub({
-    channel: 'connectTonomy',
+    channel: 'login',
     message: {
-      payload: ConnectUserDto,
+      payload: MessageRto,
     },
-    description: 'Connects Client to the channel',
+    description: 'login to the messaging service ',
   })
   connectUser(
-    @MessageBody() connectUserDto: ConnectUserDto,
-    @ConnectedSocket() client: SocketDto,
+    @MessageBody() message: MessageDto,
+    @ConnectedSocket() client: Client,
   ) {
-    this.logger.debug(`user connected to  ${connectUserDto.randomSeed}`);
-    const result = this.usersService.register(connectUserDto, client);
-    const message = result ? 'succeed' : 'User already registered';
-    return { message };
+    return this.usersService.login(message.getSender(), client);
   }
 
-  @SubscribeMessage('sendLoginJwt')
+  /**
+   * sends the message to the VC recipient if is connected and loggedIn
+   * @param message the VC the user sent
+   * @param client user socket
+   * @returns void
+   */
+  @SubscribeMessage('message')
   @AsyncApiPub({
-    channel: 'sendLoginJwt',
+    channel: 'message',
     message: {
-      payload: SendJwtDto,
+      payload: MessageRto,
     },
+    description:
+      'send message to client the message must be signed VC having a recipient',
   })
-  sendLoginJwt(
-    @MessageBody() data: SendJwtDto,
-    @ConnectedSocket() client: SocketDto,
+  relayMessage(
+    @MessageBody() message: MessageDto,
+    @ConnectedSocket() client: Client,
   ) {
-    this.usersService.sendLoginJwt(data, client);
+    return this.usersService.sendMessage(client, message);
   }
 
-  //TODO: change this to connect users based on did:key
-  @SubscribeMessage('loginUser')
-  @AsyncApiPub({
-    channel: 'loginUser',
-    message: {
-      payload: LoginUserDto,
-    },
-  })
-  loginUser(
-    @MessageBody()
-    data: LoginUserDto,
-    @ConnectedSocket() client: SocketDto,
-  ) {
-    this.usersService.login(client, data);
+  /**
+   * safely disconnect the user from the server when user disconnects
+   * @param socket user socket
+   */
+  handleDisconnect(socket: Client) {
+    this.usersService.safeDisconnect(socket);
   }
 }
