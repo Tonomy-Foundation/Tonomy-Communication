@@ -5,13 +5,13 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # Install app dependencies
-RUN npm i -g yarn
+RUN npm install --global yarn
 RUN yarn install
 
 # Bundle app source
 COPY . .
 
-RUN yarn run build
+RUN yarn run builda
 
 # Start the server using the production build
 CMD [ "yarn","start:prod" ]
