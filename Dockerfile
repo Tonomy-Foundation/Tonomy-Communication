@@ -1,10 +1,8 @@
 FROM node:18.12.1 AS tonomy_communication_base
 
-# WORKDIR /usr/src/app
+WORKDIR /user/src/app
 
-# COPY ./ ./
-WORKDIR /app
-COPY . .
+COPY ./ ./
 
 RUN yarn install
 RUN yarn run build
