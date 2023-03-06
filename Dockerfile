@@ -1,8 +1,5 @@
 FROM node:18.12.1 AS tonomy_communication_base
 
-# WORKDIR /usr/src/app
-
-# COPY ./ ./
 WORKDIR /app
 COPY . .
 
