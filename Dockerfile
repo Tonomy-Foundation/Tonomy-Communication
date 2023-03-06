@@ -2,14 +2,19 @@ FROM node:18.12.1 AS tonomy_communication_base
 
 WORKDIR /usr/src/app
 
+COPY package*.json ./
+
+# Install app dependencies
+RUN npm i -g yarn
+RUN yarn install
+
+# Bundle app source
 COPY . .
 
-RUN yarn install
 RUN yarn run build
 
-EXPOSE 5000
-
-CMD [ "npm", "run", "start:prod" ]
+# Start the server using the production build
+CMD [ "yarn","start:prod" ]
 
 FROM tonomy_communication_base AS tonomy_communication_staging
 
