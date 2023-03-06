@@ -1,11 +1,11 @@
 FROM node:18.12.1 AS tonomy_communication_base
 
-WORKDIR /app
-
-COPY ./package.json ./
-RUN yarn install
+WORKDIR /usr/src/app
 
 COPY . .
+COPY ./package.json ./yarn.lock ./
+
+RUN yarn install
 RUN yarn run build
 
 EXPOSE 5000
