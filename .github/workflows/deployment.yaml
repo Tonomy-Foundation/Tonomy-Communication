@@ -1,15 +1,20 @@
 name: CD Publish Docker Container
 
+# on:
+#   pull_request:
+#     types:
+#       - closed
+#     branches:
+#       - development
+
 on:
-  pull_request:
-    types:
-      - closed
+  push:
     branches:
-      - development
+      - "feature/6-publish-docker-container"
 
 jobs:
   build:
-    if: github.event.pull_request.merged == true
+    # if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       -
