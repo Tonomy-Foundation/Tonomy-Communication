@@ -3,7 +3,6 @@ FROM node:18.12.1 AS tonomy_communication_base
 WORKDIR /user/src/app
 
 COPY ./ ./
-
 RUN yarn install
 RUN yarn run build
 
