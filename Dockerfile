@@ -11,7 +11,7 @@ RUN yarn install
 # Bundle app source
 COPY . .
 
-RUN yarn run builda
+RUN yarn run build
 
 # Start the server using the production build
 CMD [ "yarn","start:prod" ]
