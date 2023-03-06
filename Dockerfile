@@ -5,7 +5,7 @@ USER node
 COPY package*.json ./
 
 # Install app dependencies
-RUN npm install --global yarn
+RUN corepack enable
 RUN yarn install
 
 # Bundle app source
