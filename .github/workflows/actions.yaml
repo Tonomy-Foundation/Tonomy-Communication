@@ -6,12 +6,14 @@ jobs:
   tests:
     runs-on: ubuntu-latest
   
-steps:
-  - uses: actions/checkout@v3
-  - name: Run lint and test
-    uses: actions/setup-node@v3
-    with:
-      node-version: 16.4.1
-  - run: yarn install
-  - run: yarn lint
-  - run: yarn test
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run lint and test
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.12.1
+      - run: corepack enable
+      - run: yarn install
+      - run: yarn run lint
+      - run: yarn run test
