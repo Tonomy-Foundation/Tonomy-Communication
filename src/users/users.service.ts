@@ -1,35 +1,54 @@
-import { Injectable } from '@nestjs/common';
-import { WebSocketServer } from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
-import { LoginUserDto } from './dto/login-user.dto';
-import { RegisterUserDto } from './dto/register-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { AsyncApiSub, AsyncApi } from 'nestjs-asyncapi';
+import { Socket } from 'socket.io';
+import { Client } from './dto/client.dto';
+import { MessageDto, MessageRto } from './dto/message.dto';
 
+@AsyncApi()
 @Injectable()
 export class UsersService {
-  @WebSocketServer()
-  private server: Server;
+  private readonly loggedInUsers = new Map<string, Socket['id']>();
 
-  register(createUserDto: RegisterUserDto, socket: Socket) {
-    socket.join(createUserDto.randomSeed.toString());
+  /**
+   * delete the disconnecting user from the users map
+   * @param socket user socket
+   */
+  safeDisconnect(socket: Client) {
+    this.loggedInUsers.delete(socket.did);
   }
 
-  findAll() {
-    return `This action returns all users`;
+  /**
+   * add user to the loggedIn Map and add user's did to his socket for easier use
+   * @param did the user did
+   * @param socket user socket
+   * @returns boolean if user is connected successfully
+   */
+  login(did: string, socket: Client): boolean {
+    if (this.loggedInUsers.get(did)) return false;
+    this.loggedInUsers.set(did, socket.id);
+    socket.did = did;
+    return true;
   }
 
-  findOne(id: string): Socket {
-    return this.server.sockets.sockets.get(id);
-  }
+  /**
+   * send the message to the right user if user is connected
+   * @param socket user socket
+   * @param message signed VC
+   * @throws if the receiving user isn't online or loggedIn
+   * @returns boolean if message is sent to the user
+   */
+  @AsyncApiSub({
+    channel: 'message',
+    message: {
+      payload: MessageRto,
+    },
+    description: 'receive message from client',
+  })
+  sendMessage(socket: Client, message: MessageDto): boolean {
+    const recipient = this.loggedInUsers.get(message.getRecipient());
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
-
-  login(client: Socket, data: LoginUserDto) {
-    client.to(data.randomSeed.toString()).emit('loggedIn', data);
-    client.join(data.username);
-    client.leave(data.randomSeed.toString());
-    client.rooms[data.randomSeed.toString()];
+    if (!recipient) throw new NotFoundException();
+    socket.to(recipient).emit('message', message.jwt);
+    return true;
   }
 }

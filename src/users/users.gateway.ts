@@ -3,57 +3,75 @@ import {
   SubscribeMessage,
   MessageBody,
   ConnectedSocket,
-  WebSocketServer,
-  OnGatewayConnection,
+  OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { UsersService } from './users.service';
-import { RegisterUserDto } from './dto/register-user.dto';
-import { Socket } from 'socket.io';
-import { LoginUserDto } from './dto/login-user.dto';
-import { Logger, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Logger, UsePipes } from '@nestjs/common';
+import { AsyncApiPub } from 'nestjs-asyncapi';
+import { TransformVcPipe } from './transform-vc/transform-vc.pipe';
+import { MessageDto, MessageRto } from './dto/message.dto';
+import { Client } from './dto/client.dto';
 
-@WebSocketGateway()
-export class UsersGateway implements OnGatewayConnection {
-  constructor(
-    private readonly usersService: UsersService,
-    private logger: Logger,
-  ) {}
+@UsePipes(new TransformVcPipe())
+@WebSocketGateway({
+  cors: {
+    origin: '*',
+    allowedHeaders: '*',
+    credentials: true,
+  },
+})
+export class UsersGateway implements OnGatewayDisconnect {
+  private readonly logger = new Logger(UsersGateway.name);
+  constructor(private readonly usersService: UsersService) {}
 
-  handleConnection() {
-    return 'hello world';
-  }
-
-  @SubscribeMessage('registerUser')
-  registerUser(
-    @MessageBody() registerUserDto: RegisterUserDto,
-    @ConnectedSocket() client: Socket,
+  /**
+   * logges in the user and added it to the loggedIn map
+   * @param message the VC the user sent
+   * @param client user socket
+   * @returns void
+   */
+  @SubscribeMessage('login')
+  @AsyncApiPub({
+    channel: 'login',
+    message: {
+      payload: MessageRto,
+    },
+    description: 'login to the messaging service ',
+  })
+  connectUser(
+    @MessageBody() message: MessageDto,
+    @ConnectedSocket() client: Client,
   ) {
-    console.log(registerUserDto.randomSeed);
-    this.logger.debug(registerUserDto);
-    return this.usersService.register(registerUserDto, client);
+    return this.usersService.login(message.getSender(), client);
   }
 
-  @SubscribeMessage('loginUser')
-  loginUser(
-    @MessageBody()
-    data: LoginUserDto,
-    @ConnectedSocket() client: Socket,
+  /**
+   * sends the message to the VC recipient if is connected and loggedIn
+   * @param message the VC the user sent
+   * @param client user socket
+   * @returns void
+   */
+  @SubscribeMessage('message')
+  @AsyncApiPub({
+    channel: 'message',
+    message: {
+      payload: MessageRto,
+    },
+    description:
+      'send message to client the message must be signed VC having a recipient',
+  })
+  relayMessage(
+    @MessageBody() message: MessageDto,
+    @ConnectedSocket() client: Client,
   ) {
-    this.usersService.login(client, data);
+    return this.usersService.sendMessage(client, message);
   }
 
-  // @SubscribeMessage('findAllUsers')
-  // findAll() {
-  //   return this.usersService.findAll();
-  // }
-
-  // @SubscribeMessage('updateUser')
-  // update(@MessageBody() updateUserDto: UpdateUserDto) {
-  //   return this.usersService.update(updateUserDto.id, updateUserDto);
-  // }
-
-  // @SubscribeMessage('removeUser')
-  // remove(@MessageBody() id: number) {
-  //   return this.usersService.remove(id);
-  // }
+  /**
+   * safely disconnect the user from the server when user disconnects
+   * @param socket user socket
+   */
+  handleDisconnect(socket: Client) {
+    this.usersService.safeDisconnect(socket);
+  }
 }
