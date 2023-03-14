@@ -25,9 +25,10 @@ export class UsersGateway implements OnGatewayDisconnect {
   constructor(private readonly usersService: UsersService) {}
 
   /**
-   * logges in the user and added it to the loggedIn map
-   * @param message the VC the user sent
-   * @param client user socket
+   * Logs in the user and added it to the loggedIn map
+   *
+   * @param {MessageDto} message - the VC the user sent
+   * @param {Client} client - user socket
    * @returns void
    */
   @SubscribeMessage('login')
