@@ -2864,9 +2864,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tonomy/tonomy-id-sdk@https://github.com/Tonomy-Foundation/Tonomy-ID-SDK.git#development":
-  version: 0.2.0
-  resolution: "@tonomy/tonomy-id-sdk@https://github.com/Tonomy-Foundation/Tonomy-ID-SDK.git#commit=3d741f52a10645c0aedc977c4ae7346271c088a3"
+"@tonomy/tonomy-id-sdk@npm:latest":
+  version: 0.3.8
+  resolution: "@tonomy/tonomy-id-sdk@npm:0.3.8"
   dependencies:
     "@consento/sync-randombytes": ^1.0.5
     "@greymass/eosio": ^0.6.4
@@ -2879,7 +2879,7 @@ __metadata:
     cross-fetch: ^3.1.5
     elliptic: ^6.5.4
     socket.io-client: ^4.5.4
-  checksum: 1fa114b8834f5c9e164d22a579356e89e899b6bbcab71b41029f2abf205f13c293cac08db20ef1aeab83c95bece0fa90fa8498f6d15a396d1e6438625cc15afa
+  checksum: 9f9180ce76250e657623dc831ba35f869616e8b2454fb2b409887ef8110b06327a7fb1a9f9214d94b58b6e17e1e938835204605a0f454f640138faf2d469c6f4
   languageName: node
   linkType: hard
 
@@ -10368,7 +10368,7 @@ __metadata:
     "@nestjs/swagger": ^6.1.4
     "@nestjs/testing": ^9.0.0
     "@nestjs/websockets": ^9.2.1
-    "@tonomy/tonomy-id-sdk": "https://github.com/Tonomy-Foundation/Tonomy-ID-SDK.git#development"
+    "@tonomy/tonomy-id-sdk": latest
     "@types/express": ^4.17.13
     "@types/jest": 29.2.4
     "@types/node": 18.11.18
