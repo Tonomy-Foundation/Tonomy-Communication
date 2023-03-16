@@ -1,4 +1,4 @@
-name: Run Communication Services Tests
+name: Run Communication Services Tests and Build
 
 on: pull_request
 
@@ -23,3 +23,10 @@ jobs:
           node-version: 18.12.1
       - run: yarn run lint
       - run: yarn run test
+
+      - name: Build The App
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.12.1
+      - run: yarn run build
+
