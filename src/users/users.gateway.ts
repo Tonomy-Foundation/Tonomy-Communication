@@ -4,14 +4,17 @@ import {
   MessageBody,
   ConnectedSocket,
   OnGatewayDisconnect,
+  BaseWsExceptionFilter,
 } from '@nestjs/websockets';
 import { UsersService } from './users.service';
-import { Logger, UsePipes } from '@nestjs/common';
+import { Logger, UseFilters, UsePipes } from '@nestjs/common';
 import { AsyncApiPub } from 'nestjs-asyncapi';
 import { TransformVcPipe } from './transform-vc/transform-vc.pipe';
 import { MessageDto, MessageRto } from './dto/message.dto';
 import { Client } from './dto/client.dto';
+import { WsExceptionFilter } from './ws-exception/ws-exception.filter';
 
+@UseFilters(WsExceptionFilter)
 @UsePipes(new TransformVcPipe())
 @WebSocketGateway({
   cors: {
@@ -20,6 +23,7 @@ import { Client } from './dto/client.dto';
     credentials: true,
   },
 })
+@UseFilters(new BaseWsExceptionFilter())
 export class UsersGateway implements OnGatewayDisconnect {
   private readonly logger = new Logger(UsersGateway.name);
   constructor(private readonly usersService: UsersService) {}

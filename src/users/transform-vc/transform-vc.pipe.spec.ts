@@ -1,18 +1,31 @@
+import { WsException } from '@nestjs/websockets';
+import { setSettings } from '@tonomy/tonomy-id-sdk';
 import { MessageDto } from '../dto/message.dto';
 import { TransformVcPipe } from './transform-vc.pipe';
 
+setSettings({});
 describe('TransformVcPipe', () => {
   it('should be defined', () => {
     expect(new TransformVcPipe()).toBeDefined();
   });
 
-  it('must transform antelope VC into message object', () => {
+  it('must transform antelope VC into message object and verifies it', async () => {
     const vc =
-      'eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJkaWQ6YW50ZWxvcGU6dGVsb3M6dW5pdmVyc2l0eSNwZXJtaXNzaW9uMCIsImp0aSI6Imh0dHBzOi8vZXhhbXBsZS5jb20vaWQvMTIzNDMyNCIsIm5iZiI6MTY3NjcxNDQ2OSwidmMiOnsiQGNvbnRleHQiOlsiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvdjEiXSwiY3JlZGVudGlhbFN1YmplY3QiOnsiZGVncmVlIjp7Im5hbWUiOiJCYWNjYWxhdXLDqWF0IGVuIG11c2lxdWVzIG51bcOpcmlxdWVzIiwidHlwZSI6IkJhY2hlbG9yRGVncmVlIn19LCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIl19fQ.oc9xx_owlXz8L_fhjXo-mNhWNWl7YoMAr50HAJ5-On2p_RgoJ-E8SWDrHkITQnr9ysSKa1pF7gUWbFdiLSuL3AA';
+      'eyJhbGciOiJFUzI1NkstUiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJkaWQ6andrOmV5SmpjbllpT2lKelpXTndNalUyYXpFaUxDSnJkSGtpT2lKRlF5SXNJbmdpT2lKWmFGTlJaeloyUkNzclpUSldkRkJGTWxWbVNrb3ZPR3BLU3k5SlpEaFdWMDVwTlcxVVJXNTJNalJGUFNJc0lua2lPaUpQVEZKT2RscDNhemRHYURKNGR6UnFja296WkZsYVQwWlJaMWN5YlRJM1pHWkdOVUZ3Y0ZveUwwaFZQU0lzSW10cFpDSTZJbEJWUWw5TE1WODNZVkp5Y204NFkybFJiemt5TVRSWFVrZDVhVU5vY25wQk9WZDBWMGhFTldKelExTjZTbFI2Wm5KV2JtVmhURVJJTmlKOSIsImp0aSI6Imh0dHBzOi8vZXhhbXBsZS5jb20vaWQvMTIzNDMyNCIsIm5iZiI6MTY3OTk5NDMwNywidmMiOnsiQGNvbnRleHQiOlsiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvdjEiXSwiY3JlZGVudGlhbFN1YmplY3QiOnsibWVzc2FnZSI6eyJjYWxsYmFja1BhdGgiOiIvY2FsbGJhY2siLCJvcmlnaW4iOiJodHRwOi8vMTkyLjE2OC42OC4xMTI6MzAwMSIsInB1YmxpY0tleSI6IlBVQl9LMV83YVJycm84Y2lRbzkyMTRXUkd5aUNocnpBOVd0V0hENWJzQ1N6SlR6ZnJWbmVhTERINiIsInJhbmRvbVN0cmluZyI6IjQzYWVmODYxZjdhMWU2OThjZDkzZjNlMTk1ZTNiZDA2NmIwM2Y4OGFiNTk4YzcxZWFlNWJmYTkxMmYwNjlmYzAifX0sInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXX19.zR5n3nZSGFjs6fRhbnDLfcWgWC1NMwOx1tuVijxi0Ixgzf4I3VrfTKkrzZP6ryrG_yUk_ecQvs8auzNEeqATxQA';
     const pipe = new TransformVcPipe();
-    const result = pipe.transform({ message: vc }, { type: 'body' });
+    const result = await pipe.transform({ message: vc }, { type: 'body' });
 
     expect(result).toBeTruthy();
     expect(result).toBeInstanceOf(MessageDto);
+  });
+
+  it('Verification fails if message isnt valid', async () => {
+    const vc =
+      'eyJhbGciOiJFUzI1NkstUiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJkaWQ6andrOmV5SmpjbllpT2lKelpXTndNalUyYXpFaUxDSnJkSGtpT2lKRlF5SXNJbmdpT2lKWmFGTlJaeloyUkNzclpUSldkRkJGTWxWbVNrb3ZPR3BLU3k5SlpEaFdWMDVwTlcxVVJXNTJNalJGUFNJc0lua2lPaUpQVEZKT2RscDNhemRHYURKNGR6UnFja296WkZsYVQwWlJaMWN5YlRJM1pHWkdOVUZ3Y0ZveUwwaFZQU0lzSW10cFpDSTZJbEJWUWw5TE1WODNZVkp5Y204NFkybFJiemt5TVRSWFVrZDVhVU5vY25wQk9WZDBWMGhFTldKelExTjZTbFI2Wm5KV2JtVmhURVJJTmlKOSIsImp0aSI6Imh0dHBzOi8vZXhhbXBsZS5jb20vaWQvMTIzNDMyNCIsIm5iZiI6MTY3OTk5NDMwNywidmMiOnsiQGNvbnRleHQiOlsiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvdjEiXSwiY3JlZGVudGlhbFN1YmplY3QiOnsibWVzc2FnZSI6eyJjYWxsYmFja1BhdGgiOiIvY2FsbGJhY2siLCJvcmlnaW4iOiJodHRwOi8vMTkyLjE2OC42OC4xMTI6MzAwMSIsInB1YmxpY0tleSI6IlBVQl9LMV83YVJycm84Y2lRbzkyMTRXUkd5aUNocnpBOVd0V0hENWJzQ1N6SlR6ZnJWbmVhTERINiIsInJhbmRvbVN0cmluZyI6IjQzYWVmODYxZjdhMWU2OThjZDkzZjNlMTk1ZTNiZDA2NmIwM2Y4OGFiNTk4YzcxZWFlNWJmYTkxMmYwNjlmYzAifX0sInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXX19.zR5n3nZSGFjs6fRhbnDLfcWgWC1NMwOx1tuVijxi0If4I3VrfTKkrzZP6ryrG_yUk_ecQvs8auzNEeqATxQA';
+    const pipe = new TransformVcPipe();
+
+    expect(pipe.transform({ message: vc }, { type: 'body' })).rejects.toThrow(
+      WsException,
+    );
   });
 });
