@@ -7,12 +7,12 @@ import {
   BaseWsExceptionFilter,
 } from '@nestjs/websockets';
 import { UsersService } from './users.service';
-import { Logger, UseFilters, UseGuards, UsePipes } from '@nestjs/common';
+import { Logger, UseFilters, UsePipes } from '@nestjs/common';
 import { AsyncApiPub } from 'nestjs-asyncapi';
 import { TransformVcPipe } from './transform-vc/transform-vc.pipe';
 import { MessageDto, MessageRto } from './dto/message.dto';
 import { Client } from './dto/client.dto';
-import { WsExceptionFilter } from 'src/ws-exception/ws-exception.filter';
+import { WsExceptionFilter } from './ws-exception/ws-exception.filter';
 
 @UseFilters(WsExceptionFilter)
 @UsePipes(new TransformVcPipe())
