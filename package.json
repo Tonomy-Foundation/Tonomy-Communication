@@ -76,7 +76,6 @@
   },
   "packageManager": "yarn@3.1.1",
   "resolutions": {
-    "@greymass/eosio": "^0.6.4",
-    "@tonomy/tonomy-id-sdk": "portal:../Tonomy-ID-SDK"
+    "@greymass/eosio": "^0.6.4"
   }
 }
