@@ -76,6 +76,7 @@
   },
   "packageManager": "yarn@3.1.1",
   "resolutions": {
-    "@greymass/eosio": "^0.6.4"
+    "@greymass/eosio": "^0.6.4",
+    "@openapi-contrib/openapi-schema-to-json-schema": "3.0.0"
   }
 }
