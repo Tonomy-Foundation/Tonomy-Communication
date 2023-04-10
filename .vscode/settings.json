@@ -1,0 +1,19 @@
+{
+    "eslint.validate": [
+        "javascript",
+        "javascriptreact",
+        "typescript",
+        "typescriptreact"
+    ],
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": true,
+    },
+    "jest.autoRun": {
+        "onSave": false
+    },
+    "jest.debugMode": false,
+    "jest.jestCommandLine": "npm run test",
+    "jest.testExplorer": {
+        "enabled": true
+    },
+}
