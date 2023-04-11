@@ -54,9 +54,9 @@ export class UsersGateway implements OnGatewayDisconnect {
     @MessageBody() message: MessageDto,
     @ConnectedSocket() client: Client,
   ) {
-    if (message.getType() !== MessageType.SERVICE_LOGIN) {
+    if (message.getType() !== MessageType.COMMUNICATION_LOGIN) {
       throw new HttpException(
-        "message type must be 'SERVICE_LOGIN'",
+        "message type must be 'COMMUNICATION_LOGIN'",
         HttpStatus.BAD_REQUEST,
       );
     }

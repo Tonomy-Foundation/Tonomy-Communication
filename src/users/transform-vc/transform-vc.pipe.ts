@@ -18,7 +18,10 @@ export class TransformVcPipe implements PipeTransform {
         const result = await message.verify();
 
         if (!result)
-          throw new HttpException('VC not Authorized', HttpStatus.UNAUTHORIZED);
+          throw new HttpException(
+            `VC not could not verify signer from ${message.getSender()}`,
+            HttpStatus.UNAUTHORIZED,
+          );
         return message;
       } catch (e) {
         throw new WsException(e);
