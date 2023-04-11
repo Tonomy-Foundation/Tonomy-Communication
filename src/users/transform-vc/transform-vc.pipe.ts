@@ -24,7 +24,11 @@ export class TransformVcPipe implements PipeTransform {
           );
         return message;
       } catch (e) {
-        throw new WsException(e);
+        if (e instanceof HttpException) {
+          throw e;
+        }
+
+        throw new HttpException(e, HttpStatus.INTERNAL_SERVER_ERROR);
       }
     }
 
