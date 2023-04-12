@@ -7,12 +7,19 @@ import {
   BaseWsExceptionFilter,
 } from '@nestjs/websockets';
 import { UsersService } from './users.service';
-import { Logger, UseFilters, UsePipes } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Logger,
+  UseFilters,
+  UsePipes,
+} from '@nestjs/common';
 import { AsyncApiPub } from 'nestjs-asyncapi';
 import { TransformVcPipe } from './transform-vc/transform-vc.pipe';
 import { MessageDto, MessageRto } from './dto/message.dto';
 import { Client } from './dto/client.dto';
 import { WsExceptionFilter } from './ws-exception/ws-exception.filter';
+import { MessageType } from '@tonomy/tonomy-id-sdk';
 
 @UseFilters(WsExceptionFilter)
 @UsePipes(new TransformVcPipe())
@@ -26,7 +33,7 @@ import { WsExceptionFilter } from './ws-exception/ws-exception.filter';
 @UseFilters(new BaseWsExceptionFilter())
 export class UsersGateway implements OnGatewayDisconnect {
   private readonly logger = new Logger(UsersGateway.name);
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   /**
    * Logs in the user and added it to the loggedIn map
@@ -47,6 +54,13 @@ export class UsersGateway implements OnGatewayDisconnect {
     @MessageBody() message: MessageDto,
     @ConnectedSocket() client: Client,
   ) {
+    if (message.getType() !== MessageType.COMMUNICATION_LOGIN) {
+      throw new HttpException(
+        "message type must be 'COMMUNICATION_LOGIN'",
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     return this.usersService.login(message.getSender(), client);
   }
 

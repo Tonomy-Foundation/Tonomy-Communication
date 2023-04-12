@@ -1,7 +1,7 @@
-import { WsException } from '@nestjs/websockets';
 import { setSettings } from '@tonomy/tonomy-id-sdk';
 import { MessageDto } from '../dto/message.dto';
 import { TransformVcPipe } from './transform-vc.pipe';
+import { HttpException } from '@nestjs/common';
 
 setSettings({});
 describe('TransformVcPipe', () => {
@@ -25,7 +25,7 @@ describe('TransformVcPipe', () => {
     const pipe = new TransformVcPipe();
 
     expect(pipe.transform({ message: vc }, { type: 'body' })).rejects.toThrow(
-      WsException,
+      HttpException,
     );
   });
 });

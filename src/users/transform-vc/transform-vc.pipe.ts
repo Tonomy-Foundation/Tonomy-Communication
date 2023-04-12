@@ -1,4 +1,10 @@
-import { ArgumentMetadata, Injectable, PipeTransform } from '@nestjs/common';
+import {
+  ArgumentMetadata,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  PipeTransform,
+} from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
 import { MessageDto, MessageRto } from '../dto/message.dto';
 
@@ -11,10 +17,18 @@ export class TransformVcPipe implements PipeTransform {
 
         const result = await message.verify();
 
-        if (!result) throw new WsException('VC not Authorized');
+        if (!result)
+          throw new HttpException(
+            `VC not could not verify signer from ${message.getSender()}`,
+            HttpStatus.UNAUTHORIZED,
+          );
         return message;
       } catch (e) {
-        throw new WsException(e);
+        if (e instanceof HttpException) {
+          throw e;
+        }
+
+        throw new HttpException(e, HttpStatus.INTERNAL_SERVER_ERROR);
       }
     }
 
