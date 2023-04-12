@@ -4,7 +4,7 @@
   "description": "",
   "author": "Rebal Alhaqash",
   "private": true,
-  "license": "MIT",
+  "license": "Apache-2.0",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -27,7 +27,7 @@
     "@nestjs/platform-socket.io": "^9.2.1",
     "@nestjs/swagger": "^6.1.4",
     "@nestjs/websockets": "^9.2.1",
-    "@tonomy/tonomy-id-sdk": "^0.3.35",
+    "@tonomy/tonomy-id-sdk": "^0.3.37",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
     "nestjs-asyncapi": "^1.0.4",
