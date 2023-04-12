@@ -2106,10 +2106,10 @@
   "resolved" "https://registry.npmjs.org/@tonomy/did-resolver/-/did-resolver-4.0.4.tgz"
   "version" "4.0.4"
 
-"@tonomy/tonomy-id-sdk@^0.3.27":
-  "integrity" "sha512-SzGoc5Q7WwvLY7X+9njwBAeQnHbwfjSV80YHQ7tl6GDoj+poYEBaVTUVHLLGETPyX/8TvkyWO7q1hoG33RA8eA=="
-  "resolved" "https://registry.npmjs.org/@tonomy/tonomy-id-sdk/-/tonomy-id-sdk-0.3.34.tgz"
-  "version" "0.3.34"
+"@tonomy/tonomy-id-sdk@^0.3.35":
+  "integrity" "sha512-7eqFHLWssjtFURTt9ZqGxfiXK8EKW7iXU66UdUEqpo5M+mODemYqcHw2Hhwfaoc1JEo/5uWu9naHOaKD+g4yEg=="
+  "resolved" "https://registry.npmjs.org/@tonomy/tonomy-id-sdk/-/tonomy-id-sdk-0.3.36.tgz"
+  "version" "0.3.36"
   dependencies:
     "@consento/sync-randombytes" "^1.0.5"
     "@greymass/eosio" "^0.6.4"
