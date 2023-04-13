@@ -52,7 +52,7 @@ export class UsersService {
         `Couldn't find recipient ${message.getRecipient()}`,
         HttpStatus.NOT_FOUND,
       );
-    socket.to(recipient).emit('message', message.jwt);
+    socket.to(recipient).emit('message', message.toString());
     return true;
   }
 }
