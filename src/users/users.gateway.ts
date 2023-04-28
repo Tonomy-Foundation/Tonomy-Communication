@@ -19,7 +19,7 @@ import { TransformVcPipe } from './transform-vc/transform-vc.pipe';
 import { MessageDto, MessageRto } from './dto/message.dto';
 import { Client } from './dto/client.dto';
 import { WsExceptionFilter } from './ws-exception/ws-exception.filter';
-import { MessageType } from '@tonomy/tonomy-id-sdk';
+import { AuthenticationMessage } from '@tonomy/tonomy-id-sdk';
 
 @UseFilters(WsExceptionFilter)
 @UsePipes(new TransformVcPipe())
@@ -54,9 +54,9 @@ export class UsersGateway implements OnGatewayDisconnect {
     @MessageBody() message: MessageDto,
     @ConnectedSocket() client: Client,
   ) {
-    if (message.getType() !== MessageType.COMMUNICATION_LOGIN) {
+    if (message.getType() !== AuthenticationMessage.getType()) {
       throw new HttpException(
-        "message type must be 'COMMUNICATION_LOGIN'",
+        "Message type must be 'AuthenticationMessage'",
         HttpStatus.BAD_REQUEST,
       );
     }
