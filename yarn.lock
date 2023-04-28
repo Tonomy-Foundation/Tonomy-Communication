@@ -212,12 +212,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@asyncapi/specs@npm:^4.1.1":
-  version: 4.2.0
-  resolution: "@asyncapi/specs@npm:4.2.0"
+"@asyncapi/specs@npm:4.1.1":
+  version: 4.1.1
+  resolution: "@asyncapi/specs@npm:4.1.1"
   dependencies:
     "@types/json-schema": ^7.0.11
-  checksum: 1eae980e1d7754469cf079bfbbaa2f1185b5fd0293f5bf5d7903014c81fb1c8658ef463a09f6dcca58081f87c0e98b3e0c13b09e3858c738bf209182472763e0
+  checksum: 9b8811ed81cfaded7bdcd38699e870d9bc38d31e4bb992c5b10dfb95d0157e523f26f0a433e5318941326f687a29d0f8929ef81859c18a198c4e19976809e099
   languageName: node
   linkType: hard
 
