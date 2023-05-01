@@ -40,9 +40,11 @@ switch (env) {
 if (process.env.BLOCKCHAIN_URL) {
   console.log(`Using BLOCKCHAIN_URL from env:  ${process.env.BLOCKCHAIN_URL}`);
 
-  config = Object.assign({ blockchainUrl: process.env.BLOCKCHAIN_URL }, config);
+  config = { blockchainUrl: process.env.BLOCKCHAIN_URL };
 }
 
 settings.config = config;
+
+console.log('settings', settings);
 
 export default settings;

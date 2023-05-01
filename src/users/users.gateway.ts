@@ -4,14 +4,24 @@ import {
   MessageBody,
   ConnectedSocket,
   OnGatewayDisconnect,
+  BaseWsExceptionFilter,
 } from '@nestjs/websockets';
 import { UsersService } from './users.service';
-import { Logger, UsePipes } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Logger,
+  UseFilters,
+  UsePipes,
+} from '@nestjs/common';
 import { AsyncApiPub } from 'nestjs-asyncapi';
 import { TransformVcPipe } from './transform-vc/transform-vc.pipe';
 import { MessageDto, MessageRto } from './dto/message.dto';
 import { Client } from './dto/client.dto';
+import { WsExceptionFilter } from './ws-exception/ws-exception.filter';
+import { AuthenticationMessage } from '@tonomy/tonomy-id-sdk';
 
+@UseFilters(WsExceptionFilter)
 @UsePipes(new TransformVcPipe())
 @WebSocketGateway({
   cors: {
@@ -20,14 +30,16 @@ import { Client } from './dto/client.dto';
     credentials: true,
   },
 })
+@UseFilters(new BaseWsExceptionFilter())
 export class UsersGateway implements OnGatewayDisconnect {
   private readonly logger = new Logger(UsersGateway.name);
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   /**
-   * logges in the user and added it to the loggedIn map
-   * @param message the VC the user sent
-   * @param client user socket
+   * Logs in the user and added it to the loggedIn map
+   *
+   * @param {MessageDto} message - the VC the user sent
+   * @param {Client} client - user socket
    * @returns void
    */
   @SubscribeMessage('login')
@@ -42,6 +54,13 @@ export class UsersGateway implements OnGatewayDisconnect {
     @MessageBody() message: MessageDto,
     @ConnectedSocket() client: Client,
   ) {
+    if (message.getType() !== AuthenticationMessage.getType()) {
+      throw new HttpException(
+        "Message type must be 'AuthenticationMessage'",
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     return this.usersService.login(message.getSender(), client);
   }
 

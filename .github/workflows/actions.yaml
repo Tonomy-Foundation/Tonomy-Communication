@@ -3,6 +3,23 @@ name: Run Communication Services Tests
 on: pull_request
 
 jobs:
+  check-sdk-version:
+      runs-on: ubuntu-20.04
+
+      steps:
+          - name: 🏗 Setup repo
+            uses: actions/checkout@v3
+
+          - name: 📦 Check it is using the latest version of the SDK
+            uses: actions/setup-node@v3
+            with:
+                node-version: 18.12.1
+          - run: corepack enable
+          - run: echo "YARNLOCK_SHA256_OLD=$(sha256sum yarn.lock)" >> $GITHUB_ENV
+          - run: yarn up @tonomy/tonomy-id-sdk
+          - run: echo "YARNLOCK_SHA256_NEW=$(sha256sum yarn.lock)" >> $GITHUB_ENV
+          - run: if [ "$YARNLOCK_SHA256_NEW" != "$YARNLOCK_SHA256_OLD" ]; then exit 1; fi
+
   tests:
     runs-on: ubuntu-latest
   
@@ -15,11 +32,12 @@ jobs:
           node-version: 18.12.1
       # corepack is needed to run yarn through npm
       - run: corepack enable
-      - run: yarn install
+      - run: yarn install --frozen-lockfile
 
       - name: Run lint and test
         uses: actions/setup-node@v3
         with:
           node-version: 18.12.1
+      - run: yarn run build
       - run: yarn run lint
       - run: yarn run test

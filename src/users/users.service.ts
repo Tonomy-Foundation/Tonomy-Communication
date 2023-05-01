@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { AsyncApiSub, AsyncApi } from 'nestjs-asyncapi';
 import { Socket } from 'socket.io';
 import { Client } from './dto/client.dto';
@@ -47,8 +47,12 @@ export class UsersService {
   sendMessage(socket: Client, message: MessageDto): boolean {
     const recipient = this.loggedInUsers.get(message.getRecipient());
 
-    if (!recipient) throw new NotFoundException();
-    socket.to(recipient).emit('message', message.jwt);
+    if (!recipient)
+      throw new HttpException(
+        `Couldn't find recipient ${message.getRecipient()}`,
+        HttpStatus.NOT_FOUND,
+      );
+    socket.to(recipient).emit('message', message.toString());
     return true;
   }
 }
