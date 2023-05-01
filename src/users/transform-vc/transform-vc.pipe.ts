@@ -12,9 +12,9 @@ import { MessageDto, MessageRto } from '../dto/message.dto';
 export class TransformVcPipe implements PipeTransform {
   async transform(value: MessageRto, metadata: ArgumentMetadata) {
     if (metadata.type === 'body') {
-      try {
-        const message = new MessageDto(value.message);
+      const message = new MessageDto(value.message);
 
+      try {
         const result = await message.verify();
 
         if (!result)
@@ -24,6 +24,17 @@ export class TransformVcPipe implements PipeTransform {
           );
         return message;
       } catch (e) {
+        if (
+          e.message?.startsWith(
+            'resolver_error: Unable to resolve DID document for',
+          )
+        ) {
+          throw new HttpException(
+            `DID could not be resolved from ${message.getSender()}`,
+            HttpStatus.UNAUTHORIZED,
+          );
+        }
+
         if (e instanceof HttpException) {
           throw e;
         }
