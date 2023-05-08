@@ -27,7 +27,7 @@
     "@nestjs/platform-socket.io": "^9.2.1",
     "@nestjs/swagger": "^6.1.4",
     "@nestjs/websockets": "^9.2.1",
-    "@tonomy/tonomy-id-sdk": "^0.3.45",
+    "@tonomy/tonomy-id-sdk": "^0.3.49",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
     "nestjs-asyncapi": "^1.0.4",
@@ -78,6 +78,7 @@
   "resolutions": {
     "@greymass/eosio": "^0.6.4",
     "@openapi-contrib/openapi-schema-to-json-schema": "3.0.0",
-    "@asyncapi/specs": "4.1.1"
+    "@asyncapi/specs": "4.1.1",
+    "@tonomy/tonomy-id-sdk": "portal:/home/dev/Documents/Git/Tonomy/Tonomy-ID-Integration/Tonomy-ID-SDK"
   }
 }
