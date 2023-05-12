@@ -86,8 +86,6 @@ export class UsersGateway implements OnGatewayDisconnect {
     @MessageBody() message: MessageDto,
     @ConnectedSocket() client: Client,
   ) {
-    console.log('sent message', message.getRecipient(), message.getType());
-
     return this.usersService.sendMessage(client, message);
   }
 

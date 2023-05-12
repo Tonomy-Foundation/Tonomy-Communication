@@ -14,6 +14,6 @@ export class UsersGuard implements CanActivate {
     const socket = context.switchToWs().getClient();
 
     if (socket.did) return true;
-    return false;
+    throw new UnauthorizedException('Please login to be able to use service');
   }
 }
