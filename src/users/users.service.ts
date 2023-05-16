@@ -24,7 +24,7 @@ export class UsersService {
    * @returns boolean if user is connected successfully
    */
   login(did: string, socket: Client): boolean {
-    if (this.loggedInUsers.get(did)) return false;
+    if (this.loggedInUsers.get(did) === socket.id) return false;
     this.loggedInUsers.set(did, socket.id);
     socket.did = did;
     return true;

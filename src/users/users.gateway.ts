@@ -12,6 +12,7 @@ import {
   HttpStatus,
   Logger,
   UseFilters,
+  UseGuards,
   UsePipes,
 } from '@nestjs/common';
 import { AsyncApiPub } from 'nestjs-asyncapi';
@@ -20,6 +21,7 @@ import { MessageDto, MessageRto } from './dto/message.dto';
 import { Client } from './dto/client.dto';
 import { WsExceptionFilter } from './ws-exception/ws-exception.filter';
 import { AuthenticationMessage } from '@tonomy/tonomy-id-sdk';
+import { UsersGuard } from './users.guard';
 
 @UseFilters(WsExceptionFilter)
 @UsePipes(new TransformVcPipe())
@@ -33,7 +35,7 @@ import { AuthenticationMessage } from '@tonomy/tonomy-id-sdk';
 @UseFilters(new BaseWsExceptionFilter())
 export class UsersGateway implements OnGatewayDisconnect {
   private readonly logger = new Logger(UsersGateway.name);
-  constructor(private readonly usersService: UsersService) { }
+  constructor(private readonly usersService: UsersService) {}
 
   /**
    * Logs in the user and added it to the loggedIn map
@@ -71,6 +73,7 @@ export class UsersGateway implements OnGatewayDisconnect {
    * @returns void
    */
   @SubscribeMessage('message')
+  @UseGuards(UsersGuard)
   @AsyncApiPub({
     channel: 'message',
     message: {
