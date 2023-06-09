@@ -24,6 +24,7 @@ export class UsersService {
    * @returns boolean if user is connected successfully
    */
   login(did: string, socket: Client): boolean {
+    if (process.env.LOG === 'true') console.log('login', did, socket.id);
     if (this.loggedInUsers.get(did) === socket.id) return false;
     this.loggedInUsers.set(did, socket.id);
     socket.did = did;
@@ -45,6 +46,13 @@ export class UsersService {
     description: 'receive message from client',
   })
   sendMessage(socket: Client, message: MessageDto): boolean {
+    if (process.env.LOG === 'true')
+      console.log(
+        'sendMessage',
+        message.getIssuer(),
+        message.getRecipient(),
+        message.getType(),
+      );
     const recipient = this.loggedInUsers.get(message.getRecipient());
 
     if (!recipient)
