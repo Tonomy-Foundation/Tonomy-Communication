@@ -1693,16 +1693,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@greymass/eosio@npm:^0.6.4":
-  version: 0.6.10
-  resolution: "@greymass/eosio@npm:0.6.10"
+"@greymass/eosio@npm:0.7.0":
+  version: 0.7.0
+  resolution: "@greymass/eosio@npm:0.7.0"
   dependencies:
     bn.js: ^4.11.9
     brorand: ^1.1.0
     elliptic: ^6.5.4
     hash.js: ^1.0.0
     tslib: ^2.0.3
-  checksum: 1ccbcd9434f53683420aa68889aee21d8975b1635d6451150cd4ab3a53c4b345a4de58f2ee1f6f3e0f9ba1737a3ba1efd46c9943ad6025c4db28757283518c3a
+  checksum: 5bb6135a798fbaed21209acc1e72fa2c71c0569b65106c647681a5a8d56af5722beb76bdcd7ef049ab2704b97588733fdc38976e79d5f1da331ececa5d26578f
   languageName: node
   linkType: hard
 
