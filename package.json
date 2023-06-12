@@ -18,7 +18,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "development": "if [[ $(git symbolic-ref --short HEAD) = 'feature/232-sdk-deployment' ]]; then yarn install --no-lockfile @tonomy/tonomy-id-test@development; fi",
+    "development": "node sdk-package-install.js",
     "prepare": "yarn run development"
   },
   "dependencies": {
@@ -30,6 +30,7 @@
     "@nestjs/swagger": "^6.1.4",
     "@nestjs/websockets": "^9.2.1",
     "@tonomy/tonomy-id-sdk": "^0.4.4",
+    "@tonomy/tonomy-id-test": "development",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
     "nestjs-asyncapi": "^1.0.4",
