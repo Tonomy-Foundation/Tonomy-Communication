@@ -18,8 +18,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "development": "node sdk-package-install.js",
-    "prepare": "yarn run development"
+    "configure:sdk-package": "node install-tonomy-id-sdk.js",
+    "prepare": "yarn run configure:sdk-package"
   },
   "dependencies": {
     "@nestjs/common": "^9.0.0",
@@ -78,7 +78,7 @@
   },
   "packageManager": "yarn@3.1.1",
   "resolutions": {
-    "@greymass/eosio": "^0.6.4",
+    "@greymass/eosio": "^0.7.0",
     "@openapi-contrib/openapi-schema-to-json-schema": "3.0.0",
     "@asyncapi/specs": "4.1.1"
   }
