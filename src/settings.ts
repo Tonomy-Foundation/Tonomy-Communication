@@ -35,9 +35,7 @@ switch (env) {
     config = configDemo;
     break;
   case 'production':
-    config = configDefault;
-    // TODO add production config when ready
-    break;
+    throw new Error('Production config not implemented yet');
   default:
     throw new Error('Unknown environment: ' + env);
 }
