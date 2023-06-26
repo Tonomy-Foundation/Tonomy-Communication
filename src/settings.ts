@@ -34,6 +34,10 @@ switch (env) {
   case 'demo':
     config = configDemo;
     break;
+  case 'production':
+    config = configDefault;
+    // TODO add production config when ready
+    break;
   default:
     throw new Error('Unknown environment: ' + env);
 }
