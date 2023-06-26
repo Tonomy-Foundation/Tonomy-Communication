@@ -1,5 +1,6 @@
 import * as configDefault from './config/config.json';
 import * as configStaging from './config/config.staging.json';
+import * as configDemo from './config/config.demo.json';
 
 const env = process.env.NODE_ENV || 'development';
 
@@ -30,9 +31,9 @@ switch (env) {
   case 'staging':
     config = configStaging;
     break;
-  // case 'production':
-  //   // TODO add production config when ready
-  //   break;
+  case 'demo':
+    config = configDemo;
+    break;
   default:
     throw new Error('Unknown environment: ' + env);
 }
