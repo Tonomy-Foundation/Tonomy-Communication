@@ -1,4 +1,4 @@
-name: CD Publish Docker Container
+name: Deploy - Development
 
 on:
   pull_request:
