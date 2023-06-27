@@ -7,7 +7,7 @@
 ## Installation
 
 ```bash
-$ yarn install
+$ yarn install && yarn add @tonomy/tonomy-id-sdk@development
 ```
 
 ## Running the app

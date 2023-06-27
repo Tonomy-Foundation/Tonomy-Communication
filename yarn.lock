@@ -1693,16 +1693,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@greymass/eosio@npm:^0.6.4":
-  version: 0.6.10
-  resolution: "@greymass/eosio@npm:0.6.10"
+"@greymass/eosio@npm:0.7.0":
+  version: 0.7.0
+  resolution: "@greymass/eosio@npm:0.7.0"
   dependencies:
     bn.js: ^4.11.9
     brorand: ^1.1.0
     elliptic: ^6.5.4
     hash.js: ^1.0.0
     tslib: ^2.0.3
-  checksum: 1ccbcd9434f53683420aa68889aee21d8975b1635d6451150cd4ab3a53c4b345a4de58f2ee1f6f3e0f9ba1737a3ba1efd46c9943ad6025c4db28757283518c3a
+  checksum: 5bb6135a798fbaed21209acc1e72fa2c71c0569b65106c647681a5a8d56af5722beb76bdcd7ef049ab2704b97588733fdc38976e79d5f1da331ececa5d26578f
   languageName: node
   linkType: hard
 
@@ -2801,13 +2801,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tonomy/antelope-did-resolver@npm:^0.2.2":
-  version: 0.2.2
-  resolution: "@tonomy/antelope-did-resolver@npm:0.2.2"
+"@tonomy/antelope-did-resolver@npm:^0.6.2":
+  version: 0.6.2
+  resolution: "@tonomy/antelope-did-resolver@npm:0.6.2"
   dependencies:
-    base64url: ^3.0.1
-    eosjs: ^21.0.4
-  checksum: cf340c4ea0bb5a9f7fc1b6639f10bf5a5a95d531fa21a25788ecbc304bd25f968b6364ed843891ecec1a57ab942473f4c63680f1d7e87e89cd0b2c3db8fa6583
+    "@greymass/eosio": ^0.7.0
+    cross-fetch: ^3.1.6
+    did-resolver: ^4.1.0
+    uint8arrays: 3.1.1
+  checksum: 896affac33c2cab8a8524912084daab555f94476838d401d532d2abf6599ac5b1ba441736e03ba9f55391ca30bd4864e981e6eccdd4b0d3b075c85bbf7ea7b9c
   languageName: node
   linkType: hard
 
@@ -2823,20 +2825,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tonomy/antelope-ssi-toolkit@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "@tonomy/antelope-ssi-toolkit@npm:1.1.0"
-  dependencies:
-    "@greymass/eosio": ^0.6.4
-    "@tonomy/antelope-did": ^0.1.5
-    "@tonomy/did-jwt": ^6.10.0
-    "@tonomy/did-jwt-vc": ^3.1.3
-    "@tonomy/did-resolver": ^4.0.4
-    cross-fetch: ^3.1.5
-  checksum: fe68d68fb828846f7207070a27fe632ca451210b9127ba497dc03e6cc74ac414542044d378a5a2dc0bd4359eb87807bce13802acae0f34d7dd7b051e80867a6a
-  languageName: node
-  linkType: hard
-
 "@tonomy/did-jwt-vc@npm:^3.1.3":
   version: 3.1.3
   resolution: "@tonomy/did-jwt-vc@npm:3.1.3"
@@ -2847,7 +2835,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tonomy/did-jwt@npm:^6.10.0, @tonomy/did-jwt@npm:^6.10.1, @tonomy/did-jwt@npm:^6.9.2":
+"@tonomy/did-jwt@npm:^6.10.1, @tonomy/did-jwt@npm:^6.9.2":
   version: 6.10.1
   resolution: "@tonomy/did-jwt@npm:6.10.1"
   dependencies:
@@ -2874,15 +2862,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tonomy/tonomy-id-sdk@npm:^0.3.45":
-  version: 0.3.45
-  resolution: "@tonomy/tonomy-id-sdk@npm:0.3.45"
+"@tonomy/tonomy-id-sdk@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "@tonomy/tonomy-id-sdk@npm:0.5.0"
   dependencies:
     "@consento/sync-randombytes": ^1.0.5
-    "@greymass/eosio": ^0.6.4
+    "@greymass/eosio": ^0.7.0
     "@tonomy/antelope-did": ^0.1.5
-    "@tonomy/antelope-did-resolver": ^0.2.2
-    "@tonomy/antelope-ssi-toolkit": ^1.1.0
+    "@tonomy/antelope-did-resolver": ^0.6.2
     "@tonomy/did-jwt": ^6.10.1
     "@tonomy/did-jwt-vc": ^3.1.3
     "@tonomy/did-resolver": ^4.0.4
@@ -2892,7 +2879,7 @@ __metadata:
     elliptic: ^6.5.4
     socket.io-client: ^4.5.4
     universal-base64url: ^1.1.0
-  checksum: ee64a782ab23989e0637c8b4325361e3a7018009188607bb4d14a329771f37c6110ab59fff10347b78a01c02680081d4a08874af9d5634a24861bec994f3a5b3
+  checksum: ec92dc700963fb4c555fef85773dab4db689a1470124903053d9f791b563765dae7568c2221ab755d18454b65f01e355caa979bffcb7e51b6fed85bd7b2208db
   languageName: node
   linkType: hard
 
@@ -4916,6 +4903,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cross-fetch@npm:^3.1.6":
+  version: 3.1.6
+  resolution: "cross-fetch@npm:3.1.6"
+  dependencies:
+    node-fetch: ^2.6.11
+  checksum: 704b3519ab7de488328cc49a52cf1aa14132ec748382be5b9557b22398c33ffa7f8c2530e8a97ed8cb55da52b0a9740a9791d361271c4591910501682d981d9c
+  languageName: node
+  linkType: hard
+
 "cross-spawn@npm:^7.0.0, cross-spawn@npm:^7.0.2, cross-spawn@npm:^7.0.3":
   version: 7.0.3
   resolution: "cross-spawn@npm:7.0.3"
@@ -5115,6 +5111,13 @@ __metadata:
     asap: ^2.0.0
     wrappy: 1
   checksum: 895389c6aead740d2ab5da4d3466d20fa30f738010a4d3f4dcccc9fc645ca31c9d10b7e1804ae489b1eb02c7986f9f1f34ba132d409b043082a86d9a4e745624
+  languageName: node
+  linkType: hard
+
+"did-resolver@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "did-resolver@npm:4.1.0"
+  checksum: 0b0f6c3502f877c2a3cb264befc2718b12efa8e7d39ef255b00cd79f8fe12303257ac8e84a030a49599415bce87192fef29388d9f695776d331d0139848d3d4c
   languageName: node
   linkType: hard
 
@@ -8469,6 +8472,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"node-fetch@npm:^2.6.11":
+  version: 2.6.11
+  resolution: "node-fetch@npm:2.6.11"
+  dependencies:
+    whatwg-url: ^5.0.0
+  peerDependencies:
+    encoding: ^0.1.0
+  peerDependenciesMeta:
+    encoding:
+      optional: true
+  checksum: 249d0666a9497553384d46b5ab296ba223521ac88fed4d8a17d6ee6c2efb0fc890f3e8091cafe7f9fba8151a5b8d925db2671543b3409a56c3cd522b468b47b3
+  languageName: node
+  linkType: hard
+
 "node-gyp@npm:^7.1.0":
   version: 7.1.2
   resolution: "node-gyp@npm:7.1.2"
@@ -10535,7 +10552,7 @@ __metadata:
     "@nestjs/swagger": ^6.1.4
     "@nestjs/testing": ^9.0.0
     "@nestjs/websockets": ^9.2.1
-    "@tonomy/tonomy-id-sdk": ^0.3.45
+    "@tonomy/tonomy-id-sdk": ^0.5.0
     "@types/express": ^4.17.13
     "@types/jest": 29.2.4
     "@types/node": 18.11.18
@@ -10897,7 +10914,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uint8arrays@npm:^3.0.0":
+"uint8arrays@npm:3.1.1, uint8arrays@npm:^3.0.0":
   version: 3.1.1
   resolution: "uint8arrays@npm:3.1.1"
   dependencies:
