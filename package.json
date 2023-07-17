@@ -27,7 +27,7 @@
     "@nestjs/platform-socket.io": "^9.2.1",
     "@nestjs/swagger": "^6.1.4",
     "@nestjs/websockets": "^9.2.1",
-    "@tonomy/tonomy-id-sdk": "development",
+    "@tonomy/tonomy-id-sdk": "^0.13.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
     "nestjs-asyncapi": "^1.0.4",
