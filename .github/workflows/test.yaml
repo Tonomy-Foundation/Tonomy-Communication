@@ -52,3 +52,4 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           target: 'http://localhost:5000'
+          cmd_options: '-a'
