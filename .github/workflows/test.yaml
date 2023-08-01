@@ -51,5 +51,6 @@ jobs:
         uses: zaproxy/action-api-scan@v0.3.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          target: 'http://localhost:5000/api'
+          target: 'http://localhost:5000/openapi.json'
+          format: 'openapi'
           cmd_options: '-a'
