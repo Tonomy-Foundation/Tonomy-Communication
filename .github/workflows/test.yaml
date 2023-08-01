@@ -18,7 +18,7 @@ jobs:
           node-version: 18.12.1
       # corepack is needed to run yarn through npm
       - run: corepack enable
-      - run: yarn install --frozen-lockfile
+      - run: yarn install --immutable
 
       - name: Run lint and test
         uses: actions/setup-node@v3
@@ -42,7 +42,7 @@ jobs:
           node-version: 18.12.1
       # corepack is needed to run yarn through npm
       - run: corepack enable
-      - run: yarn install --frozen-lockfile
+      - run: yarn install --immutable
       - run: yarn run build
       - run: yarn run start:prod &
       - run: sleep 3
