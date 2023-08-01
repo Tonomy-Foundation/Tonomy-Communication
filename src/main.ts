@@ -1,6 +1,5 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import myPackage from '../package.json';
 import { AsyncApiDocumentBuilder, AsyncApiModule } from 'nestjs-asyncapi';
 import { AppModule } from './app.module';
 import { setSettings } from '@tonomy/tonomy-id-sdk';
@@ -21,7 +20,6 @@ async function bootstrap() {
     .setDescription(
       'Communication service connects client browser to the app and sends notification to the tonomy id app',
     )
-    .setVersion(myPackage.version)
     .addServer('http://localhost:5000')
     .build();
   const document = SwaggerModule.createDocument(app, config);
@@ -35,7 +33,6 @@ async function bootstrap() {
     .setDescription(
       'Communication service connects client browser to the app and sends notification to the tonomy id app',
     )
-    .setVersion(myPackage.version)
     .setDefaultContentType('application/json')
     .addServer('users', {
       protocol: 'socket.io',
