@@ -52,5 +52,5 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           target: 'http://localhost:5000/openapi.json'
-          format: 'openapi'
+          format: openapi
           cmd_options: '-a'
