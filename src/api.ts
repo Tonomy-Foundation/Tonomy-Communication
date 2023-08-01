@@ -11,34 +11,6 @@ export async function setupOpenApi(app: any) {
     .build();
   const document = SwaggerModule.createDocument(app, config);
 
-  document.paths['/socket.io'] = {
-    get: {
-      summary: 'Socket.io connection',
-      parameters: [
-        {
-          name: 'EIO',
-          in: 'query',
-          schema: {
-            type: 'string',
-            enum: ['4'],
-          },
-        },
-        {
-          name: 'transport',
-          in: 'query',
-          schema: {
-            type: 'string',
-            enum: ['websocket'],
-          },
-        },
-      ],
-      responses: {
-        101: {
-          description: 'Switching Protocols',
-        },
-      },
-    },
-  };
   SwaggerModule.setup('openapi', app, document, {
     jsonDocumentUrl: '/openapi.json',
   });
