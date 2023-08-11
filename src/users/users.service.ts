@@ -59,12 +59,16 @@ export class UsersService {
         recipient,
       );
 
-    if (!recipient)
+    if (!recipient) {
+      // TODO send via PushNotification and/or use message queue
       throw new HttpException(
-        `Couldn't find recipient ${message.getRecipient()}`,
-        HttpStatus.NOT_FOUND,
+        `Recipient not connected ${message.getRecipient()}`,
+        HttpStatus.BAD_REQUEST,
       );
-    socket.to(recipient).emit('message', message.toString());
+    } else {
+      socket.to(recipient).emit('message', message.toString());
+    }
+
     return true;
   }
 }
