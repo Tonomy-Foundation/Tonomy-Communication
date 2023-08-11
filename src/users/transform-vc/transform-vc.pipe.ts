@@ -31,7 +31,7 @@ export class TransformVcPipe implements PipeTransform {
         ) {
           throw new HttpException(
             `DID could not be resolved from ${message.getSender()}`,
-            HttpStatus.UNAUTHORIZED,
+            HttpStatus.NOT_FOUND,
           );
         }
 
