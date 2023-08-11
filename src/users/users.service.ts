@@ -66,6 +66,7 @@ export class UsersService {
         HttpStatus.BAD_REQUEST,
       );
     } else {
+      // TODO should check for acknowledgement
       socket.to(recipient).emit('message', message.toString());
     }
 
