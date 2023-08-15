@@ -77,7 +77,6 @@
   "packageManager": "yarn@3.1.1",
   "resolutions": {
     "@wharfkit/antelope": "0.7.1",
-    "@openapi-contrib/openapi-schema-to-json-schema": "3.0.0",
-    "@tonomy/tonomy-id-sdk": "portal:/home/dev/Documents/Git/Tonomy/Tonomy-ID-Integration/Tonomy-ID-SDK"
+    "@openapi-contrib/openapi-schema-to-json-schema": "3.0.0"
   }
 }
