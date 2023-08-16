@@ -6,7 +6,7 @@ import { MessageDto, MessageRto } from './dto/message.dto';
 
 @AsyncApi()
 @Injectable()
-export class UsersService {
+export class CommunicationService {
   private readonly loggedInUsers = new Map<string, Socket['id']>();
 
   /**
