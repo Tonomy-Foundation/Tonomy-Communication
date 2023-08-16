@@ -34,6 +34,9 @@ export class AccountsController {
     @Body() createAccountDto: CreateAccountRequest,
     @Res() response: Response,
   ): Promise<CreateAccountResponse> {
-    return this.accountService.createAccount(createAccountDto, response);
+    const val = await this.accountService.createAccount(createAccountDto);
+
+    // @ts-expect-error status is not callable
+    return response.status(HttpStatus.CREATED).send(val);
   }
 }

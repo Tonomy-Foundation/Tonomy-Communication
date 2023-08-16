@@ -39,4 +39,9 @@ export class CreateAccountResponse {
     example: 'dfd401c1dcd5fd4ff7836dfe5e3b54630a077ea01643c1529ac20e4e03b26763',
   })
   transactionId!: string;
+
+  @ApiProperty({
+    example: 'tonomyacc1',
+  })
+  accountName!: string;
 }

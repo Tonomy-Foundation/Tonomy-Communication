@@ -4,8 +4,16 @@ import {
   CreateAccountRequest,
   CreateAccountResponse,
 } from './dto/create-account.dto';
-import { Checksum256, PrivateKey } from '@wharfkit/antelope';
+import { Checksum256, Name, PrivateKey } from '@wharfkit/antelope';
 import settings from 'src/settings';
+import { PushTransactionResponse } from '@wharfkit/antelope/src/api/v1/types';
+import {
+  IDContract,
+  EosioUtil,
+  AntelopePushTransactionError,
+} from '@tonomy/tonomy-id-sdk';
+
+const idContract = IDContract.Instance;
 
 @Injectable()
 export class AccountsService {
@@ -13,7 +21,6 @@ export class AccountsService {
 
   async createAccount(
     createAccountRequest: CreateAccountRequest,
-    response: Response,
   ): Promise<CreateAccountResponse> {
     this.logger.debug('createAccount()');
 
@@ -27,8 +34,14 @@ export class AccountsService {
         'UsernameHash not provided',
         HttpStatus.BAD_REQUEST,
       );
-    if (!createAccountRequest.keys)
+    if (
+      !createAccountRequest.keys ||
+      !Array.isArray(createAccountRequest.keys) ||
+      createAccountRequest.keys.length === 0
+    )
       throw new HttpException('Keys not provided', HttpStatus.BAD_REQUEST);
+    if (!createAccountRequest.salt)
+      throw new HttpException('Salt not provided', HttpStatus.BAD_REQUEST);
 
     const usernameHash = Checksum256.from(createAccountRequest.usernameHash);
 
@@ -46,49 +59,43 @@ export class AccountsService {
       settings.secrets.createAccountPrivateKey,
     );
 
-    // const salt = await this.storage.salt;
-    // let res: PushTransactionResponse;
+    const salt = createAccountRequest.salt;
 
-    // try {
-    //   res = await idContract.newperson(
-    //     usernameHash.toString(),
-    //     passwordKey.toString(),
-    //     salt.toString(),
-    //     createSigner(idTonomyActiveKey),
-    //   );
-    // } catch (e) {
-    //   if (e instanceof AntelopePushTransactionError) {
-    //     if (e.hasErrorCode(3050003) && e.hasTonomyErrorCode('TCON1000')) {
-    //       throw throwError('Username is taken', SdkErrors.UsernameTaken);
-    //     }
-    //   }
+    let res: PushTransactionResponse;
 
-    //   throw e;
-    // }
+    try {
+      res = await idContract.newperson(
+        usernameHash.toString(),
+        passwordKey.toString(),
+        salt.toString(),
+        EosioUtil.createSigner(idTonomyActiveKey),
+      );
+    } catch (e) {
+      if (
+        e instanceof AntelopePushTransactionError &&
+        e.hasErrorCode(3050003) &&
+        e.hasTonomyErrorCode('TCON1000')
+      ) {
+        throw new HttpException(
+          'Username is already taken',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
 
-    // const newAccountAction =
-    //   res.processed.action_traces[0].inline_traces[0].act;
+      throw e;
+    }
 
-    // this.storage.accountName = Name.from(newAccountAction.data.name);
-    // await this.storage.accountName;
+    const newAccountAction =
+      res.processed.action_traces[0].inline_traces[0].act;
 
-    // this.storage.status = UserStatus.CREATING_ACCOUNT;
-    // await this.storage.status;
-    // await this.createDid();
+    const accountName = Name.from(newAccountAction.data.name);
 
-    // if (getSettings().loggerLevel === 'debug') {
-    //   console.log('Created account', {
-    //     accountName: await this.storage.accountName,
-    //     username: (await this.getUsername()).getBaseUsername(),
-    //     did: await this.getDid(),
-    //   });
-    // }
+    if (settings.config.loggerLevel === 'debug')
+      this.logger.debug('createAccount()', accountName.toString());
 
-    const res = {
+    return {
       transactionId: 'eae',
+      accountName: accountName.toString(),
     };
-
-    // @ts-expect-error status is not callable
-    return response.status(HttpStatus.CREATED).send(res);
   }
 }

@@ -3,6 +3,7 @@ import { AsyncApiSub, AsyncApi } from 'nestjs-asyncapi';
 import { Socket } from 'socket.io';
 import { Client } from './dto/client.dto';
 import { MessageDto, MessageRto } from './dto/message.dto';
+import settings from 'src/settings';
 
 @AsyncApi()
 @Injectable()
@@ -26,7 +27,7 @@ export class CommunicationService {
    * @returns boolean if user is connected successfully
    */
   login(did: string, socket: Client): boolean {
-    if (process.env.LOG === 'true')
+    if (settings.config.loggerLevel === 'debug')
       this.logger.debug('login()', did, socket.id);
 
     if (this.loggedInUsers.get(did) === socket.id) return false;
@@ -53,7 +54,7 @@ export class CommunicationService {
   sendMessage(socket: Client, message: MessageDto): boolean {
     const recipient = this.loggedInUsers.get(message.getRecipient());
 
-    if (process.env.LOG === 'true')
+    if (settings.config.loggerLevel === 'debug')
       this.logger.debug(
         'sendMessage()',
         message.getIssuer(),

@@ -8,6 +8,15 @@ console.log(`NODE_ENV=${env}`);
 
 type ConfigType = {
   blockchainUrl: string;
+  loggerLevel:
+    | 'emergency'
+    | 'alert'
+    | 'critical'
+    | 'error'
+    | 'warning'
+    | 'notice'
+    | 'info'
+    | 'debug';
 };
 
 type SettingsType = {
@@ -25,17 +34,29 @@ const settings: SettingsType = {
   isProduction: () => settings.env === 'production',
 } as SettingsType;
 
+type FixLoggerLevelEnumType<T> = Omit<T, 'loggerLevel'> & {
+  loggerLevel:
+    | 'emergency'
+    | 'alert'
+    | 'critical'
+    | 'error'
+    | 'warning'
+    | 'notice'
+    | 'info'
+    | 'debug';
+};
+
 switch (env) {
   case 'test':
   case 'local':
   case 'development':
-    config = configDefault;
+    config = configDefault as FixLoggerLevelEnumType<typeof configDefault>;
     break;
   case 'staging':
-    config = configStaging;
+    config = configStaging as FixLoggerLevelEnumType<typeof configStaging>;
     break;
   case 'demo':
-    config = configDemo;
+    config = configDemo as FixLoggerLevelEnumType<typeof configDemo>;
     break;
   case 'production':
     throw new Error('Production config not implemented yet');
@@ -46,7 +67,7 @@ switch (env) {
 if (process.env.BLOCKCHAIN_URL) {
   console.log(`Using BLOCKCHAIN_URL from env:  ${process.env.BLOCKCHAIN_URL}`);
 
-  config = { blockchainUrl: process.env.BLOCKCHAIN_URL };
+  config.blockchainUrl = process.env.BLOCKCHAIN_URL;
 }
 
 settings.config = config;

@@ -7,6 +7,7 @@ import { setupAsyncApi, setupOpenApi } from './api';
 
 setSettings({
   blockchainUrl: settings.config.blockchainUrl,
+  loggerLevel: settings.config.loggerLevel,
 });
 
 async function bootstrap() {
