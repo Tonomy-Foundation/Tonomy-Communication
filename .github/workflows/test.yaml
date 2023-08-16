@@ -18,7 +18,7 @@ jobs:
           node-version: 18.12.1
       # corepack is needed to run yarn through npm
       - run: corepack enable
-      - run: yarn install --frozen-lockfile
+      - run: yarn install --immutable
 
       - name: Run lint and test
         uses: actions/setup-node@v3
@@ -27,3 +27,30 @@ jobs:
       - run: yarn run build
       - run: yarn run lint
       - run: yarn run test
+
+  zap_scan:
+    runs-on: ubuntu-latest
+    name: OWASP ZAP API Scan
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+
+      - name: Install dependencies
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.12.1
+      # corepack is needed to run yarn through npm
+      - run: corepack enable
+      - run: yarn install --immutable
+      - run: yarn run build
+      - run: yarn run start:prod &
+      - run: sleep 3
+
+      - name: ZAP Scan
+        uses: zaproxy/action-api-scan@v0.3.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          target: 'http://localhost:5000/openapi.json'
+          format: openapi
+          cmd_options: '-a'
