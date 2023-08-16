@@ -9,7 +9,7 @@
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
-    "start:dev": "CREATE_ACCOUNT_PRIVATE_KEY=PVT_K1_2bfGi9rYsXQSXXTvJbDAPhHLQUojjaNLomdm3cEJ1XTzMqUt3V nest start --watch",
+    "start:dev": "CREATE_ACCOUNT_PRIVATE_KEY=PVT_K1_2bfGi9rYsXQSXXTvJbDAPhHLQUojjaNLomdm3cEJ1XTzMqUt3V HCAPTCHA_SECRET=0x0000000000000000000000000000000000000000 nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
@@ -30,6 +30,7 @@
     "@tonomy/tonomy-id-sdk": "^0.14.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
+    "hcaptcha": "^0.1.1",
     "nestjs-asyncapi": "^1.0.4",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0"

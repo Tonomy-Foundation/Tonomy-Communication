@@ -12,6 +12,7 @@ import {
   EosioUtil,
   AntelopePushTransactionError,
 } from '@tonomy/tonomy-id-sdk';
+import { verify } from 'hcaptcha';
 
 const idContract = IDContract.Instance;
 
@@ -42,6 +43,25 @@ export class AccountsService {
       throw new HttpException('Keys not provided', HttpStatus.BAD_REQUEST);
     if (!createAccountRequest.salt)
       throw new HttpException('Salt not provided', HttpStatus.BAD_REQUEST);
+    if (!createAccountRequest.captchaToken)
+      throw new HttpException(
+        'Captcha token not provided',
+        HttpStatus.BAD_REQUEST,
+      );
+
+    const verifyResponse = await verify(
+      settings.secrets.hCaptchaSecret,
+      createAccountRequest.captchaToken,
+    );
+
+    if (!verifyResponse.success)
+      throw new HttpException(
+        {
+          message: 'Captcha verification failed',
+          errors: verifyResponse['error-codes'],
+        },
+        HttpStatus.BAD_REQUEST,
+      );
 
     const usernameHash = Checksum256.from(createAccountRequest.usernameHash);
 

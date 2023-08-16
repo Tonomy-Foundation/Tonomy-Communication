@@ -25,6 +25,7 @@ type SettingsType = {
   isProduction: () => boolean;
   secrets: {
     createAccountPrivateKey: string;
+    hCaptchaSecret: string;
   };
 };
 
@@ -76,8 +77,12 @@ console.log('settings', settings);
 
 if (!process.env.CREATE_ACCOUNT_PRIVATE_KEY)
   throw new Error('CREATE_ACCOUNT_PRIVATE_KEY env var not set');
+if (!process.env.HCAPTCHA_SECRET)
+  throw new Error('HCAPTCHA_SECRET env var not set');
+
 settings.secrets = {
   createAccountPrivateKey: process.env.CREATE_ACCOUNT_PRIVATE_KEY,
+  hCaptchaSecret: process.env.HCAPTCHA_SECRET,
 };
 
 export default settings;

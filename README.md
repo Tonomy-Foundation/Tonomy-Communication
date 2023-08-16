@@ -33,6 +33,7 @@ yarn run start:prod
 
 `NODE_ENV` - Determines which config file in `./src/config` to use
 `CREATE_ACCOUNT_PRIVATE_KEY` - The private key used to sign the transaction to create a new account
+`HCAPTCHA_SECRET` - The hCaptcha account secret key
 
 ## Test
 

@@ -32,6 +32,14 @@ export class CreateAccountRequest {
     type: CreateAccountRequestKey,
   })
   keys?: CreateAccountRequestKey[];
+
+  @ApiProperty({
+    required: true,
+    description: 'The hCaptcha token',
+    example: '10000000-aaaa-bbbb-cccc-000000000001',
+    type: 'string',
+  })
+  captchaToken?: string;
 }
 
 export class CreateAccountResponse {
