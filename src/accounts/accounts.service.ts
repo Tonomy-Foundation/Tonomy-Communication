@@ -5,7 +5,7 @@ import {
   CreateAccountResponse,
 } from './dto/create-account.dto';
 import { Checksum256, Name, PrivateKey } from '@wharfkit/antelope';
-import settings from 'src/settings';
+import settings from '../settings';
 import { PushTransactionResponse } from '@wharfkit/antelope/src/api/v1/types';
 import {
   IDContract,
@@ -114,7 +114,7 @@ export class AccountsService {
       this.logger.debug('createAccount()', accountName.toString());
 
     return {
-      transactionId: 'eae',
+      transactionId: res.transaction_id,
       accountName: accountName.toString(),
     };
   }

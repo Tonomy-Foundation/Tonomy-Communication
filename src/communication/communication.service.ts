@@ -3,7 +3,7 @@ import { AsyncApiSub, AsyncApi } from 'nestjs-asyncapi';
 import { Socket } from 'socket.io';
 import { Client } from './dto/client.dto';
 import { MessageDto, MessageRto } from './dto/message.dto';
-import settings from 'src/settings';
+import settings from '../settings';
 
 @AsyncApi()
 @Injectable()
