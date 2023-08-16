@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import {
   CreateAccountRequest,
   CreateAccountResponse,
@@ -6,10 +6,13 @@ import {
 
 @Injectable()
 export class AccountsService {
+  private readonly logger = new Logger(AccountsService.name);
+
   async createAccount(
     createAccountDto: CreateAccountRequest,
     response: Response,
   ): Promise<CreateAccountResponse> {
+    this.logger.debug('createAccount()');
     // const { keyManager } = this;
     // const username = await this.getUsername();
 

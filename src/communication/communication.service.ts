@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { AsyncApiSub, AsyncApi } from 'nestjs-asyncapi';
 import { Socket } from 'socket.io';
 import { Client } from './dto/client.dto';
@@ -7,6 +7,8 @@ import { MessageDto, MessageRto } from './dto/message.dto';
 @AsyncApi()
 @Injectable()
 export class CommunicationService {
+  private readonly logger = new Logger(CommunicationService.name);
+
   private readonly loggedInUsers = new Map<string, Socket['id']>();
 
   /**
@@ -24,7 +26,8 @@ export class CommunicationService {
    * @returns boolean if user is connected successfully
    */
   login(did: string, socket: Client): boolean {
-    if (process.env.LOG === 'true') console.log('login()', did, socket.id);
+    if (process.env.LOG === 'true')
+      this.logger.debug('login()', did, socket.id);
 
     if (this.loggedInUsers.get(did) === socket.id) return false;
     this.loggedInUsers.set(did, socket.id);
@@ -51,7 +54,7 @@ export class CommunicationService {
     const recipient = this.loggedInUsers.get(message.getRecipient());
 
     if (process.env.LOG === 'true')
-      console.log(
+      this.logger.debug(
         'sendMessage()',
         message.getIssuer(),
         message.getRecipient(),
