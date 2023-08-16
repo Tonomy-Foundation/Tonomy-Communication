@@ -75,14 +75,12 @@ settings.config = config;
 
 console.log('settings', settings);
 
-if (!process.env.CREATE_ACCOUNT_PRIVATE_KEY)
-  throw new Error('CREATE_ACCOUNT_PRIVATE_KEY env var not set');
-if (!process.env.HCAPTCHA_SECRET)
-  throw new Error('HCAPTCHA_SECRET env var not set');
-
 settings.secrets = {
-  createAccountPrivateKey: process.env.CREATE_ACCOUNT_PRIVATE_KEY,
-  hCaptchaSecret: process.env.HCAPTCHA_SECRET,
+  createAccountPrivateKey:
+    process.env.CREATE_ACCOUNT_PRIVATE_KEY ||
+    'PVT_K1_2bfGi9rYsXQSXXTvJbDAPhHLQUojjaNLomdm3cEJ1XTzMqUt3V', // Default antelope private key
+  hCaptchaSecret:
+    process.env.HCAPTCHA_SECRET || '0x0000000000000000000000000000000000000000', // hCaptcha CI secret
 };
 
 export default settings;
