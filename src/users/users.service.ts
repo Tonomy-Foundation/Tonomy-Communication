@@ -24,10 +24,12 @@ export class UsersService {
    * @returns boolean if user is connected successfully
    */
   login(did: string, socket: Client): boolean {
-    if (process.env.LOG === 'true') console.log('login', did, socket.id);
+    if (process.env.LOG === 'true') console.log('login()', did, socket.id);
+
     if (this.loggedInUsers.get(did) === socket.id) return false;
     this.loggedInUsers.set(did, socket.id);
     socket.did = did;
+
     return true;
   }
 
@@ -46,21 +48,28 @@ export class UsersService {
     description: 'receive message from client',
   })
   sendMessage(socket: Client, message: MessageDto): boolean {
+    const recipient = this.loggedInUsers.get(message.getRecipient());
+
     if (process.env.LOG === 'true')
       console.log(
-        'sendMessage',
+        'sendMessage()',
         message.getIssuer(),
         message.getRecipient(),
         message.getType(),
+        recipient,
       );
-    const recipient = this.loggedInUsers.get(message.getRecipient());
 
-    if (!recipient)
+    if (!recipient) {
+      // TODO send via PushNotification and/or use message queue
       throw new HttpException(
-        `Couldn't find recipient ${message.getRecipient()}`,
-        HttpStatus.NOT_FOUND,
+        `Recipient not connected ${message.getRecipient()}`,
+        HttpStatus.BAD_REQUEST,
       );
-    socket.to(recipient).emit('message', message.toString());
+    } else {
+      // TODO should check for acknowledgement
+      socket.to(recipient).emit('message', message.toString());
+    }
+
     return true;
   }
 }
