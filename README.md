@@ -29,6 +29,11 @@ yarn run start:dev
 yarn run start:prod
 ```
 
+## Environment variables and configuration
+
+`NODE_ENV` - Determines which config file in `./src/config` to use
+`CREATE_ACCOUNT_PRIVATE_KEY` - The private key used to sign the transaction to create a new account
+
 ## Test
 
 ```bash

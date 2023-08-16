@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CreateAccountDtoKey {
+export class CreateAccountRequestKey {
   @ApiProperty({ example: 'PASSWORD' })
   level?: string;
 
@@ -12,12 +12,26 @@ export class CreateAccountDtoKey {
 
 export class CreateAccountRequest {
   @ApiProperty({
+    required: true,
+    description: 'sha256 hash of username',
     example: 'b06ecffb7ad2e992e82c1f3a23341bca36f8337f74032c00c489c21b00f66e52',
   })
   usernameHash?: string;
 
-  @ApiProperty({ isArray: true, type: CreateAccountDtoKey })
-  keys?: CreateAccountDtoKey[];
+  @ApiProperty({
+    required: true,
+    description: 'Salt used to generate the private key',
+    example: 'b06ecffb7ad2e992e82c1f3a23341bca36f8337f74032c00c489c21b00f66e52',
+  })
+  salt?: string;
+
+  @ApiProperty({
+    required: true,
+    description: 'Array of keys that should be added to the new account',
+    isArray: true,
+    type: CreateAccountRequestKey,
+  })
+  keys?: CreateAccountRequestKey[];
 }
 
 export class CreateAccountResponse {

@@ -1,31 +1,50 @@
-import { HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import {
+  CreateAccountRequestKey,
   CreateAccountRequest,
   CreateAccountResponse,
 } from './dto/create-account.dto';
+import { Checksum256, PrivateKey } from '@wharfkit/antelope';
+import settings from 'src/settings';
 
 @Injectable()
 export class AccountsService {
   private readonly logger = new Logger(AccountsService.name);
 
   async createAccount(
-    createAccountDto: CreateAccountRequest,
+    createAccountRequest: CreateAccountRequest,
     response: Response,
   ): Promise<CreateAccountResponse> {
     this.logger.debug('createAccount()');
-    // const { keyManager } = this;
-    // const username = await this.getUsername();
 
-    // const usernameHash = username.usernameHash;
+    if (!createAccountRequest)
+      throw new HttpException(
+        'CreateAccountRequest not provided',
+        HttpStatus.BAD_REQUEST,
+      );
+    if (!createAccountRequest.usernameHash)
+      throw new HttpException(
+        'UsernameHash not provided',
+        HttpStatus.BAD_REQUEST,
+      );
+    if (!createAccountRequest.keys)
+      throw new HttpException('Keys not provided', HttpStatus.BAD_REQUEST);
 
-    // const passwordKey = await keyManager.getKey({
-    //   level: KeyManagerLevel.PASSWORD,
-    // });
+    const usernameHash = Checksum256.from(createAccountRequest.usernameHash);
 
-    // // TODO this needs to change to the actual key used, from settings
-    // const idTonomyActiveKey = PrivateKey.from(
-    //   'PVT_K1_2bfGi9rYsXQSXXTvJbDAPhHLQUojjaNLomdm3cEJ1XTzMqUt3V',
-    // );
+    const passwordKey = createAccountRequest.keys.find(
+      (k: CreateAccountRequestKey) => k.level === 'PASSWORD',
+    );
+
+    if (!passwordKey)
+      throw new HttpException(
+        'Password key not provided',
+        HttpStatus.BAD_REQUEST,
+      );
+
+    const idTonomyActiveKey = PrivateKey.from(
+      settings.secrets.createAccountPrivateKey,
+    );
 
     // const salt = await this.storage.salt;
     // let res: PushTransactionResponse;

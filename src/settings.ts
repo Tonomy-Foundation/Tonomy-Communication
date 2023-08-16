@@ -14,6 +14,9 @@ type SettingsType = {
   env: string;
   config: ConfigType;
   isProduction: () => boolean;
+  secrets: {
+    createAccountPrivateKey: string;
+  };
 };
 
 let config: ConfigType;
@@ -49,5 +52,11 @@ if (process.env.BLOCKCHAIN_URL) {
 settings.config = config;
 
 console.log('settings', settings);
+
+if (!process.env.CREATE_ACCOUNT_PRIVATE_KEY)
+  throw new Error('CREATE_ACCOUNT_PRIVATE_KEY env var not set');
+settings.secrets = {
+  createAccountPrivateKey: process.env.CREATE_ACCOUNT_PRIVATE_KEY,
+};
 
 export default settings;
