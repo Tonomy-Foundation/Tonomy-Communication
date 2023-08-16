@@ -1,12 +1,5 @@
-import {
-  Body,
-  Controller,
-  HttpStatus,
-  Logger,
-  Post,
-  Res,
-} from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Body, Controller, HttpStatus, Post, Res } from '@nestjs/common';
+import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { AccountsService } from './accounts.service';
 import {
   CreateAccountRequest,
@@ -18,12 +11,31 @@ export class AccountsController {
   constructor(private accountService: AccountsService) {}
 
   @Post()
-  @ApiBody({
-    type: CreateAccountRequest,
-    description: 'The account to be created',
-  })
   @ApiOperation({
     summary: 'Create a new Tonomy ID account on the blockchain',
+  })
+  // @ApiParam({
+  //   name: 'createAccountRequest',
+  //   // type: CreateAccountRequest,
+  // });
+  @ApiParam({
+    name: 'usernameHash',
+    description: 'sha256 hash of username',
+    required: true,
+    type: 'string',
+  })
+  @ApiParam({
+    name: 'salt',
+    description: 'Salt used to generate the private key',
+    required: true,
+    type: 'string',
+  })
+  @ApiParam({
+    name: 'keys',
+    description:
+      'Array of keys and levels that should be added to the new account',
+    required: true,
+    format: 'array',
   })
   @ApiResponse({
     status: HttpStatus.CREATED,
