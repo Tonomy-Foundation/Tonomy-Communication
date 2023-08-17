@@ -1,15 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CreateAccountRequestKey {
-  @ApiProperty({ example: 'PASSWORD' })
-  level?: string;
-
-  @ApiProperty({
-    example: 'PUB_K1_6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5BoDq63',
-  })
-  key?: string;
-}
-
 export class CreateAccountRequest {
   @ApiProperty({
     required: true,
@@ -27,11 +17,10 @@ export class CreateAccountRequest {
 
   @ApiProperty({
     required: true,
-    description: 'Array of keys that should be added to the new account',
-    isArray: true,
-    type: CreateAccountRequestKey,
+    description: 'Public key that will control the account',
+    example: 'PUB_K1_6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5BoDq63',
   })
-  keys?: CreateAccountRequestKey[];
+  publicKey?: string;
 
   @ApiProperty({
     required: true,

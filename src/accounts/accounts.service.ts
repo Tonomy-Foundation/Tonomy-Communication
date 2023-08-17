@@ -35,12 +35,11 @@ export class AccountsService {
         'UsernameHash not provided',
         HttpStatus.BAD_REQUEST,
       );
-    if (
-      !createAccountRequest.keys ||
-      !Array.isArray(createAccountRequest.keys) ||
-      createAccountRequest.keys.length === 0
-    )
-      throw new HttpException('Keys not provided', HttpStatus.BAD_REQUEST);
+    if (!createAccountRequest.publicKey)
+      throw new HttpException(
+        'Public key not provided',
+        HttpStatus.BAD_REQUEST,
+      );
     if (!createAccountRequest.salt)
       throw new HttpException('Salt not provided', HttpStatus.BAD_REQUEST);
     if (!createAccountRequest.captchaToken)
@@ -63,31 +62,17 @@ export class AccountsService {
         HttpStatus.BAD_REQUEST,
       );
 
-    const usernameHash = Checksum256.from(createAccountRequest.usernameHash);
-
-    const passwordKey = createAccountRequest.keys.find(
-      (k: CreateAccountRequestKey) => k.level === 'PASSWORD',
-    );
-
-    if (!passwordKey)
-      throw new HttpException(
-        'Password key not provided',
-        HttpStatus.BAD_REQUEST,
-      );
-
     const idTonomyActiveKey = PrivateKey.from(
       settings.secrets.createAccountPrivateKey,
     );
-
-    const salt = createAccountRequest.salt;
 
     let res: PushTransactionResponse;
 
     try {
       res = await idContract.newperson(
-        usernameHash.toString(),
-        passwordKey.toString(),
-        salt.toString(),
+        createAccountRequest.usernameHash,
+        createAccountRequest.publicKey,
+        createAccountRequest.salt,
         EosioUtil.createSigner(idTonomyActiveKey),
       );
     } catch (e) {

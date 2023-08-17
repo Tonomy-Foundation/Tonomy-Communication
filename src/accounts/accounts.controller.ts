@@ -38,17 +38,10 @@ export class AccountsController {
     example: 'b06ecffb7ad2e992e82c1f3a23341bca36f8337f74032c00c489c21b00f66e52',
   })
   @ApiParam({
-    name: 'keys',
-    description:
-      'Array of keys and levels that should be added to the new account',
+    name: 'publicKey',
+    description: 'Public key that will control the account',
+    example: 'PUB_K1_6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5BoDq63',
     required: true,
-    format: 'array',
-    example: [
-      {
-        level: 'PASSWORD',
-        key: 'PUB_K1_6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5BoDq63',
-      },
-    ],
   })
   @ApiParam({
     name: 'captchaToken',
