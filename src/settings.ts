@@ -1,6 +1,7 @@
 import * as configDefault from './config/config.json';
 import * as configStaging from './config/config.staging.json';
 import * as configDemo from './config/config.demo.json';
+import { EosioUtil } from '@tonomy/tonomy-id-sdk';
 
 const env = process.env.NODE_ENV || 'development';
 
@@ -78,7 +79,7 @@ console.log('settings', settings);
 settings.secrets = {
   createAccountPrivateKey:
     process.env.CREATE_ACCOUNT_PRIVATE_KEY ||
-    'PVT_K1_2bfGi9rYsXQSXXTvJbDAPhHLQUojjaNLomdm3cEJ1XTzMqUt3V', // Default antelope private key
+    EosioUtil.defaultAntelopePrivateKey.toString(),
   hCaptchaSecret:
     process.env.HCAPTCHA_SECRET || '0x0000000000000000000000000000000000000000', // hCaptcha CI secret
 };
