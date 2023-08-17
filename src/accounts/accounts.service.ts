@@ -1,10 +1,9 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import {
-  CreateAccountRequestKey,
   CreateAccountRequest,
   CreateAccountResponse,
 } from './dto/create-account.dto';
-import { Checksum256, Name, PrivateKey } from '@wharfkit/antelope';
+import { Name, PrivateKey } from '@wharfkit/antelope';
 import settings from '../settings';
 import { PushTransactionResponse } from '@wharfkit/antelope/src/api/v1/types';
 import {
