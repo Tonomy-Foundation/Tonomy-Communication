@@ -67,7 +67,6 @@ jobs:
             -r zap-api-scan-report.html \
             -a
           EXIT_CODE="$?"
-          echo "EXIT_CODE=$EXIT_CODE"
           echo "EXIT_CODE=$EXIT_CODE" >> $GITHUB_OUTPUT
         # https://github.com/orgs/community/discussions/46992#discussioncomment-4961541
 
@@ -77,5 +76,4 @@ jobs:
           name: zap-scan-output
           path: "zap-api-scan-report.html"
       # Exit with the exit code of the ZAP scan
-      - run: echo "EXIT_CODE= ${{ steps.zap_scan.outputs.EXIT_CODE }}"
       - run: exit "${{ steps.zap_scan.outputs.EXIT_CODE }}"
