@@ -50,23 +50,30 @@ jobs:
 
       - name: Run ZAP API Scan
         # https://www.zaproxy.org/docs/docker/api-scan/
-        run: docker run
-          --add-host host.docker.internal:host-gateway
-          -v $(pwd):/zap/wrk/:rw
-          -u root
-          -t
-          ghcr.io/zaproxy/zaproxy:stable
-          zap-api-scan.py
-          -t http://host.docker.internal:5000/openapi.json
-          -f openapi
-          -g gen.conf
-          -r zap-api-scan-report.html
-          -a ; echo $? > zap-exit-code.txt
-   
+        run: |
+          set +e
+          docker run
+            --add-host host.docker.internal:host-gateway
+            -v $(pwd):/zap/wrk/:rw
+            -u root
+            -t
+            ghcr.io/zaproxy/zaproxy:stable
+            zap-api-scan.py
+            -t http://host.docker.internal:5000/openapi.json
+            -f openapi
+            -g gen.conf
+            -r zap-api-scan-report.html
+            -a
+          exitcode="$?"
+          echo "exitcode=$exitcode"
+          echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
+        # https://github.com/orgs/community/discussions/46992#discussioncomment-4961541
+
       - name: Upload ZAP Scan Output
         uses: actions/upload-artifact@v3
         with:
           name: zap-scan-output
           path: "zap-api-scan-report.html"
       # Exit with the exit code of the ZAP scan
-      - run: exit $(cat zap-exit-code.txt)
+      - run: echo "exitcode=$exitcode"
+      - run: exit "$exitcode"
