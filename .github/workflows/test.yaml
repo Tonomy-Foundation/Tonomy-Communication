@@ -45,26 +45,29 @@ jobs:
       - run: corepack enable
       - run: yarn install --immutable
       - run: yarn run build
-      - run: yarn run start:prod
+      - run: yarn run start:prod &
       - run: sleep 3
+      # - run: cat out.log
+      - run: curl localhost:5000
 
-      - name: Run ZAP Full Scan on the accounts website
-        # https://www.zaproxy.org/docs/docker/full-scan/
-        run: curl localhost:5000
-          # docker run
-          # --add-host host.docker.internal:host-gateway
-          # -v $(pwd):/zap/wrk/:rw
-          # -u root
-          # -t
-          # ghcr.io/zaproxy/zaproxy:stable
-          # zap-api-scan.py
-          # -t http://host.docker.internal:5000/openapi.json
-          # -f openapi
-          # -g gen.conf
-          # -r zap-api-scan-report.html
-          # -a || true
-          # # || true - force exit code 0 so action continues
-          
+      - name: Run ZAP API Scan
+        # https://www.zaproxy.org/docs/docker/api-scan/
+        run: curl localhost:5000 &&
+          docker run
+          --add-host host.docker.internal:host-gateway
+          -v $(pwd):/zap/wrk/:rw
+          -u root
+          -t
+          ghcr.io/zaproxy/zaproxy:stable
+          curl host.docker.internal:5000 &&
+          zap-api-scan.py
+          -t http://host.docker.internal:5000/openapi.json
+          -f openapi
+          -g gen.conf
+          -r zap-api-scan-report.html
+          -a || true
+          # || true - force exit code 0 so action continues
+   
       - name: Upload ZAP Scan Output
         uses: actions/upload-artifact@v3
         with:
