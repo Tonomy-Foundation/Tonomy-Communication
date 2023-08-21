@@ -1,4 +1,4 @@
-import { Controller, Get, HttpStatus } from '@nestjs/common';
+import { Controller, Get, HttpStatus, Res } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 
@@ -14,7 +14,7 @@ export class AppController {
     status: HttpStatus.OK,
     description: 'Health check',
   })
-  checkHealth(): HttpStatus {
-    return this.appService.healthCheck();
+  checkHealth(@Res() res: Response) {
+    this.appService.healthCheck(res);
   }
 }
