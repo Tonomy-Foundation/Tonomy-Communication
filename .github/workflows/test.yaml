@@ -61,12 +61,13 @@ jobs:
           -f openapi
           -g gen.conf
           -r zap-api-scan-report.html
-          -a || true
-          # || true - force exit code 0 so action continues
+          -a ;
+          echo $? > zap-exit-code.txt
    
       - name: Upload ZAP Scan Output
         uses: actions/upload-artifact@v3
         with:
           name: zap-scan-output
           path: "zap-api-scan-report.html"
-      - run: ls -la 
+      # Exit with the exit code of the ZAP scan
+      - run: exit $(cat zap-exit-code.txt)
