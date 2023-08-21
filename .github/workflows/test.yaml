@@ -50,24 +50,25 @@ jobs:
       - run: sleep 3
 
       - name: Run ZAP API Scan
+        id: zap_scan
         # https://www.zaproxy.org/docs/docker/api-scan/
         run: |
           set +e
-          docker run
-            --add-host host.docker.internal:host-gateway
-            -v $(pwd):/zap/wrk/:rw
-            -u root
-            -t
-            ghcr.io/zaproxy/zaproxy:stable
-            zap-api-scan.py
-            -t http://host.docker.internal:5000/openapi.json
-            -f openapi
-            -g gen.conf
-            -r zap-api-scan-report.html
+          docker run \
+            --add-host host.docker.internal:host-gateway \
+            -v $(pwd):/zap/wrk/:rw \
+            -u root \
+            -t \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-api-scan.py \
+            -t http://host.docker.internal:5000/openapi.json \
+            -f openapi \
+            -g gen.conf \
+            -r zap-api-scan-report.html \
             -a
-          exitcode="$?"
-          echo "exitcode=$exitcode"
-          echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
+          EXIT_CODE="$?"
+          echo "EXIT_CODE=$EXIT_CODE"
+          echo "EXIT_CODE=$EXIT_CODE" >> $GITHUB_OUTPUT
         # https://github.com/orgs/community/discussions/46992#discussioncomment-4961541
 
       - name: Upload ZAP Scan Output
@@ -76,5 +77,5 @@ jobs:
           name: zap-scan-output
           path: "zap-api-scan-report.html"
       # Exit with the exit code of the ZAP scan
-      - run: echo "exitcode=$exitcode"
-      - run: exit "$exitcode"
+      - run: echo "EXIT_CODE= ${{ steps.zap_scan.outputs.EXIT_CODE }}"
+      - run: exit "${{ steps.zap_scan.outputs.EXIT_CODE }}"
