@@ -61,8 +61,7 @@ jobs:
           -f openapi
           -g gen.conf
           -r zap-api-scan-report.html
-          -a ;
-          echo $? > zap-exit-code.txt
+          -a ; echo $? > zap-exit-code.txt
    
       - name: Upload ZAP Scan Output
         uses: actions/upload-artifact@v3
