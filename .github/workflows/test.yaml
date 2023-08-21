@@ -47,19 +47,15 @@ jobs:
       - run: yarn run build
       - run: yarn run start:prod &
       - run: sleep 3
-      # - run: cat out.log
-      - run: curl localhost:5000
 
       - name: Run ZAP API Scan
         # https://www.zaproxy.org/docs/docker/api-scan/
-        run: curl localhost:5000 &&
-          docker run
+        run: docker run
           --add-host host.docker.internal:host-gateway
           -v $(pwd):/zap/wrk/:rw
           -u root
           -t
           ghcr.io/zaproxy/zaproxy:stable
-          curl host.docker.internal:5000 &&
           zap-api-scan.py
           -t http://host.docker.internal:5000/openapi.json
           -f openapi
