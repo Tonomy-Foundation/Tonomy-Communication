@@ -13,6 +13,7 @@ import {
   CreateAccountRequest,
   CreateAccountResponse,
 } from './dto/create-account.dto';
+import { Response } from 'express';
 
 @Controller('accounts')
 export class AccountsController {
@@ -58,12 +59,11 @@ export class AccountsController {
   async createAccount(
     @Body() createAccountDto: CreateAccountRequest,
     @Res() response: Response,
-  ): Promise<CreateAccountResponse> {
+  ): Promise<void> {
     try {
       const val = await this.accountService.createAccount(createAccountDto);
 
-      // @ts-expect-error status is not callable
-      return response.status(HttpStatus.CREATED).send(val);
+      response.status(HttpStatus.CREATED).send(val);
     } catch (e) {
       this.logger.error(e);
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
