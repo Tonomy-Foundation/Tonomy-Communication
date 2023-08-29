@@ -8,7 +8,7 @@ RUN yarn run build
 
 EXPOSE 5000
 
-CMD [ "npm", "run", "start:prod" ]
+CMD [ "yarn", "run", "start:prod" ]
 
 FROM tonomy_communication_base AS tonomy_communication_staging
 
