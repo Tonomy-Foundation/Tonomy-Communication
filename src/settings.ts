@@ -10,14 +10,14 @@ console.log(`NODE_ENV=${env}`);
 type ConfigType = {
   blockchainUrl: string;
   loggerLevel:
-    | 'emergency'
-    | 'alert'
-    | 'critical'
-    | 'error'
-    | 'warning'
-    | 'notice'
-    | 'info'
-    | 'debug';
+  | 'emergency'
+  | 'alert'
+  | 'critical'
+  | 'error'
+  | 'warning'
+  | 'notice'
+  | 'info'
+  | 'debug';
 };
 
 type SettingsType = {
@@ -38,14 +38,14 @@ const settings: SettingsType = {
 
 type FixLoggerLevelEnumType<T> = Omit<T, 'loggerLevel'> & {
   loggerLevel:
-    | 'emergency'
-    | 'alert'
-    | 'critical'
-    | 'error'
-    | 'warning'
-    | 'notice'
-    | 'info'
-    | 'debug';
+  | 'emergency'
+  | 'alert'
+  | 'critical'
+  | 'error'
+  | 'warning'
+  | 'notice'
+  | 'info'
+  | 'debug';
 };
 
 switch (env) {
@@ -66,13 +66,13 @@ switch (env) {
     throw new Error('Unknown environment: ' + env);
 }
 
+settings.config = Object.assign({}, config);
+
 if (process.env.BLOCKCHAIN_URL) {
   console.log(`Using BLOCKCHAIN_URL from env:  ${process.env.BLOCKCHAIN_URL}`);
 
-  config.blockchainUrl = process.env.BLOCKCHAIN_URL;
+  settings.config.blockchainUrl = process.env.BLOCKCHAIN_URL;
 }
-
-settings.config = config;
 
 console.log('settings', settings);
 
