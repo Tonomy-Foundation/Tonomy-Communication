@@ -27,16 +27,18 @@ jobs:
       - run: yarn run build
       - run: yarn run lint
       - run: yarn run test
+      - run: yarn run test:e2e
 
   zap_scan:
     runs-on: ubuntu-latest
     name: OWASP ZAP API Scan
+
     steps:
+
       - name: Checkout
         uses: actions/checkout@v3
       
-
-      - name: Install dependencies
+      - name: Build and run server
         uses: actions/setup-node@v3
         with:
           node-version: 18.12.1
@@ -47,10 +49,31 @@ jobs:
       - run: yarn run start:prod &
       - run: sleep 3
 
-      - name: ZAP Scan
-        uses: zaproxy/action-api-scan@v0.3.1
+      - name: Run ZAP API Scan
+        id: zap_scan
+        # https://www.zaproxy.org/docs/docker/api-scan/
+        run: |
+          set +e
+          docker run \
+            --add-host host.docker.internal:host-gateway \
+            -v $(pwd):/zap/wrk/:rw \
+            -u root \
+            -t \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-api-scan.py \
+            -t http://host.docker.internal:5000/openapi.json \
+            -f openapi \
+            -g gen.conf \
+            -r zap-api-scan-report.html \
+            -a
+          EXIT_CODE="$?"
+          echo "EXIT_CODE=$EXIT_CODE" >> $GITHUB_OUTPUT
+        # https://github.com/orgs/community/discussions/46992#discussioncomment-4961541
+
+      - name: Upload ZAP Scan Output
+        uses: actions/upload-artifact@v3
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          target: 'http://localhost:5000/openapi.json'
-          format: openapi
-          cmd_options: '-a'
+          name: zap-scan-output
+          path: "zap-api-scan-report.html"
+      # Exit with the exit code of the ZAP scan
+      - run: exit "${{ steps.zap_scan.outputs.EXIT_CODE }}"
