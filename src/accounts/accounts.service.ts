@@ -52,7 +52,7 @@ export class AccountsService {
       createAccountRequest.captchaToken,
     );
 
-    if (!verifyResponse.success)
+    if (!verifyResponse.success) {
       throw new HttpException(
         {
           message: 'Captcha verification failed',
@@ -60,6 +60,7 @@ export class AccountsService {
         },
         HttpStatus.BAD_REQUEST,
       );
+    }
 
     const idTonomyActiveKey = PrivateKey.from(
       settings.secrets.createAccountPrivateKey,
