@@ -3,7 +3,10 @@ import { MessageDto } from '../dto/message.dto';
 import { TransformVcPipe } from './transform-vc.pipe';
 import { HttpException } from '@nestjs/common';
 
-setSettings({});
+setSettings({
+  blockchainUrl: 'http://localhost:8888',
+});
+
 describe('TransformVcPipe', () => {
   it('should be defined', () => {
     expect(new TransformVcPipe()).toBeDefined();

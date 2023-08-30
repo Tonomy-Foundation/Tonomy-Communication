@@ -5,7 +5,6 @@ import {
   Injectable,
   PipeTransform,
 } from '@nestjs/common';
-import { WsException } from '@nestjs/websockets';
 import { MessageDto, MessageRto } from '../dto/message.dto';
 
 @Injectable()
