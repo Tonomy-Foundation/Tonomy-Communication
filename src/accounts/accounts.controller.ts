@@ -65,8 +65,9 @@ export class AccountsController {
 
       response.status(HttpStatus.CREATED).send(val);
     } catch (e) {
-      this.logger.error(e);
       if (e instanceof HttpException) throw e;
+      console.error(e);
+      this.logger.error(e);
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
