@@ -77,11 +77,19 @@ if (process.env.BLOCKCHAIN_URL) {
 console.log('settings', settings);
 
 settings.secrets = {
-  createAccountPrivateKey:
-    process.env.CREATE_ACCOUNT_PRIVATE_KEY ||
-    EosioUtil.defaultAntelopePrivateKey.toString(),
-  hCaptchaSecret:
-    process.env.HCAPTCHA_SECRET || '0x0000000000000000000000000000000000000000', // hCaptcha CI secret
+  createAccountPrivateKey: EosioUtil.defaultAntelopePrivateKey.toString(),
+  hCaptchaSecret: '0x0000000000000000000000000000000000000000',
 };
+
+if (process.env.CREATE_ACCOUNT_PRIVATE_KEY) {
+  console.log('Using CREATE_ACCOUNT_PRIVATE_KEY from env');
+  settings.secrets.createAccountPrivateKey =
+    process.env.CREATE_ACCOUNT_PRIVATE_KEY;
+}
+
+if (process.env.HCAPTCHA_SECRET) {
+  console.log('Using HCAPTCHA_SECRET from env');
+  settings.secrets.hCaptchaSecret = process.env.HCAPTCHA_SECRET;
+}
 
 export default settings;
