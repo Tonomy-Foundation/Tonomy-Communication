@@ -2849,9 +2849,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tonomy/tonomy-id-sdk@npm:^0.14.1":
-  version: 0.14.1
-  resolution: "@tonomy/tonomy-id-sdk@npm:0.14.1"
+"@tonomy/tonomy-id-sdk@npm:development":
+  version: 0.15.0-development.2
+  resolution: "@tonomy/tonomy-id-sdk@npm:0.15.0-development.2"
   dependencies:
     "@consento/sync-randombytes": ^1.0.5
     "@tonomy/antelope-did": ^0.1.5
@@ -2866,7 +2866,7 @@ __metadata:
     elliptic: ^6.5.4
     socket.io-client: ^4.5.4
     universal-base64url: ^1.1.0
-  checksum: bdf3d3946650a506017da30926dcc4731eb832acb4c8edb1e93b193e74a55887fcbd3ce29107079b251ea3ffdccba3bd8564145542d789a016e68329d542c1f5
+  checksum: 33d6031035c480da14ad603a7bb4e94ffcc6138677ae9fcf301f962a96328a449ee636c7fdec7825bda79853b93fc9781586da62eae341763c6686c3b58afcdc
   languageName: node
   linkType: hard
 
@@ -6433,6 +6433,13 @@ __metadata:
     inherits: ^2.0.3
     minimalistic-assert: ^1.0.1
   checksum: e350096e659c62422b85fa508e4b3669017311aa4c49b74f19f8e1bc7f3a54a584fdfd45326d4964d6011f2b2d882e38bea775a96046f2a61b7779a979629d8f
+  languageName: node
+  linkType: hard
+
+"hcaptcha@npm:^0.1.1":
+  version: 0.1.1
+  resolution: "hcaptcha@npm:0.1.1"
+  checksum: 3dcad365da0b4611ba43f02f898eb343324f607445c21f403a60a7d8f4891501323a6553c24670e2a7dd77dc5184ca656a8b15e5b29bbf494b15cd7e0daae6e8
   languageName: node
   linkType: hard
 
@@ -10576,7 +10583,7 @@ __metadata:
     "@nestjs/swagger": ^6.1.4
     "@nestjs/testing": ^9.0.0
     "@nestjs/websockets": ^9.2.1
-    "@tonomy/tonomy-id-sdk": ^0.14.1
+    "@tonomy/tonomy-id-sdk": development
     "@types/express": ^4.17.13
     "@types/jest": 29.2.4
     "@types/node": 18.11.18
@@ -10588,6 +10595,7 @@ __metadata:
     eslint: ^8.0.1
     eslint-config-prettier: ^8.3.0
     eslint-plugin-prettier: ^4.0.0
+    hcaptcha: ^0.1.1
     helmet: ^7.0.0
     jest: 29.3.1
     nestjs-asyncapi: ^1.0.4

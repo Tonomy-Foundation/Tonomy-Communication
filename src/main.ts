@@ -8,6 +8,7 @@ import helmet from 'helmet';
 
 setSettings({
   blockchainUrl: settings.config.blockchainUrl,
+  loggerLevel: settings.config.loggerLevel,
 });
 
 async function bootstrap() {

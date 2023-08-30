@@ -1,3 +1,4 @@
 {
-    "blockchainUrl": "http://localhost:8888"
+    "blockchainUrl": "http://localhost:8888",
+    "loggerLevel": "debug"
 }
