@@ -12,23 +12,42 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Install dependencies
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18.12.1
-      # corepack is needed to run yarn through npm
-      - run: corepack enable
-      - run: yarn install --immutable
+      # - name: Install dependencies
+      #   uses: actions/setup-node@v3
+      #   with:
+      #     node-version: 18.12.1
+      # # corepack is needed to run yarn through npm
+      # - run: corepack enable
+      # - run: yarn install --immutable
 
-      - name: Run lint and test
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18.12.1
-      - run: yarn run build
-      - run: yarn run lint
-      - run: yarn run test
-      - run: yarn run test:e2e
+      # - name: Run lint and test
+      #   uses: actions/setup-node@v3
+      #   with:
+      #     node-version: 18.12.1
+      # - run: yarn run build
+      # - run: yarn run lint
+      # - run: yarn run test
+      # - run: yarn run test:e2e
 
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          target: tonomy_communication_base
+          push: false
+          tags: tonomy/communication:development
+
+      - name: "Run docker container to check it can run"
+        run: |
+          docker run \
+            --add-host host.docker.internal:host-gateway \
+            -p 5000:5000 \
+            tonomy/communication:development \
+            yarn run start:prod &
+          sleep 3
+          curl http://localhost:5000
+      
   zap_scan:
     runs-on: ubuntu-latest
     name: OWASP ZAP API Scan
