@@ -15,7 +15,6 @@ import {
   UseGuards,
   UsePipes,
 } from '@nestjs/common';
-import { AsyncApiPub } from 'nestjs-asyncapi';
 import { TransformVcPipe } from './transform-vc/transform-vc.pipe';
 import { MessageDto, MessageRto } from './dto/message.dto';
 import { Client } from './dto/client.dto';
@@ -35,7 +34,7 @@ import { CommunicationGuard } from './communication.guard';
 @UseFilters(new BaseWsExceptionFilter())
 export class CommunicationGateway implements OnGatewayDisconnect {
   private readonly logger = new Logger(CommunicationGateway.name);
-  constructor(private readonly usersService: CommunicationService) {}
+  constructor(private readonly usersService: CommunicationService) { }
 
   /**
    * Logs in the user and added it to the loggedIn map
@@ -45,13 +44,6 @@ export class CommunicationGateway implements OnGatewayDisconnect {
    * @returns void
    */
   @SubscribeMessage('login')
-  @AsyncApiPub({
-    channel: 'login',
-    message: {
-      payload: MessageRto,
-    },
-    description: 'login to the messaging service ',
-  })
   connectUser(
     @MessageBody() message: MessageDto,
     @ConnectedSocket() client: Client,
@@ -74,14 +66,6 @@ export class CommunicationGateway implements OnGatewayDisconnect {
    */
   @SubscribeMessage('message')
   @UseGuards(CommunicationGuard)
-  @AsyncApiPub({
-    channel: 'message',
-    message: {
-      payload: MessageRto,
-    },
-    description:
-      'send message to client the message must be signed VC having a recipient',
-  })
   relayMessage(
     @MessageBody() message: MessageDto,
     @ConnectedSocket() client: Client,

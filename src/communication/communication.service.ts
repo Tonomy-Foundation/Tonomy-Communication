@@ -1,11 +1,9 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { AsyncApiSub, AsyncApi } from 'nestjs-asyncapi';
 import { Socket } from 'socket.io';
 import { Client } from './dto/client.dto';
-import { MessageDto, MessageRto } from './dto/message.dto';
+import { MessageDto } from './dto/message.dto';
 import settings from '../settings';
 
-@AsyncApi()
 @Injectable()
 export class CommunicationService {
   private readonly logger = new Logger(CommunicationService.name);
@@ -44,13 +42,6 @@ export class CommunicationService {
    * @throws if the receiving user isn't online or loggedIn
    * @returns boolean if message is sent to the user
    */
-  @AsyncApiSub({
-    channel: 'message',
-    message: {
-      payload: MessageRto,
-    },
-    description: 'receive message from client',
-  })
   sendMessage(socket: Client, message: MessageDto): boolean {
     const recipient = this.loggedInUsers.get(message.getRecipient());
 
