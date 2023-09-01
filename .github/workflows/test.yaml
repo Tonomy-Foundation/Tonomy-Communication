@@ -12,22 +12,22 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # - name: Install dependencies
-      #   uses: actions/setup-node@v3
-      #   with:
-      #     node-version: 18.12.1
-      # # corepack is needed to run yarn through npm
-      # - run: corepack enable
-      # - run: yarn install --immutable
+      - name: Install dependencies
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.12.1
+      # corepack is needed to run yarn through npm
+      - run: corepack enable
+      - run: yarn install --immutable
 
-      # - name: Run lint and test
-      #   uses: actions/setup-node@v3
-      #   with:
-      #     node-version: 18.12.1
-      # - run: yarn run build
-      # - run: yarn run lint
-      # - run: yarn run test
-      # - run: yarn run test:e2e
+      - name: Run lint and test
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.12.1
+      - run: yarn run build
+      - run: yarn run lint
+      - run: yarn run test
+      - run: yarn run test:e2e
 
       - name: Build and push
         uses: docker/build-push-action@v4
