@@ -10,12 +10,6 @@
 yarn install
 ```
 
-For the `development` branch
-
-```bash
-yarn add @tonomy/tonomy-id-sdk@development
-```
-
 ## Running the app
 
 ```bash
@@ -27,6 +21,14 @@ yarn run start:dev
 
 # production mode
 yarn run start:prod
+```
+
+## Update the Tonomy-ID-SDK version to the latest
+
+```bash
+yarn run updateSdkVersion development
+# or
+yarn run updateSdkVersion master
 ```
 
 ## Environment variables and configuration
