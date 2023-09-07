@@ -16,11 +16,17 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { TransformVcPipe } from './transform-vc/transform-vc.pipe';
-import { MessageDto, MessageRto } from './dto/message.dto';
 import { Client } from './dto/client.dto';
 import { WsExceptionFilter } from './ws-exception/ws-exception.filter';
 import { AuthenticationMessage } from '@tonomy/tonomy-id-sdk';
 import { CommunicationGuard } from './communication.guard';
+import { BodyDto } from './dto/body.dto';
+
+export type WebsocketReturnType = {
+  status: HttpStatus;
+  details?: any;
+  error?: any;
+};
 
 @UseFilters(WsExceptionFilter)
 @UsePipes(new TransformVcPipe())
@@ -39,38 +45,58 @@ export class CommunicationGateway implements OnGatewayDisconnect {
   /**
    * Logs in the user and added it to the loggedIn map
    *
-   * @param {MessageDto} message - the VC the user sent
+   * @param {BodyDto} body - The message VC or an error from the transformer
    * @param {Client} client - user socket
-   * @returns void
    */
   @SubscribeMessage('login')
-  connectUser(
-    @MessageBody() message: MessageDto,
+  async connectUser(
+    @MessageBody() body: BodyDto,
     @ConnectedSocket() client: Client,
   ) {
-    if (message.getType() !== AuthenticationMessage.getType()) {
-      throw new HttpException(
-        "Message type must be 'AuthenticationMessage'",
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    try {
+      if (body.error) throw body.error;
+      if (!body.value) throw new Error('Body not found');
+      const message = body.value;
 
-    return this.usersService.login(message.getSender(), client);
+      if (message.getType() !== AuthenticationMessage.getType()) {
+        throw new HttpException(
+          "Message type must be 'AuthenticationMessage'",
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      return {
+        status: HttpStatus.OK,
+        details: await this.usersService.login(message.getSender(), client),
+      };
+    } catch (e) {
+      return this.usersService.handleError(e);
+    }
   }
 
   /**
    * sends the message to the VC recipient if is connected and loggedIn
-   * @param message the VC the user sent
+   * @param {BodyDto} body - The message VC or an error from the transformer
    * @param client user socket
-   * @returns void
    */
   @SubscribeMessage('message')
   @UseGuards(CommunicationGuard)
-  relayMessage(
-    @MessageBody() message: MessageDto,
+  async relayMessage(
+    @MessageBody() body: BodyDto,
     @ConnectedSocket() client: Client,
   ) {
-    return this.usersService.sendMessage(client, message);
+    try {
+      if (body.error) throw body.error;
+      if (!body.value) throw new Error('Body not found');
+      const message = body.value;
+
+      return {
+        status: HttpStatus.OK,
+        details: await this.usersService.sendMessage(client, message),
+      };
+    } catch (e) {
+      return this.usersService.handleError(e);
+    }
   }
 
   /**

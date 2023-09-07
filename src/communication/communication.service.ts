@@ -3,6 +3,7 @@ import { Socket } from 'socket.io';
 import { Client } from './dto/client.dto';
 import { MessageDto } from './dto/message.dto';
 import settings from '../settings';
+import { WebsocketReturnType } from './communication.gateway';
 
 @Injectable()
 export class CommunicationService {
@@ -66,5 +67,22 @@ export class CommunicationService {
     }
 
     return true;
+  }
+
+  handleError(e): WebsocketReturnType {
+    if (settings.env !== 'test') console.error(e);
+    // this.logger.error(e); // This does not print stack trace
+
+    if (e instanceof HttpException) {
+      return {
+        status: e.getStatus(),
+        error: e.getResponse(),
+      };
+    }
+
+    return {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      error: e.message,
+    };
   }
 }
