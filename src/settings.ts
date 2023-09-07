@@ -5,7 +5,7 @@ import { EosioUtil } from '@tonomy/tonomy-id-sdk';
 
 const env = process.env.NODE_ENV || 'development';
 
-console.log(`NODE_ENV=${env}`);
+if (env !== 'test') console.log(`NODE_ENV=${env}`);
 
 type ConfigType = {
   blockchainUrl: string;
@@ -74,7 +74,7 @@ if (process.env.BLOCKCHAIN_URL) {
   settings.config.blockchainUrl = process.env.BLOCKCHAIN_URL;
 }
 
-console.log('settings', settings);
+if (env !== 'test') console.log('settings', settings);
 
 settings.secrets = {
   createAccountPrivateKey: EosioUtil.defaultAntelopePrivateKey.toString(),
