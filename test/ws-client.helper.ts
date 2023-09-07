@@ -55,33 +55,3 @@ export async function emitMessage(
         return res.details;
     }
 }
-
-// export async function emitMessage(
-//     socket: Socket,
-//     event: string,
-//     body: any,
-// ): Promise<any> {
-//     return await new Promise((resolve, reject) => {
-//         let resolved = false;
-
-//         const res = socket.emit(event, body, (response: any) => {
-//             console.log('response', response);
-
-//             if (response.error) {
-//                 reject(response.error);
-//                 return;
-//             }
-
-//             resolved = true;
-//             resolve(response);
-//             return;
-//         });
-
-//         // console.log('res', res);
-
-//         setTimeout(() => {
-//             if (resolved) return;
-//             reject(new Error('Websocket event timed out'));
-//         }, 1000);
-//     });
-// }

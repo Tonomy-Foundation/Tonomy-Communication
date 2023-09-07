@@ -38,6 +38,12 @@ describe('CommunicationGateway (e2e)', () => {
     });
 
     describe('login event', () => {
+        // it('fails when provide an empty body', async () => {
+        //     await expect(() => emitMessage(socket, 'login', {})).rejects.toThrow(
+        //         "Cannot read properties of undefined (reading 'getCredentialSubject')",
+        //     );
+        // });
+
         it('succeeds for did:jwk message', async () => {
             const { privateKey, publicKey } = generateRandomKeyPair();
             const signer = ES256KSigner(privateKey.data.array, true);

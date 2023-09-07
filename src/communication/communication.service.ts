@@ -70,7 +70,8 @@ export class CommunicationService {
   }
 
   handleError(e): WebsocketReturnType {
-    this.logger.error(e);
+    console.error(e);
+    // this.logger.error(e); // This does not print stack trace
 
     if (e instanceof HttpException) {
       return {
