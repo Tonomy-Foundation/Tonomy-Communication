@@ -16,11 +16,17 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { TransformVcPipe } from './transform-vc/transform-vc.pipe';
-import { MessageDto, MessageRto } from './dto/message.dto';
+import { MessageDto } from './dto/message.dto';
 import { Client } from './dto/client.dto';
 import { WsExceptionFilter } from './ws-exception/ws-exception.filter';
 import { AuthenticationMessage } from '@tonomy/tonomy-id-sdk';
 import { CommunicationGuard } from './communication.guard';
+
+export type WebsocketReturnType = {
+  status: HttpStatus;
+  details?: any;
+  error?: any;
+};
 
 @UseFilters(WsExceptionFilter)
 @UsePipes(new TransformVcPipe())
@@ -44,18 +50,25 @@ export class CommunicationGateway implements OnGatewayDisconnect {
    * @returns void
    */
   @SubscribeMessage('login')
-  connectUser(
+  async connectUser(
     @MessageBody() message: MessageDto,
     @ConnectedSocket() client: Client,
   ) {
-    if (message.getType() !== AuthenticationMessage.getType()) {
-      throw new HttpException(
-        "Message type must be 'AuthenticationMessage'",
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    try {
+      if (message.getType() !== AuthenticationMessage.getType()) {
+        throw new HttpException(
+          "Message type must be 'AuthenticationMessage'",
+          HttpStatus.BAD_REQUEST,
+        );
+      }
 
-    return this.usersService.login(message.getSender(), client);
+      return {
+        status: HttpStatus.OK,
+        details: await this.usersService.login(message.getSender(), client),
+      };
+    } catch (e) {
+      return this.usersService.handleError(e);
+    }
   }
 
   /**
@@ -66,11 +79,18 @@ export class CommunicationGateway implements OnGatewayDisconnect {
    */
   @SubscribeMessage('message')
   @UseGuards(CommunicationGuard)
-  relayMessage(
+  async relayMessage(
     @MessageBody() message: MessageDto,
     @ConnectedSocket() client: Client,
   ) {
-    return this.usersService.sendMessage(client, message);
+    try {
+      return {
+        status: HttpStatus.OK,
+        details: await this.usersService.sendMessage(client, message),
+      };
+    } catch (e) {
+      return this.usersService.handleError(e);
+    }
   }
 
   /**
