@@ -13,7 +13,7 @@ export class TransformVcPipe implements PipeTransform {
   async transform(
     value: MessageRto,
     metadata: ArgumentMetadata,
-  ): Promise<BodyDto | undefined> {
+  ): Promise<BodyDto | MessageRto> {
     try {
       if (metadata.type === 'body') {
         const message = new MessageDto(value.message);
@@ -47,6 +47,7 @@ export class TransformVcPipe implements PipeTransform {
         }
       } else {
         // Do nothing. transform() is not needed
+        return value;
       }
     } catch (e) {
       return {
