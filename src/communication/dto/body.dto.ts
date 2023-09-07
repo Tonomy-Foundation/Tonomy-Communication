@@ -1,6 +1,6 @@
 import { MessageDto } from './message.dto';
 
-export type BodyDto = {
-    value?: MessageDto;
-    error?: any;
-};
+export class BodyDto {
+    value?: MessageDto | undefined;
+    error?: Error | any | undefined;
+}
