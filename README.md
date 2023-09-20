@@ -10,12 +10,6 @@
 yarn install
 ```
 
-For the `development` branch
-
-```bash
-yarn add @tonomy/tonomy-id-sdk@development
-```
-
 ## Running the app
 
 ```bash
@@ -28,6 +22,20 @@ yarn run start:dev
 # production mode
 yarn run start:prod
 ```
+
+## Update the Tonomy-ID-SDK version to the latest
+
+```bash
+yarn run updateSdkVersion development
+# or
+yarn run updateSdkVersion master
+```
+
+## Environment variables and configuration
+
+`NODE_ENV` - Determines which config file in `./src/config` to use
+`CREATE_ACCOUNT_PRIVATE_KEY` - The private key used to sign the transaction to create a new account
+`HCAPTCHA_SECRET` - The hCaptcha account secret key
 
 ## Test
 

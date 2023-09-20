@@ -7,7 +7,7 @@ import {
 import { Observable } from 'rxjs';
 
 @Injectable()
-export class UsersGuard implements CanActivate {
+export class CommunicationGuard implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {

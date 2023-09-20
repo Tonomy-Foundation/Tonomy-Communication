@@ -1,12 +1,14 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { AsyncApiSub, AsyncApi } from 'nestjs-asyncapi';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Socket } from 'socket.io';
 import { Client } from './dto/client.dto';
-import { MessageDto, MessageRto } from './dto/message.dto';
+import { MessageDto } from './dto/message.dto';
+import settings from '../settings';
+import { WebsocketReturnType } from './communication.gateway';
 
-@AsyncApi()
 @Injectable()
-export class UsersService {
+export class CommunicationService {
+  private readonly logger = new Logger(CommunicationService.name);
+
   private readonly loggedInUsers = new Map<string, Socket['id']>();
 
   /**
@@ -24,7 +26,8 @@ export class UsersService {
    * @returns boolean if user is connected successfully
    */
   login(did: string, socket: Client): boolean {
-    if (process.env.LOG === 'true') console.log('login()', did, socket.id);
+    if (settings.config.loggerLevel === 'debug')
+      this.logger.debug('login()', did, socket.id);
 
     if (this.loggedInUsers.get(did) === socket.id) return false;
     this.loggedInUsers.set(did, socket.id);
@@ -40,18 +43,11 @@ export class UsersService {
    * @throws if the receiving user isn't online or loggedIn
    * @returns boolean if message is sent to the user
    */
-  @AsyncApiSub({
-    channel: 'message',
-    message: {
-      payload: MessageRto,
-    },
-    description: 'receive message from client',
-  })
   sendMessage(socket: Client, message: MessageDto): boolean {
     const recipient = this.loggedInUsers.get(message.getRecipient());
 
-    if (process.env.LOG === 'true')
-      console.log(
+    if (settings.config.loggerLevel === 'debug')
+      this.logger.debug(
         'sendMessage()',
         message.getIssuer(),
         message.getRecipient(),
@@ -71,5 +67,22 @@ export class UsersService {
     }
 
     return true;
+  }
+
+  handleError(e): WebsocketReturnType {
+    if (settings.env !== 'test') console.error(e);
+    // this.logger.error(e); // This does not print stack trace
+
+    if (e instanceof HttpException) {
+      return {
+        status: e.getStatus(),
+        error: e.getResponse(),
+      };
+    }
+
+    return {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      error: e.message,
+    };
   }
 }
