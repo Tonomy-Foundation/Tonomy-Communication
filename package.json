@@ -77,6 +77,10 @@
     "testEnvironment": "node"
   },
   "packageManager": "yarn@3.1.1",
+  "engines": {
+    "node": "18.12.1",
+    "yarn": "3.1.1"
+  },
   "resolutions": {
     "@wharfkit/antelope": "0.7.1"
   }
