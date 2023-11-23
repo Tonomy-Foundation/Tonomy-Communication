@@ -54,3 +54,21 @@ yarn run test:cov
 
 <https://localhost:5000/openapi> (for REST API with Open API)
 <https://localhost:5000/asyncapi> (for websocket with Async API)
+
+## Digital Ocean Settings
+
+Run in a Digital Ocean App which runs the nodejs project: <https://docs.digitalocean.com/products/app-platform/>
+
+Using Ubuntu 22.04 with Nodejs 18.x is enabled:
+
+- <https://docs.digitalocean.com/products/app-platform/reference/buildpacks/nodejs/#ubuntu-2204-stack-supporting-nodejs-18>
+
+Build command: `yarn run build`
+
+Run command: `yarn run start:prod`
+
+Environment variables
+
+- NODE_ENV
+- CREATE_ACCOUNT_PRIVATE_KEY
+- HCAPTCHA_SECRET
