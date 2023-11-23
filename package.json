@@ -6,7 +6,6 @@
   "private": true,
   "license": "Apache-2.0",
   "scripts": {
-    "corepack": "yarn -v && corepack enable && yarn -v",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
@@ -78,9 +77,7 @@
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
   },
-  "engines": {
-    "node": "18.12.1"
-  },
+  "packageManager": "yarn@3.1.1",
   "resolutions": {
     "@wharfkit/antelope": "0.7.1"
   }
