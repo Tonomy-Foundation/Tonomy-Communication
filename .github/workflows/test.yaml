@@ -16,7 +16,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18.12.1
-          cache: yarn
       - run: corepack enable
       # corepack is needed to run yarn through npm
       - run: yarn install --immutable
@@ -25,7 +24,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18.12.1
-          cache: yarn
       - run: yarn run build
       - run: yarn run lint
       - run: yarn run test
@@ -62,7 +60,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18.12.1
-          cache: yarn
       - run: corepack enable
       # corepack is needed to run yarn through npm
       - run: yarn install --immutable
