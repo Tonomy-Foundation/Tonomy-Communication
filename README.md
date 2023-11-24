@@ -7,7 +7,6 @@
 ## Installation
 
 ```bash
-yarn run yarn:version
 yarn install
 ```
 
@@ -64,7 +63,9 @@ Using Ubuntu 22.04 with Nodejs 18.x is enabled:
 
 - <https://docs.digitalocean.com/products/app-platform/reference/buildpacks/nodejs/#ubuntu-2204-stack-supporting-nodejs-18>
 
-Build command: `yarn run build`
+Build command: `yarn -v && yarn install && yarn run build`
+
+- NOTE: we need to run `yarn install` again so that we install with `yarn@3.1.1` which we force via`.yarnrc.yml` and `.yarn/releases/yarn-3.1.1.cjs`. See <https://github.com/Tonomy-Foundation/Tonomy-Communication/issues/85> for more details.
 
 Run command: `yarn run start:prod`
 
@@ -73,11 +74,3 @@ Environment variables
 - NODE_ENV
 - CREATE_ACCOUNT_PRIVATE_KEY
 - HCAPTCHA_SECRET
-
-Due to Digital Ocean limitations (it installs yarn globally, not with `corepack enable`). We cannot but would like to set the following parameter in `package.json`
-
-```json
-"packageManager": "yarn@3.1.1"
-```
-
-See <https://github.com/Tonomy-Foundation/Tonomy-Communication/issues/85>
