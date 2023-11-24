@@ -12,7 +12,8 @@ yarn-error.log*
 lerna-debug.log*
 
 # yarn caching
-.yarn
+.yarn/cache
+.yarn/unplugged
 
 # OS
 .DS_Store

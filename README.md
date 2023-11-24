@@ -7,6 +7,7 @@
 ## Installation
 
 ```bash
+yarn run yarn:version
 yarn install
 ```
 
@@ -72,3 +73,11 @@ Environment variables
 - NODE_ENV
 - CREATE_ACCOUNT_PRIVATE_KEY
 - HCAPTCHA_SECRET
+
+Due to Digital Ocean limitations (it installs yarn globally, not with `corepack enable`). We cannot but would like to set the following parameter in `package.json`
+
+```json
+"packageManager": "yarn@3.1.1"
+```
+
+See <https://github.com/Tonomy-Foundation/Tonomy-Communication/issues/85>

@@ -2,9 +2,9 @@ FROM node:18.12.1 AS tonomy_communication_base
 
 WORKDIR /app
 COPY . .
-
 RUN corepack enable
 RUN yarn install --immutable
+
 RUN yarn run build
 
 EXPOSE 5000
