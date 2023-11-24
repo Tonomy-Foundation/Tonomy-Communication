@@ -15,10 +15,6 @@ jobs:
         with:
           node-version: 18.12.1
       - run: corepack enable
-      - run: cp yarn.lock yarn.lock.bak
-      - run: yarn
-      - run: yarn run yarn:version
-      - run: cp yarn.lock.bak yarn.lock
-      - run: rm -rf node_modules && rm yarn.lock.bak
+      - run: yarn -v
       - run: yarn install --immutable
       - run: yarn run updateSdkVersion $GITHUB_BASE_REF check
