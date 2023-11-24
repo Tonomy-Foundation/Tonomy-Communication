@@ -7,6 +7,7 @@
 ## Installation
 
 ```bash
+yarn run yarn:version
 yarn install
 ```
 

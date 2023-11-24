@@ -4,6 +4,7 @@ WORKDIR /app
 COPY . .
 
 RUN corepack enable
+RUN yarn run yarn:version
 RUN yarn install --immutable
 RUN yarn run build
 

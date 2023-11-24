@@ -17,7 +17,7 @@ jobs:
         with:
           node-version: 18.12.1
       - run: corepack enable
-      # corepack is needed to run yarn through npm
+      - run: yarn run yarn:version
       - run: yarn install --immutable
 
       - name: Run lint and test
