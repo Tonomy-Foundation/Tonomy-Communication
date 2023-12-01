@@ -8,20 +8,20 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-latest
-  
+
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install dependencies
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18.12.1
-      # corepack is needed to run yarn through npm
       - run: corepack enable
+      - run: yarn -v
       - run: yarn install --immutable
 
       - name: Run lint and test
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18.12.1
       - run: yarn run build
@@ -47,22 +47,21 @@ jobs:
             yarn run start:prod &
           sleep 5
           curl http://localhost:5000
-      
+
   zap_scan:
     runs-on: ubuntu-latest
     name: OWASP ZAP API Scan
 
     steps:
-
       - name: Checkout
-        uses: actions/checkout@v3
-      
+        uses: actions/checkout@v4
+
       - name: Build and run server
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18.12.1
-      # corepack is needed to run yarn through npm
       - run: corepack enable
+      # corepack is needed to run yarn through npm
       - run: yarn install --immutable
       - run: yarn run build
       - run: yarn run start:prod &
