@@ -1,6 +1,7 @@
 import * as configDefault from './config/config.json';
 import * as configStaging from './config/config.staging.json';
-import * as configDemo from './config/config.demo.json';
+import * as configTestnet from './config/config.demo.json';
+import * as configProduction from './config/config.production.json';
 import { EosioUtil } from '@tonomy/tonomy-id-sdk';
 
 const env = process.env.NODE_ENV || 'development';
@@ -57,11 +58,13 @@ switch (env) {
   case 'staging':
     config = configStaging as FixLoggerLevelEnumType<typeof configStaging>;
     break;
-  case 'demo':
-    config = configDemo as FixLoggerLevelEnumType<typeof configDemo>;
+  case 'testnet':
+    config = configTestnet as FixLoggerLevelEnumType<typeof configTestnet>;
     break;
   case 'production':
-    throw new Error('Production config not implemented yet');
+    config = configProduction as FixLoggerLevelEnumType<
+      typeof configProduction
+    >;
   default:
     throw new Error('Unknown environment: ' + env);
 }

@@ -1,0 +1,4 @@
+{
+    "blockchainUrl": "https://blockchain-api-production.tonomy.network",
+    "loggerLevel": "info"
+}
