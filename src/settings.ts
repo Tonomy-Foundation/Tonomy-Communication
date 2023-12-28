@@ -1,6 +1,6 @@
 import * as configDefault from './config/config.json';
 import * as configStaging from './config/config.staging.json';
-import * as configTestnet from './config/config.demo.json';
+import * as configTestnet from './config/config.testnet.json';
 import * as configProduction from './config/config.production.json';
 import { EosioUtil } from '@tonomy/tonomy-id-sdk';
 
