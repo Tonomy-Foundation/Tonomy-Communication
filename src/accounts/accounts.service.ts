@@ -7,13 +7,13 @@ import { Name, PrivateKey } from '@wharfkit/antelope';
 import settings from '../settings';
 import { PushTransactionResponse } from '@wharfkit/antelope/src/api/v1/types';
 import {
-  IDContract,
+  EosioContract,
   EosioUtil,
   AntelopePushTransactionError,
 } from '@tonomy/tonomy-id-sdk';
 import { verify } from 'hcaptcha';
 
-const idContract = IDContract.Instance;
+const eosioContract = EosioContract.Instance;
 
 @Injectable()
 export class AccountsService {
@@ -69,7 +69,7 @@ export class AccountsService {
     let res: PushTransactionResponse;
 
     try {
-      res = await idContract.newperson(
+      res = await eosioContract.newperson(
         createAccountRequest.usernameHash,
         createAccountRequest.publicKey,
         createAccountRequest.salt,
