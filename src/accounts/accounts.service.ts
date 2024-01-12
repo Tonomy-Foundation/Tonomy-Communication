@@ -7,13 +7,13 @@ import { Name, PrivateKey } from '@wharfkit/antelope';
 import settings from '../settings';
 import { PushTransactionResponse } from '@wharfkit/antelope/src/api/v1/types';
 import {
-  EosioContract,
+  TonomyContract,
   EosioUtil,
   AntelopePushTransactionError,
 } from '@tonomy/tonomy-id-sdk';
 import { verify } from 'hcaptcha';
 
-const eosioContract = EosioContract.Instance;
+const tonomyContract = TonomyContract.Instance;
 
 @Injectable()
 export class AccountsService {
@@ -69,7 +69,7 @@ export class AccountsService {
     let res: PushTransactionResponse;
 
     try {
-      res = await eosioContract.newperson(
+      res = await tonomyContract.newperson(
         createAccountRequest.usernameHash,
         createAccountRequest.publicKey,
         createAccountRequest.salt,
