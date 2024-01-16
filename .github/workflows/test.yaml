@@ -1,9 +1,9 @@
-name: Test - Pull Requests (not to master)
+name: Test - Pull Requests
 
 on:
   pull_request:
-    branches-ignore:
-      - master
+    branches:
+      - development
 
 jobs:
   tests:
