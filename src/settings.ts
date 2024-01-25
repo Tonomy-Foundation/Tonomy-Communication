@@ -80,19 +80,19 @@ if (process.env.BLOCKCHAIN_URL) {
 if (env !== 'test') console.log('settings', settings);
 
 settings.secrets = {
-  createAccountPrivateKey: EosioUtil.defaultAntelopePrivateKey.toString(),
+  createAccountPrivateKey:
+    'PVT_K1_24kG9VcMk3VkkgY4hh42X262AWV18YcPjBTd2Hox4YWoP8vRTU',
   hCaptchaSecret: '0x0000000000000000000000000000000000000000',
 };
-
-if (process.env.CREATE_ACCOUNT_PRIVATE_KEY) {
-  console.log('Using CREATE_ACCOUNT_PRIVATE_KEY from env');
-  settings.secrets.createAccountPrivateKey =
-    process.env.CREATE_ACCOUNT_PRIVATE_KEY;
-}
 
 if (process.env.HCAPTCHA_SECRET) {
   console.log('Using HCAPTCHA_SECRET from env');
   settings.secrets.hCaptchaSecret = process.env.HCAPTCHA_SECRET;
+}
+
+if (process.env.TONOMY_OPS_PRIVATE_KEY) {
+  console.log('Using TONOMY_OPS_PRIVATE_KEY from env');
+  settings.secrets.createAccountPrivateKey = process.env.TONOMY_OPS_PRIVATE_KEY;
 }
 
 export default settings;
