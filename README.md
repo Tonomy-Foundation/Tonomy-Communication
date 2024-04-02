@@ -34,7 +34,7 @@ yarn run updateSdkVersion master
 ## Environment variables and configuration
 
 `NODE_ENV` - Determines which config file in `./src/config` to use
-`CREATE_ACCOUNT_PRIVATE_KEY` - The private key used to sign the transaction to create a new account
+`TONOMY_OPS_PRIVATE_KEY` - The private key used to sign the transaction to create a new account
 `HCAPTCHA_SECRET` - The hCaptcha account secret key
 
 ## Test
@@ -68,9 +68,3 @@ Build command: `yarn -v && yarn install && yarn run build`
 - NOTE: we need to run `yarn install` again so that we install with `yarn@3.1.1` which we force via`.yarnrc.yml` and `.yarn/releases/yarn-3.1.1.cjs`. See <https://github.com/Tonomy-Foundation/Tonomy-Communication/issues/85> for more details.
 
 Run command: `yarn run start:prod`
-
-Environment variables
-
-- NODE_ENV
-- CREATE_ACCOUNT_PRIVATE_KEY
-- HCAPTCHA_SECRET
