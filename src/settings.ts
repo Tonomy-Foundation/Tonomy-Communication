@@ -1,7 +1,7 @@
 import * as configDefault from './config/config.json';
 import * as configStaging from './config/config.staging.json';
-import * as configDemo from './config/config.demo.json';
-import { EosioUtil } from '@tonomy/tonomy-id-sdk';
+import * as configTestnet from './config/config.testnet.json';
+import * as configProduction from './config/config.production.json';
 
 const env = process.env.NODE_ENV || 'development';
 
@@ -57,11 +57,13 @@ switch (env) {
   case 'staging':
     config = configStaging as FixLoggerLevelEnumType<typeof configStaging>;
     break;
-  case 'demo':
-    config = configDemo as FixLoggerLevelEnumType<typeof configDemo>;
+  case 'testnet':
+    config = configTestnet as FixLoggerLevelEnumType<typeof configTestnet>;
     break;
   case 'production':
-    throw new Error('Production config not implemented yet');
+    config = configProduction as FixLoggerLevelEnumType<
+      typeof configProduction
+    >;
   default:
     throw new Error('Unknown environment: ' + env);
 }
@@ -77,19 +79,19 @@ if (process.env.BLOCKCHAIN_URL) {
 if (env !== 'test') console.log('settings', settings);
 
 settings.secrets = {
-  createAccountPrivateKey: EosioUtil.defaultAntelopePrivateKey.toString(),
+  createAccountPrivateKey:
+    'PVT_K1_24kG9VcMk3VkkgY4hh42X262AWV18YcPjBTd2Hox4YWoP8vRTU',
   hCaptchaSecret: '0x0000000000000000000000000000000000000000',
 };
-
-if (process.env.CREATE_ACCOUNT_PRIVATE_KEY) {
-  console.log('Using CREATE_ACCOUNT_PRIVATE_KEY from env');
-  settings.secrets.createAccountPrivateKey =
-    process.env.CREATE_ACCOUNT_PRIVATE_KEY;
-}
 
 if (process.env.HCAPTCHA_SECRET) {
   console.log('Using HCAPTCHA_SECRET from env');
   settings.secrets.hCaptchaSecret = process.env.HCAPTCHA_SECRET;
+}
+
+if (process.env.TONOMY_OPS_PRIVATE_KEY) {
+  console.log('Using TONOMY_OPS_PRIVATE_KEY from env');
+  settings.secrets.createAccountPrivateKey = process.env.TONOMY_OPS_PRIVATE_KEY;
 }
 
 export default settings;
