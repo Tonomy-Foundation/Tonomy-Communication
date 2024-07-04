@@ -1576,9 +1576,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tonomy/tonomy-id-sdk@npm:0.19.0":
-  version: 0.19.0
-  resolution: "@tonomy/tonomy-id-sdk@npm:0.19.0"
+"@tonomy/tonomy-id-sdk@npm:0.21.0-development.4":
+  version: 0.21.0-development.4
+  resolution: "@tonomy/tonomy-id-sdk@npm:0.21.0-development.4"
   dependencies:
     "@consento/sync-randombytes": ^1.0.5
     "@tonomy/antelope-did": ^0.1.5
@@ -1593,7 +1593,7 @@ __metadata:
     elliptic: ^6.5.4
     socket.io-client: ^4.5.4
     universal-base64url: ^1.1.0
-  checksum: 05bf0812a27d425f136ace2c27ec98f501a84d0004923047dd1c05d21fd5c1ae8068654ce157b4967f34453d5634af88b4d70fafc656659bc15be746a064ecef
+  checksum: 48772e7bb6725f5a9e49f2e401b5cfd0d10d7818efbccc0c9451624f1f12f4fa03befae1c432bb95fbf5796ff9a0d538b9744a38af140ff5e6a3830abc7b3b91
   languageName: node
   linkType: hard
 
@@ -7713,7 +7713,7 @@ __metadata:
     "@nestjs/swagger": ^7.1.10
     "@nestjs/testing": ^10.2.3
     "@nestjs/websockets": ^10.2.3
-    "@tonomy/tonomy-id-sdk": 0.19.0
+    "@tonomy/tonomy-id-sdk": 0.21.0-development.4
     "@types/express": ^4.17.13
     "@types/jest": 29.2.4
     "@types/node": 18.11.18
