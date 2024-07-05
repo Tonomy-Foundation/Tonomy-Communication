@@ -1,7 +1,7 @@
-import * as configDefault from './config/config.json';
-import * as configStaging from './config/config.staging.json';
-import * as configTestnet from './config/config.testnet.json';
-import * as configProduction from './config/config.production.json';
+import * as configDefault from './config/config';
+import * as configStaging from './config/config.staging';
+import * as configTestnet from './config/config.testnet';
+import * as configProduction from './config/config.production';
 
 const env = process.env.NODE_ENV || 'development';
 
@@ -10,14 +10,14 @@ if (env !== 'test') console.log(`NODE_ENV=${env}`);
 type ConfigType = {
   blockchainUrl: string;
   loggerLevel:
-    | 'emergency'
-    | 'alert'
-    | 'critical'
-    | 'error'
-    | 'warning'
-    | 'notice'
-    | 'info'
-    | 'debug';
+  | 'emergency'
+  | 'alert'
+  | 'critical'
+  | 'error'
+  | 'warning'
+  | 'notice'
+  | 'info'
+  | 'debug';
 };
 
 type SettingsType = {
@@ -38,32 +38,30 @@ const settings: SettingsType = {
 
 type FixLoggerLevelEnumType<T> = Omit<T, 'loggerLevel'> & {
   loggerLevel:
-    | 'emergency'
-    | 'alert'
-    | 'critical'
-    | 'error'
-    | 'warning'
-    | 'notice'
-    | 'info'
-    | 'debug';
+  | 'emergency'
+  | 'alert'
+  | 'critical'
+  | 'error'
+  | 'warning'
+  | 'notice'
+  | 'info'
+  | 'debug';
 };
 
 switch (env) {
   case 'test':
   case 'local':
   case 'development':
-    config = configDefault as FixLoggerLevelEnumType<typeof configDefault>;
+    config = configDefault as any;
     break;
   case 'staging':
-    config = configStaging as FixLoggerLevelEnumType<typeof configStaging>;
+    config = configStaging as any;
     break;
   case 'testnet':
-    config = configTestnet as FixLoggerLevelEnumType<typeof configTestnet>;
+    config = configTestnet as any;
     break;
   case 'production':
-    config = configProduction as FixLoggerLevelEnumType<
-      typeof configProduction
-    >;
+    config = configProduction as any;
   default:
     throw new Error('Unknown environment: ' + env);
 }

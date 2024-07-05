@@ -8,9 +8,9 @@ import {
   ES256KSigner,
   generateRandomKeyPair,
   setSettings,
+  util,
 } from '@tonomy/tonomy-id-sdk';
-// @ts-expect-error - cannot find module or its corresponding type declarations
-import { createJWK, toDid } from '@tonomy/tonomy-id-sdk/util';
+const { createJWK, toDid } = util;
 
 setSettings({
   blockchainUrl: 'http://localhost:8888',

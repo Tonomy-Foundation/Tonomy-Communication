@@ -73,7 +73,6 @@ export class AccountsService {
         createAccountRequest.usernameHash,
         createAccountRequest.publicKey,
         createAccountRequest.salt,
-        // @ts-expect-error private key type not matched
         EosioUtil.createSigner(idTonomyActiveKey),
       );
     } catch (e) {
