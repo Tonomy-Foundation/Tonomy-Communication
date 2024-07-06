@@ -5,12 +5,10 @@ import { connectSocket, emitMessage } from './ws-client.helper';
 import { Socket } from 'socket.io-client';
 import {
   AuthenticationMessage,
-  ES256KSigner,
   generateRandomKeyPair,
   setSettings,
   util,
 } from '@tonomy/tonomy-id-sdk';
-const { createJWK, toDid } = util;
 
 setSettings({
   blockchainUrl: 'http://localhost:8888',
@@ -45,16 +43,9 @@ describe('CommunicationGateway (e2e)', () => {
     });
 
     it('succeeds for did:jwk message', async () => {
-      const { privateKey, publicKey } = generateRandomKeyPair();
-      const signer = ES256KSigner(privateKey.data.array, true);
-      const jwk = await createJWK(publicKey);
-      const did = toDid(jwk);
+      const { privateKey } = generateRandomKeyPair();
+      const issuer = await util.toDidKeyIssuer(privateKey);
 
-      const issuer = {
-        did,
-        signer,
-        alg: 'ES256K-R',
-      };
       const message = await AuthenticationMessage.signMessageWithoutRecipient(
         { data: 'test' },
         issuer,

@@ -1,10 +1,4 @@
 import { spawn } from 'child_process';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-// Path to your JS extension modification script
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const addJsExtensionScriptPath = path.join(__dirname, 'add-js-extension.js');
 
 function runCommand(command) {
     return new Promise((resolve, reject) => {

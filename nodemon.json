@@ -1,6 +1,7 @@
 {
     "watch": [
-        "src"
+        "src",
+        "test"
     ],
     "ext": "ts",
     "ignore": [
