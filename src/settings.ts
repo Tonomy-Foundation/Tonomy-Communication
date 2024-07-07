@@ -1,7 +1,7 @@
-import * as configDefault from './config/config';
-import * as configStaging from './config/config.staging';
-import * as configTestnet from './config/config.testnet';
-import * as configProduction from './config/config.production';
+import configDefault from './config/config';
+import configStaging from './config/config.staging';
+import configTestnet from './config/config.testnet';
+import configProduction from './config/config.production';
 
 const env = process.env.NODE_ENV || 'development';
 
@@ -52,16 +52,17 @@ switch (env) {
   case 'test':
   case 'local':
   case 'development':
-    config = configDefault as any;
+    config = configDefault as FixLoggerLevelEnumType<typeof configDefault>;
     break;
   case 'staging':
-    config = configStaging as any;
+    config = configStaging as FixLoggerLevelEnumType<typeof configDefault>;
     break;
   case 'testnet':
-    config = configTestnet as any;
+    config = configTestnet as FixLoggerLevelEnumType<typeof configDefault>;
     break;
   case 'production':
-    config = configProduction as any;
+    config = configProduction as FixLoggerLevelEnumType<typeof configDefault>;
+    break;
   default:
     throw new Error('Unknown environment: ' + env);
 }
