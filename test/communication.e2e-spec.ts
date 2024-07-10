@@ -42,7 +42,7 @@ describe('CommunicationGateway (e2e)', () => {
       );
     });
 
-    it('succeeds for did:jwk message', async () => {
+    it('succeeds for did:key message', async () => {
       const { privateKey } = generateRandomKeyPair();
       const issuer = await util.toDidKeyIssuer(privateKey);
 
