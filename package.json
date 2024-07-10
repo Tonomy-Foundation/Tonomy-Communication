@@ -7,19 +7,17 @@
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {
-    "esm": "cross-env NODE_OPTIONS=\"--experimental-vm-modules --experimental-require-module\"",
+    "esm": "cross-env NODE_OPTIONS=\"--experimental-vm-modules\"",
     "build": "yarn run esm nest build && yarn run build:post",
-    "build:post": "node add-js-extension.js",
+    "build:post": "yarn run esm node add-js-extension.js",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "yarn run esm nodemon",
-    "start:prod": "node --experimental-vm-modules --experimental-require-module dist/src/main",
+    "start:prod": "node dist/src/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
-    "lint:fix": "yarn run lint --fix",
-    "test": "jest",
-    "test:watch": "yarn run test --watch",
-    "test:cov": "yarn run test --coverage",
-    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "yarn run test --config ./test/jest-e2e.json",
+    "lint:fix": "yarn run esm lint --fix",
+    "test": "yarn run esm jest",
+    "test:unit": " yarn run test --selectProjects \"Unit tests\"",
+    "test:e2e": "yarn run test --selectProjects \"End-to-end tests\"",
     "updateSdkVersion": "./update_sdk_version.sh"
   },
   "dependencies": {
@@ -66,22 +64,5 @@
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.2.2"
-  },
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
   }
 }
