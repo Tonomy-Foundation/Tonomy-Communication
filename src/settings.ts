@@ -10,14 +10,14 @@ if (env !== 'test') console.log(`NODE_ENV=${env}`);
 type ConfigType = {
   blockchainUrl: string;
   loggerLevel:
-  | 'emergency'
-  | 'alert'
-  | 'critical'
-  | 'error'
-  | 'warning'
-  | 'notice'
-  | 'info'
-  | 'debug';
+    | 'emergency'
+    | 'alert'
+    | 'critical'
+    | 'error'
+    | 'warning'
+    | 'notice'
+    | 'info'
+    | 'debug';
 };
 
 type SettingsType = {
@@ -38,14 +38,14 @@ const settings: SettingsType = {
 
 type FixLoggerLevelEnumType<T> = Omit<T, 'loggerLevel'> & {
   loggerLevel:
-  | 'emergency'
-  | 'alert'
-  | 'critical'
-  | 'error'
-  | 'warning'
-  | 'notice'
-  | 'info'
-  | 'debug';
+    | 'emergency'
+    | 'alert'
+    | 'critical'
+    | 'error'
+    | 'warning'
+    | 'notice'
+    | 'info'
+    | 'debug';
 };
 
 switch (env) {
