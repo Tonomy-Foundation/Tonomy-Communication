@@ -55,13 +55,15 @@ switch (env) {
     config = configDefault as FixLoggerLevelEnumType<typeof configDefault>;
     break;
   case 'staging':
-    config = configStaging as FixLoggerLevelEnumType<typeof configDefault>;
+    config = configStaging as FixLoggerLevelEnumType<typeof configStaging>;
     break;
   case 'testnet':
-    config = configTestnet as FixLoggerLevelEnumType<typeof configDefault>;
+    config = configTestnet as FixLoggerLevelEnumType<typeof configTestnet>;
     break;
   case 'production':
-    config = configProduction as FixLoggerLevelEnumType<typeof configDefault>;
+    config = configProduction as FixLoggerLevelEnumType<
+      typeof configProduction
+    >;
     break;
   default:
     throw new Error('Unknown environment: ' + env);
