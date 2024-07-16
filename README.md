@@ -59,12 +59,10 @@ yarn run test:cov
 
 Run in a Digital Ocean App which runs the nodejs project: <https://docs.digitalocean.com/products/app-platform/>
 
-Using Ubuntu 22.04 with Nodejs 18.x is enabled:
+Using Ubuntu 22.04 with Nodejs 20+ is enabled:
 
 - <https://docs.digitalocean.com/products/app-platform/reference/buildpacks/nodejs/#ubuntu-2204-stack-supporting-nodejs-18>
 
-Build command: `yarn -v && yarn install && yarn run build`
-
-- NOTE: we need to run `yarn install` again so that we install with `yarn@3.1.1` which we force via`.yarnrc.yml` and `.yarn/releases/yarn-3.1.1.cjs`. See <https://github.com/Tonomy-Foundation/Tonomy-Communication/issues/85> for more details.
+Build command: `yarn run build`
 
 Run command: `yarn run start:prod`
