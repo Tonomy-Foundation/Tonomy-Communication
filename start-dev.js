@@ -9,7 +9,7 @@ function runCommand(command) {
             if (code === 0) {
                 resolve();
             } else {
-                reject(new Error(`Command failed with exit code ${code}`));
+                reject(new Error(`Command "${command}" failed with exit code ${code}`));
             }
         });
     });
