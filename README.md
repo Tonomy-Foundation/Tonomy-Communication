@@ -50,6 +50,10 @@ yarn run test:e2e
 yarn run test:cov
 ```
 
+## Debugging
+
+Uses [debug](https://www.npmjs.com/package/debug) package. Use `export DEBUG="tonomy*"` to see all debug logs.
+
 ## API Documentation
 
 <https://localhost:5000/openapi> (for REST API with Open API)
