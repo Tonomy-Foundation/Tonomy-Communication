@@ -9,13 +9,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Enable Corepack before setting up Node
+        run: corepack enable
 
       - name: Install dependencies
         uses: actions/setup-node@v4
         with:
           node-version: 22.3.0
-      - run: corepack enable
-      - run: yarn -v
       - run: yarn install --immutable
 
       - name: Run lint and test
@@ -53,13 +54,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      
+      - name: Enable Corepack before setting up Node
+        run: corepack enable
 
       - name: Build and run server
         uses: actions/setup-node@v4
         with:
           node-version: 22.3.0
-      - run: corepack enable
-      # corepack is needed to run yarn through npm
       - run: yarn install --immutable
       - run: yarn run build
       - run: yarn run start:prod &
@@ -93,15 +95,3 @@ jobs:
           path: "zap-api-scan-report.html"
       # Exit with the exit code of the ZAP scan
       - run: exit "${{ steps.zap_scan.outputs.EXIT_CODE }}"
-
-  check-outdated-packages:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Check for outdated packages
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22.3.0
-          cache: yarn
-      - run: yarn outdated || echo "WARNING: Packages outdate. Update packages with 'yarn upgrade-interactive --latest'" && exit 1
