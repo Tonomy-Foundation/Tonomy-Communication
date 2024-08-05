@@ -12,6 +12,7 @@ export default [
             eqeqeq: 'error',
             'no-console': 'warn',
             'prettier/prettier': 'error',
+            '@typescript-eslint/ban-ts-comment': 'warn',
             '@typescript-eslint/explicit-module-boundary-types': 'off',
             '@typescript-eslint/explicit-function-return-type': 'off',
             '@typescript-eslint/no-explicit-any': 'warn',
