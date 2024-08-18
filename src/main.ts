@@ -34,7 +34,7 @@ async function testVeramo() {
   debug('Database cleared');
 }
 
-testVeramo();
+// testVeramo();
 
 setSettings({
   blockchainUrl: settings.config.blockchainUrl,
