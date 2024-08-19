@@ -1,4 +1,4 @@
-FROM node:18.12.1 AS tonomy_communication_base
+FROM node:22.3.0 AS tonomy_communication_base
 
 WORKDIR /app
 COPY . .

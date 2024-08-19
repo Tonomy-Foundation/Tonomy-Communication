@@ -74,9 +74,15 @@ export class CommunicationService {
     // this.logger.error(e); // This does not print stack trace
 
     if (e instanceof HttpException) {
-      throw e;
+      return {
+        status: e.getStatus(),
+        error: e.message,
+      };
     }
 
-    throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    return {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      error: e.message,
+    };
   }
 }

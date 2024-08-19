@@ -67,7 +67,7 @@ export class AccountsController {
     } catch (e) {
       if (e instanceof HttpException) throw e;
       console.error(e);
-      console.log('Error Detail', JSON.stringify(e, null, 2));
+      console.error('Error Detail', JSON.stringify(e, null, 2));
       this.logger.error(e);
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
