@@ -2936,9 +2936,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tonomy/tonomy-id-sdk@npm:0.21.0-development.6":
-  version: 0.21.0-development.6
-  resolution: "@tonomy/tonomy-id-sdk@npm:0.21.0-development.6"
+"@tonomy/tonomy-id-sdk@npm:0.21.0-development.7":
+  version: 0.21.0-development.7
+  resolution: "@tonomy/tonomy-id-sdk@npm:0.21.0-development.7"
   dependencies:
     "@consento/sync-randombytes": "npm:^1.0.5"
     "@tonomy/antelope-did-resolver": "npm:^0.10.0"
@@ -2954,6 +2954,7 @@ __metadata:
     "@wharfkit/antelope": "npm:^1.0.7"
     argon2: "npm:^0.40.3"
     cross-fetch: "npm:^4.0.0"
+    csv-parse: "npm:^5.5.6"
     debug: "npm:^4.3.6"
     ethers: "npm:^6.13.1"
     ethr-did-resolver: "npm:^10.1.9"
@@ -2963,7 +2964,7 @@ __metadata:
     typeorm: "npm:^0.3.20"
     universal-base64url: "npm:^1.1.0"
     web-did-resolver: "npm:^2.0.27"
-  checksum: 10c0/82ed7f607f22f808e8c8ea4b116ce2f3c19d41bd5c74def1ce0113cd344eee286bd46e8ef3c4c204d0c347983b3a15227ca8b64f5f0503667622be7ed46e849d
+  checksum: 10c0/a910735c22b46927b13cd4d920bb062db37e02eee1dcaa398fa05e7b3c65cbf3f12769d86877b9f1e3f186dd76a5a09eb095166b0e42f303bd60ace01b4f0b19
   languageName: node
   linkType: hard
 
@@ -5437,6 +5438,13 @@ __metadata:
   version: 7.0.0
   resolution: "crypto-ld@npm:7.0.0"
   checksum: 10c0/67fac3bf5c52d71e02ae436a305f223376746cb43d2aa6550764d2885e15e8802267c8fd6a451c4255b90b58eeab1c036b6ee6e88f21425620a3d5ecc8b36d92
+  languageName: node
+  linkType: hard
+
+"csv-parse@npm:^5.5.6":
+  version: 5.5.6
+  resolution: "csv-parse@npm:5.5.6"
+  checksum: 10c0/b4f6e9b885e4488829356455157bd009f3fed4119c5fbaadab1a879e85f0a9a1b62cd01e6de68ff77a50f820a6261722bce1b799da1ace2e2126e0b7c8d86760
   languageName: node
   linkType: hard
 
@@ -10724,7 +10732,7 @@ __metadata:
     "@nestjs/swagger": "npm:^7.1.10"
     "@nestjs/testing": "npm:^10.2.3"
     "@nestjs/websockets": "npm:^10.2.3"
-    "@tonomy/tonomy-id-sdk": "npm:0.21.0-development.6"
+    "@tonomy/tonomy-id-sdk": "npm:0.21.0-development.7"
     "@types/eslint__js": "npm:^8.42.3"
     "@types/express": "npm:^4.17.13"
     "@types/jest": "npm:29.5.12"
