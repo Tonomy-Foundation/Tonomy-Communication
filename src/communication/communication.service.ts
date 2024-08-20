@@ -2,8 +2,10 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Socket } from 'socket.io';
 import { Client } from './dto/client.dto';
 import { MessageDto } from './dto/message.dto';
-import settings from '../settings';
 import { WebsocketReturnType } from './communication.gateway';
+import Debug from 'debug';
+
+const debug = Debug('tonomy-communication:communication:communication.service');
 
 @Injectable()
 export class CommunicationService {
@@ -26,8 +28,7 @@ export class CommunicationService {
    * @returns boolean if user is connected successfully
    */
   login(did: string, socket: Client): boolean {
-    if (settings.config.loggerLevel === 'debug')
-      this.logger.debug('login()', did, socket.id);
+    debug('login()', did, socket.id);
 
     if (this.loggedInUsers.get(did) === socket.id) return false;
     this.loggedInUsers.set(did, socket.id);
@@ -46,14 +47,13 @@ export class CommunicationService {
   sendMessage(socket: Client, message: MessageDto): boolean {
     const recipient = this.loggedInUsers.get(message.getRecipient());
 
-    if (settings.config.loggerLevel === 'debug')
-      this.logger.debug(
-        'sendMessage()',
-        message.getIssuer(),
-        message.getRecipient(),
-        message.getType(),
-        recipient,
-      );
+    debug(
+      'sendMessage()',
+      message.getIssuer(),
+      message.getRecipient(),
+      message.getType(),
+      recipient,
+    );
 
     if (!recipient) {
       // TODO send via PushNotification and/or use message queue
@@ -70,19 +70,12 @@ export class CommunicationService {
   }
 
   handleError(e): WebsocketReturnType {
-    if (settings.env !== 'test') console.error(e);
-    // this.logger.error(e); // This does not print stack trace
+    debug('handleError()', e);
 
     if (e instanceof HttpException) {
-      return {
-        status: e.getStatus(),
-        error: e.message,
-      };
+      throw e;
     }
 
-    return {
-      status: HttpStatus.INTERNAL_SERVER_ERROR,
-      error: e.message,
-    };
+    throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
   }
 }

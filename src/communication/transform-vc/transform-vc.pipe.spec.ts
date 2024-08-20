@@ -1,7 +1,6 @@
 import { setSettings } from '@tonomy/tonomy-id-sdk';
 import { BodyDto } from '../dto/body.dto';
 import { TransformVcPipe } from './transform-vc.pipe';
-import { Body, HttpException } from '@nestjs/common';
 import { util } from '@tonomy/tonomy-id-sdk';
 import { KeyType, PrivateKey } from '@wharfkit/antelope';
 
@@ -14,7 +13,6 @@ describe('TransformVcPipe', () => {
 
   beforeEach(async () => {
     const privateKey = PrivateKey.generate(KeyType.K1);
-    // @ts-ignore PrivateKey type error
     const issuer = await util.toDidKeyIssuer(privateKey);
     const subject = { foo: 'bar' };
     const signedVc = await util.VerifiableCredential.sign(
