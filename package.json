@@ -28,7 +28,7 @@
     "@nestjs/platform-socket.io": "^10.2.3",
     "@nestjs/swagger": "^7.1.10",
     "@nestjs/websockets": "^10.2.3",
-    "@tonomy/tonomy-id-sdk": "0.21.0-development.6",
+    "@tonomy/tonomy-id-sdk": "0.21.0-development.7",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
     "hcaptcha": "^0.1.1",
@@ -69,5 +69,9 @@
   "resolutions": {
     "jsonld": "link:./node_modules/@digitalcredentials/jsonld"
   },
-  "packageManager": "yarn@4.3.1"
+  "packageManager": "yarn@4.3.1",
+  "engines": {
+    "node": ">=20.16.0",
+    "yarn": ">=4.3.1"
+  }
 }
