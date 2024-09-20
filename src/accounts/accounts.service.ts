@@ -73,6 +73,7 @@ export class AccountsService {
         createAccountRequest.usernameHash,
         createAccountRequest.publicKey,
         createAccountRequest.salt,
+        // @ts-ignore PrivateKey type error
         EosioUtil.createSigner(idTonomyActiveKey),
       );
     } catch (e) {

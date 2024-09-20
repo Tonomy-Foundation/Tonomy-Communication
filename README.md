@@ -4,6 +4,8 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+Requires nodejs v20+
+
 ## Installation
 
 ```bash
@@ -13,13 +15,11 @@ yarn install
 ## Running the app
 
 ```bash
-# development
+# development with watch mode
 yarn run start
 
-# watch mode
-yarn run start:dev
-
 # production mode
+yarn run build
 yarn run start:prod
 ```
 
@@ -50,6 +50,10 @@ yarn run test:e2e
 yarn run test:cov
 ```
 
+## Debugging
+
+Uses [debug](https://www.npmjs.com/package/debug) package. Use `export DEBUG="tonomy*"` to see all debug logs.
+
 ## API Documentation
 
 <https://localhost:5000/openapi> (for REST API with Open API)
@@ -59,12 +63,10 @@ yarn run test:cov
 
 Run in a Digital Ocean App which runs the nodejs project: <https://docs.digitalocean.com/products/app-platform/>
 
-Using Ubuntu 22.04 with Nodejs 18.x is enabled:
+Using Ubuntu 22.04 with Nodejs 20+ is enabled:
 
 - <https://docs.digitalocean.com/products/app-platform/reference/buildpacks/nodejs/#ubuntu-2204-stack-supporting-nodejs-18>
 
-Build command: `yarn -v && yarn install && yarn run build`
-
-- NOTE: we need to run `yarn install` again so that we install with `yarn@3.1.1` which we force via`.yarnrc.yml` and `.yarn/releases/yarn-3.1.1.cjs`. See <https://github.com/Tonomy-Foundation/Tonomy-Communication/issues/85> for more details.
+Build command: `yarn run build`
 
 Run command: `yarn run start:prod`
