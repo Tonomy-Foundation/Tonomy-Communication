@@ -1,11 +1,14 @@
-import * as configDefault from './config/config.json';
-import * as configStaging from './config/config.staging.json';
-import * as configTestnet from './config/config.testnet.json';
-import * as configProduction from './config/config.production.json';
+import configDefault from './config/config';
+import configStaging from './config/config.staging';
+import configTestnet from './config/config.testnet';
+import configProduction from './config/config.production';
+import Debug from 'debug';
+
+const debug = Debug('tonomy-communication:settings');
 
 const env = process.env.NODE_ENV || 'development';
 
-if (env !== 'test') console.log(`NODE_ENV=${env}`);
+debug(`NODE_ENV=${env}`);
 
 type ConfigType = {
   blockchainUrl: string;
@@ -72,12 +75,12 @@ switch (env) {
 settings.config = Object.assign({}, config);
 
 if (process.env.BLOCKCHAIN_URL) {
-  console.log(`Using BLOCKCHAIN_URL from env:  ${process.env.BLOCKCHAIN_URL}`);
+  debug(`Using BLOCKCHAIN_URL from env:  ${process.env.BLOCKCHAIN_URL}`);
 
   settings.config.blockchainUrl = process.env.BLOCKCHAIN_URL;
 }
 
-if (env !== 'test') console.log('settings', settings);
+debug('settings', settings);
 
 settings.secrets = {
   createAccountPrivateKey:
@@ -86,12 +89,12 @@ settings.secrets = {
 };
 
 if (process.env.HCAPTCHA_SECRET) {
-  console.log('Using HCAPTCHA_SECRET from env');
+  debug('Using HCAPTCHA_SECRET from env');
   settings.secrets.hCaptchaSecret = process.env.HCAPTCHA_SECRET;
 }
 
 if (process.env.TONOMY_OPS_PRIVATE_KEY) {
-  console.log('Using TONOMY_OPS_PRIVATE_KEY from env');
+  debug('Using TONOMY_OPS_PRIVATE_KEY from env');
   settings.secrets.createAccountPrivateKey = process.env.TONOMY_OPS_PRIVATE_KEY;
 }
 
