@@ -89,7 +89,7 @@ jobs:
         # https://github.com/orgs/community/discussions/46992#discussioncomment-4961541
 
       - name: Upload ZAP Scan Output
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: zap-scan-output
           path: "zap-api-scan-report.html"
