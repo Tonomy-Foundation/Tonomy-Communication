@@ -1,5 +1,4 @@
 {
-  "repositoryUrl": "https://github.com/Tonomy-Foundation/Tonomy-Communication.git",
   "tagFormat": "${version}",
   "branches": [
     {
@@ -11,7 +10,7 @@
       "prerelease": "rc"
     },
     {
-      "name": "feature/sdk-version-update",
+      "name": "development",
       "prerelease": "development"
     }
   ],

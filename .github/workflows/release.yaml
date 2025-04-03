@@ -6,7 +6,6 @@ on:
       - master
       - testnet
       - development
-      - feature/sdk-version-update
 
 jobs:
   release:
