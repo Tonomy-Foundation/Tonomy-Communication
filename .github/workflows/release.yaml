@@ -17,7 +17,8 @@ jobs:
     steps:
       - name: 🏗 Setup repo
         uses: actions/checkout@v4
-      
+        with:
+          token: ${{ secrets.MY_GITHUB_PERSONAL_ACCESS_TOKEN }}
       - name: 🚀 Build and publish staging app
         uses: actions/setup-node@v4
         with:

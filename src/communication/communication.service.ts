@@ -56,13 +56,13 @@ export class CommunicationService {
     );
 
     if (!recipient) {
-      // TODO send via PushNotification and/or use message queue
+      // TODO: send via PushNotification and/or use message queue
       throw new HttpException(
         `Recipient not connected ${message.getRecipient()}`,
         HttpStatus.BAD_REQUEST,
       );
     } else {
-      // TODO should check for acknowledgement
+      // TODO: should check for acknowledgement
       socket.to(recipient).emit('message', message.toString());
     }
 
