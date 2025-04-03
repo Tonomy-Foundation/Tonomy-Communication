@@ -1,4 +1,5 @@
 {
+  "repositoryUrl": "https://github.com/Tonomy-Foundation/Tonomy-Communication.git",
   "tagFormat": "${version}",
   "branches": [
     {
@@ -7,11 +8,11 @@
     },
     {
       "name": "testnet",
-      "prerelease": false
+      "prerelease": "rc"
     },
     {
       "name": "development",
-      "prerelease": false
+      "prerelease": "development"
     }
   ],
   "plugins": [
