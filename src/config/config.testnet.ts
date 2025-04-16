@@ -1,4 +1,4 @@
 export default {
-  blockchainUrl: 'https://blockchain-api-testnet.pangea.web4.world',
+  blockchainUrl: 'https://blockchain-api-testnet.tonomy.io',
   loggerLevel: 'info',
 };
