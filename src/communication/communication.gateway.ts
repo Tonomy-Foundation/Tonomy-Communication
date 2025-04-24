@@ -98,6 +98,30 @@ export class CommunicationGateway implements OnGatewayDisconnect {
       return this.usersService.handleError(e);
     }
   }
+  /**
+   * Requests a veriff identity verification session to be created
+   * @param {BodyDto} body - The message VC or an error from the transformer
+   * @param client user socket
+   */
+  @SubscribeMessage('/v1/id-verification/veriff/create-session')
+  @UseGuards(CommunicationGuard)
+  async veriffStart(
+    @MessageBody() body: BodyDto,
+    @ConnectedSocket() client: Client,
+  ) {
+    try {
+      if (body.error) throw body.error;
+      if (!body.value) throw new Error('Body not found');
+      const message = body.value;
+
+      return {
+        status: HttpStatus.OK,
+        details: await this.usersService.veriffCreateSession(client, message),
+      };
+    } catch (e) {
+      return this.usersService.handleError(e);
+    }
+  }
 
   /**
    * safely disconnect the user from the server when user disconnects
