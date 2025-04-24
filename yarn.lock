@@ -4446,6 +4446,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@veriff/js-sdk@npm:^1.5.1":
+  version: 1.5.1
+  resolution: "@veriff/js-sdk@npm:1.5.1"
+  checksum: 10c0/110d395ae19bb0d70830e77058736e1290584d4a38dfdb2a575469ddfb3ff39820e87b82412e0dcb8630965be01979461f7831d3202a84475d8611f37ff4bcb6
+  languageName: node
+  linkType: hard
+
 "@webassemblyjs/ast@npm:1.12.1, @webassemblyjs/ast@npm:^1.12.1":
   version: 1.12.1
   resolution: "@webassemblyjs/ast@npm:1.12.1"
@@ -13342,6 +13349,7 @@ __metadata:
     "@types/jest": "npm:29.5.12"
     "@types/node": "npm:20.14.10"
     "@types/supertest": "npm:^6.0.2"
+    "@veriff/js-sdk": "npm:^1.5.1"
     class-transformer: "npm:^0.5.1"
     class-validator: "npm:^0.14.0"
     cross-env: "npm:^7.0.3"
