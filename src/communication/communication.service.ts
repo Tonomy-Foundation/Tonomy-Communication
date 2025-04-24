@@ -6,14 +6,32 @@ import { WebsocketReturnType } from './communication.gateway';
 import { Veriff } from '@veriff/js-sdk';
 import Debug from 'debug';
 import { VeriffSessionRto } from './dto/veriffService.dto';
+import { parseDid } from '@tonomy/tonomy-id-sdk';
+import settings from 'src/settings';
 
 const debug = Debug('tonomy-communication:communication:communication.service');
+
+const VERIFF_SESSION_TIMEOUT_MS = 5000;
+
+type VeriffSessionData = {
+  sessionUrl: string;
+  sessionId: string;
+  createdAt: Date;
+  updatedAt: Date;
+  version: number;
+};
 
 @Injectable()
 export class CommunicationService {
   private readonly logger = new Logger(CommunicationService.name);
 
+  // Map of DID => Websocket ID
   private readonly loggedInUsers = new Map<string, Socket['id']>();
+  // Map of DID => Map of App => VeriffSessionData
+  private readonly veriffSessions = new Map<
+    string,
+    Map<string, VeriffSessionData>
+  >();
 
   /**
    * delete the disconnecting user from the users map
@@ -74,46 +92,39 @@ export class CommunicationService {
   }
 
   /**
-   * send the message to the right user if user is connected
+   * create a new Veriff session for the user
    * @param socket user socket
-   * @param message signed VC
-   * @throws if the receiving user isn't online or loggedIn
+   * @param message signed VC with the app information
+   * @throws if the app can't be found
    * @returns {VeriffSessionRto} Veriff session URL
    */
   async veriffCreateSession(
     socket: Client,
     message: MessageDto,
   ): Promise<VeriffSessionRto> {
-    const recipient = this.loggedInUsers.get(message.getRecipient());
-
-    debug(
-      'veriffCreateSession()',
-      message.getIssuer(),
-      message.getRecipient(),
-      message.getType(),
-      recipient,
-    );
-
-    if (!recipient) {
-      // TODO: send via PushNotification and/or use message queue
-      throw new HttpException(
-        `Recipient not connected ${message.getRecipient()}`,
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    debug('veriffCreateSession()', message.getIssuer(), message.getType());
 
     // TODO: check that they are using the correct anterlope did method
+    const { method, id, fragment } = parseDid(message.getIssuer());
 
-    const VERIFF_SESSION_TIMEOUT_MS = 5000;
-    const url = await new Promise((resolve, reject) => {
-      // Request new veriff session
+    if (method !== 'antelope') throw new Error('Must use Antelope DID method');
+    // if (id.split(":")[0] !== settings)
+
+    // TODO: get the app name & origin and check it is valid
+    const appAccountName = fragment;
+
+    // Request new veriff session
+    const { url, id: sessionId } = await new Promise((resolve, reject) => {
       const veriff = Veriff({
         apiKey: 'API_KEY',
         parentId: 'veriff-root',
         onSession: function (err, response) {
           // received the response, verification can be started / triggered now
           if (err) reject(err);
-          resolve(response.verification.url);
+          resolve({
+            url: response.verification.url,
+            id: response.verification.id,
+          });
         },
       });
 
@@ -124,6 +135,24 @@ export class CommunicationService {
         VERIFF_SESSION_TIMEOUT_MS,
       );
     });
+
+    const now = new Date();
+    const sessionData: VeriffSessionData = {
+      sessionUrl: url,
+      sessionId: sessionId,
+      createdAt: now,
+      updatedAt: now,
+      version: 1,
+    };
+
+    let accountSessions = this.veriffSessions.get(message.getIssuer());
+
+    if (!accountSessions)
+      accountSessions = new Map<string, VeriffSessionData>();
+    accountSessions.set(appAccountName, sessionData);
+    this.veriffSessions.set(message.getIssuer(), accountSessions);
+
+    // TODO: send a report somewhere to let us know the app requested a session (for billing)
 
     return { url };
   }
