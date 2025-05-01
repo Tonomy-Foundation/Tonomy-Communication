@@ -3,11 +3,10 @@ import { Socket } from 'socket.io';
 import { Client } from './dto/client.dto';
 import { MessageDto } from './dto/message.dto';
 import { WebsocketReturnType } from './communication.gateway';
-import { Veriff } from '@veriff/js-sdk';
+import Veriff from '@veriff/js-sdk';
 import Debug from 'debug';
 import { VeriffSessionRto } from './dto/veriffService.dto';
-import { parseDid } from '@tonomy/tonomy-id-sdk';
-import settings from 'src/settings';
+import { parseDid, getChainId } from '@tonomy/tonomy-id-sdk';
 
 const debug = Debug('tonomy-communication:communication:communication.service');
 
@@ -108,19 +107,36 @@ export class CommunicationService {
     const { method, id, fragment } = parseDid(message.getIssuer());
 
     if (method !== 'antelope') throw new Error('Must use Antelope DID method');
-    // if (id.split(":")[0] !== settings)
+
+    if (id.split(':')[0] !== getChainId()) {
+      throw new Error(
+        `Expected chain id ${getChainId()} but got ${id.split(':')[0]}`,
+      );
+    }
 
     // TODO: get the app name & origin and check it is valid
-    const appAccountName = fragment;
+    let appAccountName: string;
+
+    if (!fragment) {
+      throw new Error('Expected fragment in DID');
+    } else if (fragment === 'active') {
+      appAccountName = '';
+    } else {
+      appAccountName = fragment;
+    }
 
     // Request new veriff session
-    const { url, id: sessionId } = await new Promise((resolve, reject) => {
+    const { url, id: sessionId } = await new Promise<{
+      url: string;
+      id: string;
+    }>((resolve, reject) => {
       const veriff = Veriff({
         apiKey: 'API_KEY',
         parentId: 'veriff-root',
         onSession: function (err, response) {
           // received the response, verification can be started / triggered now
           if (err) reject(err);
+          debug('Veriff session response', JSON.stringify(response, null, 2));
           resolve({
             url: response.verification.url,
             id: response.verification.id,

@@ -13,6 +13,7 @@ describe('TransformVcPipe', () => {
 
   beforeEach(async () => {
     const privateKey = PrivateKey.generate(KeyType.K1);
+    // @ts-expect-error Wharfkit types are incompatible
     const issuer = await util.toDidKeyIssuer(privateKey);
     const subject = { foo: 'bar' };
     const signedVc = await util.VerifiableCredential.sign(
