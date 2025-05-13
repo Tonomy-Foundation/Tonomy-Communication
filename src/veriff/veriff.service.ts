@@ -45,9 +45,11 @@ export class VeriffService {
     try {
       // Decode and verify VC
       const vc = await new util.VerifiableCredential<VeriffPayload>(jwt);
+      console.log('####vc', vc);
       await vc.verify();
 
       const { appName } = await vc.getCredentialSubject();
+
       const did = vc.getId();
       if (did) {
         const accountName = getAccountNameFromDid(did);
