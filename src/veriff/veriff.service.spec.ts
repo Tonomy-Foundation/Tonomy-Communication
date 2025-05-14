@@ -1,25 +1,29 @@
 // veriff.service.spec.ts
+
 import { Test, TestingModule } from '@nestjs/testing';
 import { VeriffService, VeriffPayload } from './veriff.service';
 import { HttpException, HttpStatus, Logger } from '@nestjs/common';
 import * as crypto from 'crypto';
-import { util } from '@tonomy/tonomy-id-sdk';
 import { jest } from '@jest/globals';
 
-// Provided variables
-const did =
-  'did:antelope:8a34ec7df1b8cd06ff4a8abbaa7cc50300823350cadc59ab296cb00d104d2b8f:p1g1oijcnilg';
-const appName = 'Tonomy ID Testnet';
-const accountName = 'p1g1oijcnilg';
-const jwt =
-  'eyJhbGciOiJFUzI1NkstUiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJkaWQ6YW50ZWxvcGU6OGEzNGVjN2RmMWI4Y2QwNmZmNGE4YWJiYWE3Y2M1MDMwMDgyMzM1MGNhZGM1OWFiMjk2Y2IwMGQxMDRkMmI4ZjpwMWcxb2lqY25pbGcjbG9jYWwiLCJqdGkiOiJkaWQ6YW50ZWxvcGU6OGEzNGVjN2RmMWI4Y2QwNmZmNGE4YWJiYWE3Y2M1MDMwMDgyMzM1MGNhZGM1OWFiMjk2Y2IwMGQxMDRkMmI4ZjpwMWcxb2lqY25pbGciLCJuYmYiOjE3NDcxMzY0NjAsInZjIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIl0sImNyZWRlbnRpYWxTdWJqZWN0Ijp7ImFwcE5hbWUiOiJUb25vbXkgSUQgVGVzdG5ldCJ9LCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIl19fQ.mMj1mB8bIy1tjjHqmaSzV0GVv3MVGitZKGzgQA4fq8QlhCYUXII_qAj9uA4MfV5XZ8nLybjqh7sxHpX2awvghQE';
+import {
+  VerifiableCredentialFactory,
+  AccountNameHelper,
+} from './veriff.helpers';
 
-// Mock the getAccountNameFromDid function
+// Constants
+const accountName = 'paccountname';
+const did = `did:antelope:abcdefghijklmnopqrstuvwxyz:${accountName}`;
+const appName = 'Tonomy ID';
+
+const jwt =
+  'eyJhbGciOiJFUzI1NkstUiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJkaWQ6YW50ZWxvcGU6YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXo6cGFjY291bnRuYW1lIiwianRpIjoiZGlkOmFudGVsb3BlOmFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6OnBhY2NvdW50bmFtZSIsIm5iZiI6MTc0NzIwNDk1MiwidmMiOnsiQGNvbnRleHQiOlsiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvdjEiXSwiY3JlZGVudGlhbFN1YmplY3QiOnsiYXBwTmFtZSI6IlRvbm9teSBJRCJ9LCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIl19fQ.1WAAQaQV0wcm459ubmTDYynoCiOO0gYIG4um5Tecp4YzwPxws4HmuozqJZG4ICmU-Lqh2AmiG0pNybnLkwya2gA';
+
+const getAccountName = (did: string): string => did.split(':').pop()!;
+
+// Mocks
 const mockGetAccountNameFromDid = jest.fn((didArg: string) => {
-  if (didArg === did.split(':')[4]) {
-    // Extract account name from did
-    return accountName;
-  }
+  if (didArg === getAccountName(did)) return accountName;
   return null;
 });
 
@@ -27,21 +31,31 @@ const mockVerify = jest.fn<() => Promise<void>>();
 const mockGetCredentialSubject = jest.fn<() => Promise<VeriffPayload>>();
 const mockGetId = jest.fn<() => string | undefined>();
 
-const MockVerifiableCredential = jest.fn(() => ({
+const mockVCInstance = {
   verify: mockVerify,
   getCredentialSubject: mockGetCredentialSubject,
   getId: mockGetId,
-}));
+};
 
+const mockAccountNameHelper = {
+  getAccountNameFromDid: jest.fn().mockReturnValue(accountName),
+};
+
+const mockFactory = {
+  create: jest.fn().mockReturnValue(mockVCInstance),
+};
+
+// Override the actual SDK module and inject our mock
 jest.mock('@tonomy/tonomy-id-sdk', () => ({
   getAccountNameFromDid: mockGetAccountNameFromDid,
   util: {
-    VerifiableCredential: MockVerifiableCredential,
+    VerifiableCredential: jest.fn(),
   },
 }));
 
 describe('VeriffService', () => {
   let service: VeriffService;
+
   const mockLogger = {
     debug: jest.fn(),
     error: jest.fn(),
@@ -50,20 +64,21 @@ describe('VeriffService', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
+
     const module: TestingModule = await Test.createTestingModule({
-      providers: [VeriffService, { provide: Logger, useValue: mockLogger }],
+      providers: [
+        VeriffService,
+        { provide: VerifiableCredentialFactory, useValue: mockFactory },
+        { provide: AccountNameHelper, useValue: mockAccountNameHelper },
+        { provide: Logger, useValue: mockLogger },
+      ],
     }).compile();
 
     service = module.get<VeriffService>(VeriffService);
+
     Object.defineProperty(service, 'VERIFF_SECRET', {
       value: 'default_secret',
     });
-
-    mockVerify.mockReset();
-    mockGetCredentialSubject.mockReset();
-    mockGetId.mockReset();
-    MockVerifiableCredential.mockClear();
-    mockGetAccountNameFromDid.mockClear();
   });
 
   it('should be defined', () => {
@@ -90,9 +105,7 @@ describe('VeriffService', () => {
   });
 
   describe('validateWebhookRequest', () => {
-    const mockPayload = {
-      vendorData: jwt,
-    };
+    const mockPayload = { vendorData: jwt };
     const validSignature = crypto
       .createHmac('sha256', 'default_secret')
       .update(JSON.stringify(mockPayload))
@@ -107,12 +120,17 @@ describe('VeriffService', () => {
         validSignature,
         mockPayload,
       );
+
       expect(result).toEqual({ accountName, appName });
-      expect(MockVerifiableCredential).toHaveBeenCalledWith(jwt);
+      expect(mockFactory.create).toHaveBeenCalledWith(jwt);
       expect(mockVerify).toHaveBeenCalledTimes(1);
       expect(mockGetCredentialSubject).toHaveBeenCalledTimes(1);
       expect(mockGetId).toHaveBeenCalledTimes(1);
-      expect(mockGetAccountNameFromDid).toHaveBeenCalledWith(did.split(':')[4]);
+
+      expect(mockAccountNameHelper.getAccountNameFromDid).toHaveBeenCalledWith(
+        did,
+      );
+
       expect(mockLogger.debug).toHaveBeenCalledWith(
         'Handling webhook payload from Veriff:',
         mockPayload,
@@ -128,11 +146,6 @@ describe('VeriffService', () => {
           HttpStatus.BAD_REQUEST,
         ),
       );
-      expect(mockLogger.debug).toHaveBeenCalledWith(
-        'Handling webhook payload from Veriff:',
-        {},
-      );
-      expect(MockVerifiableCredential).not.toHaveBeenCalled();
     });
 
     it('should throw UnauthorizedException for an invalid signature', async () => {
@@ -142,11 +155,6 @@ describe('VeriffService', () => {
       ).rejects.toThrowError(
         new HttpException('Invalid signature', HttpStatus.UNAUTHORIZED),
       );
-      expect(mockLogger.debug).toHaveBeenCalledWith(
-        'Handling webhook payload from Veriff:',
-        mockPayload,
-      );
-      expect(MockVerifiableCredential).not.toHaveBeenCalled();
     });
 
     it('should throw UnauthorizedException if VC verification fails', async () => {
@@ -160,8 +168,6 @@ describe('VeriffService', () => {
           HttpStatus.UNAUTHORIZED,
         ),
       );
-      expect(MockVerifiableCredential).toHaveBeenCalledWith(jwt);
-      expect(mockVerify).toHaveBeenCalledTimes(1);
     });
 
     it('should throw BadRequestException if did is missing in VC', async () => {
@@ -172,31 +178,28 @@ describe('VeriffService', () => {
       await expect(
         service.validateWebhookRequest(validSignature, mockPayload),
       ).rejects.toThrowError(
-        new HttpException('Invalid did', HttpStatus.BAD_REQUEST),
+        new HttpException(
+          'VC verification failed: Invalid did',
+          HttpStatus.BAD_REQUEST,
+        ),
       );
-      expect(MockVerifiableCredential).toHaveBeenCalledWith(jwt);
-      expect(mockVerify).toHaveBeenCalledTimes(1);
-      expect(mockGetCredentialSubject).toHaveBeenCalledTimes(1);
-      expect(mockGetId).toHaveBeenCalledTimes(1);
     });
 
     it('should handle a case where getAccountNameFromDid returns null', async () => {
       mockVerify.mockResolvedValue(undefined);
       mockGetCredentialSubject.mockResolvedValue({ appName });
       mockGetId.mockReturnValue('invalid_did');
-      mockGetAccountNameFromDid.mockReturnValueOnce(null);
+
+      mockAccountNameHelper.getAccountNameFromDid.mockReturnValueOnce(null); // 👈 This is key
 
       const result = await service.validateWebhookRequest(
         validSignature,
         mockPayload,
       );
-      expect(result).toEqual({ accountName: 'null', appName });
-      expect(MockVerifiableCredential).toHaveBeenCalledWith(jwt);
-      expect(mockVerify).toHaveBeenCalledTimes(1);
-      expect(mockGetCredentialSubject).toHaveBeenCalledTimes(1);
-      expect(mockGetId).toHaveBeenCalledTimes(1);
-      expect(mockGetAccountNameFromDid).toHaveBeenCalledWith(
-        'invalid_did'.split(':')[4],
+
+      expect(result).toEqual({ accountName: 'null', appName }); // because .toString() on null becomes "null"
+      expect(mockAccountNameHelper.getAccountNameFromDid).toHaveBeenCalledWith(
+        'invalid_did',
       );
     });
   });

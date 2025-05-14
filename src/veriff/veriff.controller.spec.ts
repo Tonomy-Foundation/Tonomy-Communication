@@ -4,6 +4,7 @@ import { VeriffService } from './veriff.service';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { Response } from 'express';
 import { jest } from '@jest/globals';
+import { createHmac } from 'crypto';
 
 type ValidateWebhookResult = { accountName: string; appName: string };
 
@@ -39,14 +40,15 @@ describe('VeriffController', () => {
   describe('handleWebhook', () => {
     const mockHeaders = {
       'x-hmac-signature':
-        '5019c05866ab3423bec643201059847a8cf0db78bfb88ea9fb96ca7213bf4461',
+        'ec6870d0eee993dd50d702bc430333ed15bd4c87c74421d1b617b27f8e5e7155',
     };
     const mockBody = {
       status: 'success',
       eventType: 'fullauto',
       sessionId: '3bc0d2e8-b2c3-4b64-bdbd-92558c7ff9c6',
       attemptId: '2a11c5b1-e01e-42d8-88f3-979b45691e8e',
-      vendorData: 'p1g1oijcnilg',
+      vendorData:
+        'eyJhbGciOiJFUzI1NkstUiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJkaWQ6YW50ZWxvcGU6YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXo6cGFjY291bnRuYW1lIiwianRpIjoiZGlkOmFudGVsb3BlOmFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6OnBhY2NvdW50bmFtZSIsIm5iZiI6MTc0NzIwNDk1MiwidmMiOnsiQGNvbnRleHQiOlsiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvdjEiXSwiY3JlZGVudGlhbFN1YmplY3QiOnsiYXBwTmFtZSI6IlRvbm9teSBJRCJ9LCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIl19fQ.1WAAQaQV0wcm459ubmTDYynoCiOO0gYIG4um5Tecp4YzwPxws4HmuozqJZG4ICmU-Lqh2AmiG0pNybnLkwya2gA',
       endUserId: null,
       version: '1.0.0',
       acceptanceTime: '2025-02-12T04:04:20.670849Z',
@@ -58,12 +60,12 @@ describe('VeriffController', () => {
           person: {
             firstName: {
               confidenceCategory: 'high',
-              value: 'JEKIN',
+              value: 'Test',
               sources: ['MRZ', 'VIZ'],
             },
             lastName: {
               confidenceCategory: 'high',
-              value: 'GOHEL',
+              value: 'Test',
               sources: ['MRZ', 'VIZ'],
             },
             dateOfBirth: {
@@ -97,14 +99,14 @@ describe('VeriffController', () => {
           document: {
             number: {
               confidenceCategory: 'high',
-              value: 'M6218778',
+              value: 'M123456789',
               sources: ['MRZ', 'VIZ'],
             },
             type: { value: 'passport' },
             country: { value: 'IN' },
             validUntil: {
               confidenceCategory: 'high',
-              value: '2025-02-12',
+              value: '2028-02-12',
               sources: ['MRZ', 'VIZ'],
             },
             validFrom: {
@@ -118,88 +120,14 @@ describe('VeriffController', () => {
             residencePermitType: null,
             licenseNumber: null,
           },
-          insights: [
-            { label: 'allowedIpLocation', result: 'yes', category: 'fraud' },
-            { label: 'documentAccepted', result: 'yes', category: 'document' },
-            {
-              label: 'documentBackFullyVisible',
-              result: 'notApplicable',
-              category: 'document',
-            },
-            {
-              label: 'documentBackImageAvailable',
-              result: 'notApplicable',
-              category: 'document',
-            },
-            {
-              label: 'documentFrontFullyVisible',
-              result: 'yes',
-              category: 'document',
-            },
-            {
-              label: 'documentFrontImageAvailable',
-              result: 'yes',
-              category: 'document',
-            },
-            {
-              label: 'documentImageQualitySufficient',
-              result: 'yes',
-              category: 'document',
-            },
-            {
-              label: 'documentNotExpired',
-              result: 'yes',
-              category: 'document',
-            },
-            {
-              label: 'documentRecognised',
-              result: 'yes',
-              category: 'document',
-            },
-            {
-              label: 'expectedTrafficBehaviour',
-              result: 'yes',
-              category: 'fraud',
-            },
-            {
-              label: 'faceImageAvailable',
-              result: 'yes',
-              category: 'biometric',
-            },
-            {
-              label: 'faceImageQualitySufficient',
-              result: 'yes',
-              category: 'biometric',
-            },
-            { label: 'faceLiveness', result: 'yes', category: 'biometric' },
-            {
-              label: 'faceNotInBlocklist',
-              result: 'yes',
-              category: 'biometric',
-            },
-            {
-              label: 'faceSimilarToPortrait',
-              result: 'yes',
-              category: 'biometric',
-            },
-            {
-              label: 'physicalDocumentPresent',
-              result: 'yes',
-              category: 'document',
-            },
-            {
-              label: 'validDocumentAppearance',
-              result: 'yes',
-              category: 'document',
-            },
-          ],
+          insights: [],
         },
       },
     };
 
     it('should call veriffService.validateWebhookRequest and return 200 OK', async () => {
-      const mockAccountName = 'testaccount';
-      const mockAppName = 'test-app';
+      const mockAccountName = 'paccountname';
+      const mockAppName = 'Tonomy ID';
       (
         mockVeriffService.validateWebhookRequest as jest.Mock<
           (signature: string, payload: any) => Promise<ValidateWebhookResult>

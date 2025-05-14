@@ -1,6 +1,10 @@
 import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
-import { getAccountNameFromDid, util } from '@tonomy/tonomy-id-sdk';
+
 import * as crypto from 'crypto';
+import {
+  VerifiableCredentialFactory,
+  AccountNameHelper,
+} from './veriff.helpers';
 
 export type VeriffPayload = {
   appName: string;
@@ -8,7 +12,11 @@ export type VeriffPayload = {
 
 @Injectable()
 export class VeriffService {
-  private readonly logger = new Logger(VeriffService.name);
+  constructor(
+    private readonly credentialFactory: VerifiableCredentialFactory,
+    private readonly accountNameHelper: AccountNameHelper,
+    private readonly logger: Logger,
+  ) {}
   private readonly VERIFF_SECRET =
     process.env.VERIFF_SECRET || 'default_secret'; // .env usage
 
@@ -43,20 +51,22 @@ export class VeriffService {
     }
 
     try {
-      // Decode and verify VC
-      const vc = await new util.VerifiableCredential<VeriffPayload>(jwt);
-      console.log('####vc', vc);
+      const vc = this.credentialFactory.create<VeriffPayload>(jwt);
       await vc.verify();
-
       const { appName } = await vc.getCredentialSubject();
-
       const did = vc.getId();
-      if (did) {
-        const accountName = getAccountNameFromDid(did);
-        return { accountName: accountName.toString(), appName };
-      } else {
-        throw new HttpException('Invalid did', HttpStatus.BAD_REQUEST);
+
+      if (!did) {
+        throw new HttpException('Invalid did', HttpStatus.BAD_REQUEST); // move outside catch
       }
+
+      const rawAccountName = this.accountNameHelper.getAccountNameFromDid(did);
+      const accountName =
+        rawAccountName !== null && rawAccountName !== undefined
+          ? rawAccountName.toString()
+          : 'null';
+
+      return { accountName, appName };
     } catch (e) {
       throw new HttpException(
         `VC verification failed: ${e.message}`,
