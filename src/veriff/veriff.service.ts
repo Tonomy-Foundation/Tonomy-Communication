@@ -67,7 +67,6 @@ export class VeriffService {
           ? rawAccountName.toString()
           : 'null';
 
-      let pepSanctionMatches = undefined;
       if (data.verification.decision === 'approved') {
         // Check pepSanctionMatches
       }
