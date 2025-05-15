@@ -5,6 +5,7 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 import { Response } from 'express';
 import { jest } from '@jest/globals';
 import { createHmac } from 'crypto';
+import { VeriffWebhookPayload } from './veriff.types';
 
 type ValidateWebhookResult = { accountName: string; appName: string };
 
@@ -42,7 +43,7 @@ describe('VeriffController', () => {
       'x-hmac-signature':
         'ec6870d0eee993dd50d702bc430333ed15bd4c87c74421d1b617b27f8e5e7155',
     };
-    const mockBody = {
+    const mockBody: VeriffWebhookPayload = {
       status: 'success',
       eventType: 'fullauto',
       sessionId: '3bc0d2e8-b2c3-4b64-bdbd-92558c7ff9c6',

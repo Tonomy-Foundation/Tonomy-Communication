@@ -10,6 +10,7 @@ import {
   VerifiableCredentialFactory,
   AccountNameHelper,
 } from './veriff.helpers';
+import { VeriffWebhookPayload } from './veriff.types';
 
 // Constants
 const accountName = 'paccountname';
@@ -105,7 +106,53 @@ describe('VeriffService', () => {
   });
 
   describe('validateWebhookRequest', () => {
-    const mockPayload = { vendorData: jwt };
+    const mockPayload: VeriffWebhookPayload = {
+      vendorData: jwt,
+      status: 'success',
+      eventType: 'fullauto',
+      sessionId: 'some-id',
+      attemptId: 'another-id',
+      endUserId: null,
+      version: '1.0.0',
+      acceptanceTime: new Date().toISOString(),
+      time: new Date().toISOString(),
+      data: {
+        verification: {
+          decisionScore: 1,
+          decision: 'approved',
+          person: {
+            firstName: {
+              confidenceCategory: 'high',
+              value: 'John',
+              sources: ['VIZ'],
+            },
+            lastName: {
+              confidenceCategory: 'high',
+              value: 'Doe',
+              sources: ['MRZ'],
+            },
+          },
+          document: {
+            type: {
+              confidenceCategory: 'high',
+              value: 'PASSPORT',
+              sources: ['VIZ'],
+            },
+            country: {
+              confidenceCategory: 'high',
+              value: 'US',
+              sources: ['MRZ'],
+            },
+            number: {
+              confidenceCategory: 'high',
+              value: '123456789',
+              sources: ['VIZ'],
+            },
+          },
+          insights: [],
+        },
+      },
+    };
     const validSignature = crypto
       .createHmac('sha256', 'default_secret')
       .update(JSON.stringify(mockPayload))
@@ -138,8 +185,35 @@ describe('VeriffService', () => {
     });
 
     it('should throw BadRequestException if vendorData is missing', async () => {
+      const payloadWithoutVendorData: VeriffWebhookPayload = {
+        status: 'success',
+        eventType: 'fullauto',
+        sessionId: 'dummy-session-id',
+        attemptId: 'dummy-attempt-id',
+        vendorData: null, // explicitly null to simulate missing value
+        endUserId: null,
+        version: '1.0.0',
+        acceptanceTime: new Date().toISOString(),
+        time: new Date().toISOString(),
+        data: {
+          verification: {
+            decisionScore: 0.98,
+            decision: 'approved',
+            person: {},
+            document: {
+              type: null,
+              country: null,
+            },
+            insights: [],
+          },
+        },
+      };
+
       await expect(
-        service.validateWebhookRequest(validSignature, {}),
+        service.validateWebhookRequest(
+          validSignature,
+          payloadWithoutVendorData,
+        ),
       ).rejects.toThrowError(
         new HttpException(
           'vendorData (VC JWT) is missing',

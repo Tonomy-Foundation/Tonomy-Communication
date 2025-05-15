@@ -5,6 +5,7 @@ import {
   VerifiableCredentialFactory,
   AccountNameHelper,
 } from './veriff.helpers';
+import { VeriffWebhookPayload } from './veriff.types';
 
 export type VeriffPayload = {
   appName: string;
@@ -31,13 +32,13 @@ export class VeriffService {
 
   async validateWebhookRequest(
     signature: string,
-    payload: any,
+    payload: VeriffWebhookPayload,
   ): Promise<{
     accountName: string;
     appName: string;
   }> {
     this.logger.debug('Handling webhook payload from Veriff:', payload);
-    const { vendorData: jwt } = payload;
+    const { vendorData: jwt, data, status } = payload;
     if (!jwt) {
       throw new HttpException(
         'vendorData (VC JWT) is missing',
@@ -65,6 +66,11 @@ export class VeriffService {
         rawAccountName !== null && rawAccountName !== undefined
           ? rawAccountName.toString()
           : 'null';
+
+      let pepSanctionMatches = undefined;
+      if (data.verification.decision === 'approved') {
+        // Check pepSanctionMatches
+      }
 
       return { accountName, appName };
     } catch (e) {
