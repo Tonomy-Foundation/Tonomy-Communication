@@ -9,6 +9,7 @@ import { jest } from '@jest/globals';
 import {
   VerifiableCredentialFactory,
   AccountNameHelper,
+  VeriffWatchlistService,
 } from './veriff.helpers';
 import { VeriffWebhookPayload } from './veriff.types';
 
@@ -42,6 +43,10 @@ const mockAccountNameHelper = {
   getAccountNameFromDid: jest.fn().mockReturnValue(accountName),
 };
 
+const mockWatchlistService = {
+  getWatchlistScreening: jest.fn(),
+};
+
 const mockFactory = {
   create: jest.fn().mockReturnValue(mockVCInstance),
 };
@@ -71,6 +76,7 @@ describe('VeriffService', () => {
         VeriffService,
         { provide: VerifiableCredentialFactory, useValue: mockFactory },
         { provide: AccountNameHelper, useValue: mockAccountNameHelper },
+        { provide: VeriffWatchlistService, useValue: mockWatchlistService },
         { provide: Logger, useValue: mockLogger },
       ],
     }).compile();

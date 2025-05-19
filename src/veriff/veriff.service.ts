@@ -4,8 +4,9 @@ import * as crypto from 'crypto';
 import {
   VerifiableCredentialFactory,
   AccountNameHelper,
+  VeriffWatchlistService,
 } from './veriff.helpers';
-import { VeriffWebhookPayload } from './veriff.types';
+import { VeriffWebhookPayload, WatchlistScreeningResult } from './veriff.types';
 
 export type VeriffPayload = {
   appName: string;
@@ -16,6 +17,7 @@ export class VeriffService {
   constructor(
     private readonly credentialFactory: VerifiableCredentialFactory,
     private readonly accountNameHelper: AccountNameHelper,
+    private readonly veriffWatchlistService: VeriffWatchlistService,
     private readonly logger: Logger,
   ) {}
   private readonly VERIFF_SECRET =
@@ -58,7 +60,7 @@ export class VeriffService {
       const did = vc.getId();
 
       if (!did) {
-        throw new HttpException('Invalid did', HttpStatus.BAD_REQUEST); // move outside catch
+        throw new HttpException('Invalid did', HttpStatus.BAD_REQUEST);
       }
 
       const rawAccountName = this.accountNameHelper.getAccountNameFromDid(did);
@@ -67,8 +69,18 @@ export class VeriffService {
           ? rawAccountName.toString()
           : 'null';
 
+      // Check pepSanctionMatches
+      let pepSanctionMatches: WatchlistScreeningResult | null = null;
       if (data.verification.decision === 'approved') {
-        // Check pepSanctionMatches
+        try {
+          pepSanctionMatches =
+            await this.veriffWatchlistService.getWatchlistScreening(
+              payload.sessionId,
+            );
+          this.logger.debug('Watchlist result:', pepSanctionMatches);
+        } catch (e) {
+          this.logger.warn('Failed to fetch watchlist screening:', e.message);
+        }
       }
 
       return { accountName, appName };
