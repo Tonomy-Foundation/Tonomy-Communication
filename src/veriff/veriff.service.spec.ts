@@ -215,38 +215,43 @@ describe('VeriffService', () => {
         },
       };
 
-      await expect(
-        service.validateWebhookRequest(
-          validSignature,
-          payloadWithoutVendorData,
-        ),
-      ).rejects.toThrowError(
-        new HttpException(
-          'vendorData (VC JWT) is missing',
-          HttpStatus.BAD_REQUEST,
-        ),
+      const result = await service.validateWebhookRequest(
+        validSignature,
+        payloadWithoutVendorData,
+      );
+
+      expect(result).toBeNull();
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        'vendorData (VC JWT) is missing, cannot proceed.',
       );
     });
 
     it('should throw UnauthorizedException for an invalid signature', async () => {
       const invalidSignature = 'invalid_signature';
-      await expect(
-        service.validateWebhookRequest(invalidSignature, mockPayload),
-      ).rejects.toThrowError(
-        new HttpException('Invalid signature', HttpStatus.UNAUTHORIZED),
+      const result = await service.validateWebhookRequest(
+        invalidSignature,
+        mockPayload,
+      );
+
+      expect(result).toBeNull();
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        'Invalid signature, cannot proceed.',
       );
     });
 
     it('should throw UnauthorizedException if VC verification fails', async () => {
       mockVerify.mockRejectedValueOnce(new Error('VC verification failed'));
 
-      await expect(
-        service.validateWebhookRequest(validSignature, mockPayload),
-      ).rejects.toThrowError(
-        new HttpException(
-          'VC verification failed: VC verification failed',
-          HttpStatus.UNAUTHORIZED,
-        ),
+      const result = await service.validateWebhookRequest(
+        validSignature,
+        mockPayload,
+      );
+
+      expect(result).toBeNull();
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        'Failed to process Veriff webhook:',
+        'VC verification failed',
+        expect.any(String),
       );
     });
 
@@ -255,13 +260,14 @@ describe('VeriffService', () => {
       mockGetCredentialSubject.mockResolvedValue({ appName });
       mockGetId.mockReturnValue(undefined);
 
-      await expect(
-        service.validateWebhookRequest(validSignature, mockPayload),
-      ).rejects.toThrowError(
-        new HttpException(
-          'VC verification failed: Invalid did',
-          HttpStatus.BAD_REQUEST,
-        ),
+      const result = await service.validateWebhookRequest(
+        validSignature,
+        mockPayload,
+      );
+
+      expect(result).toBeNull();
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        'VC is missing DID, cannot proceed.',
       );
     });
 

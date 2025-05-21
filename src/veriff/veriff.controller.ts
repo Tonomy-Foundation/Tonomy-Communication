@@ -6,13 +6,17 @@ import {
   Res,
   HttpCode,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { VeriffService } from './veriff.service';
 
 @Controller('veriff')
 export class VeriffController {
-  constructor(private readonly veriffService: VeriffService) {}
+  constructor(
+    private readonly veriffService: VeriffService,
+    private readonly logger: Logger,
+  ) {}
   @Post()
   @HttpCode(HttpStatus.OK)
   async handleWebhook(
@@ -20,11 +24,12 @@ export class VeriffController {
     @Body() body: any,
     @Res() res: Response,
   ) {
-    const { accountName, appName } =
-      await this.veriffService.validateWebhookRequest(signature, body);
+    const result = await this.veriffService.validateWebhookRequest(
+      signature,
+      body,
+    );
 
-    // Now you can use accountName and appName to update user status, etc.
-    console.log('Webhook received for', accountName, 'from app', appName);
-    return res.status(200).send('OK');
+    this.logger.debug('Handling webhook payload from Veriff:', result);
+    return res.status(200);
   }
 }

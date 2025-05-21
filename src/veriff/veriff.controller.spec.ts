@@ -1,18 +1,25 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { VeriffController } from './veriff.controller';
 import { VeriffService } from './veriff.service';
-import { HttpException, HttpStatus } from '@nestjs/common';
+import { HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { Response } from 'express';
 import { jest } from '@jest/globals';
-import { createHmac } from 'crypto';
+
 import { VeriffWebhookPayload } from './veriff.types';
 
-type ValidateWebhookResult = { accountName: string; appName: string };
+type ValidateWebhookResult = { accountName: string; appName: string } | null;
 
 // Mock the VeriffService
 const mockVeriffService = {
   validateWebhookRequest: jest.fn(),
 } as Partial<VeriffService>;
+
+const mockLogger = {
+  debug: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+  log: jest.fn(),
+} as unknown as Logger;
 
 describe('VeriffController', () => {
   let controller: VeriffController;
@@ -23,7 +30,10 @@ describe('VeriffController', () => {
     jest.clearAllMocks();
     const module: TestingModule = await Test.createTestingModule({
       controllers: [VeriffController],
-      providers: [{ provide: VeriffService, useValue: mockVeriffService }],
+      providers: [
+        { provide: VeriffService, useValue: mockVeriffService },
+        { provide: Logger, useValue: mockLogger },
+      ],
     }).compile();
 
     controller = module.get<VeriffController>(VeriffController);
@@ -138,10 +148,6 @@ describe('VeriffController', () => {
         appName: mockAppName,
       });
 
-      const consoleLogSpy = jest
-        .spyOn(console, 'log')
-        .mockImplementation(() => {}); // Mock implementation to avoid actual logging
-
       await controller.handleWebhook(
         mockHeaders['x-hmac-signature'],
         mockBody,
@@ -153,15 +159,10 @@ describe('VeriffController', () => {
         mockBody,
       );
       expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.OK);
-      expect(mockResponse.send).toHaveBeenCalledWith('OK');
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        'Webhook received for',
-        mockAccountName,
-        'from app',
-        mockAppName,
+      expect(mockLogger.debug).toHaveBeenCalledWith(
+        'Handling webhook payload from Veriff:',
+        { accountName: mockAccountName, appName: mockAppName },
       );
-
-      consoleLogSpy.mockRestore(); // Clean up the mock after the test
     });
 
     it('should handle errors thrown by veriffService.validateWebhookRequest', async () => {
@@ -190,8 +191,33 @@ describe('VeriffController', () => {
         expect(error.message).toBe(errorMessage);
         expect(error.getStatus()).toBe(errorStatus);
         expect(mockResponse.status).not.toHaveBeenCalled();
-        expect(mockResponse.send).not.toHaveBeenCalled();
       }
+    });
+
+    it('should handle status !== "approved" and still return 200 OK', async () => {
+      mockBody.data.verification.decision = 'declined';
+
+      (
+        mockVeriffService.validateWebhookRequest as jest.Mock<
+          (signature: string, payload: any) => Promise<ValidateWebhookResult>
+        >
+      ).mockResolvedValue(null);
+
+      await controller.handleWebhook(
+        mockHeaders['x-hmac-signature'],
+        mockBody,
+        mockResponse as Response,
+      );
+
+      expect(service.validateWebhookRequest).toHaveBeenCalledWith(
+        mockHeaders['x-hmac-signature'],
+        mockBody,
+      );
+      expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.OK);
+      expect(mockLogger.debug).toHaveBeenCalledWith(
+        'Handling webhook payload from Veriff:',
+        null,
+      );
     });
   });
 });

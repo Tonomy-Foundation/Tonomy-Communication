@@ -1,3 +1,5 @@
+import { ClientAuthorizationData } from '@tonomy/tonomy-id-sdk';
+
 export type DocumentField = {
   confidenceCategory?: 'high' | 'medium' | 'low' | null;
   value: string | null;
@@ -100,3 +102,17 @@ export type MediaEntry = {
   sourceUrl: string;
   date: string | null;
 };
+
+export interface VerifiedClientAuthorization<
+  T extends ClientAuthorizationData = object,
+> {
+  request: {
+    jwt: string;
+    id: string;
+    origin?: string; // this is not verified
+  };
+  did: string;
+  account: string;
+  username?: string;
+  data: T;
+}

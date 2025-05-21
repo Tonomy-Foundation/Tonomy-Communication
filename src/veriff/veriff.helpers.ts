@@ -6,6 +6,8 @@ import {
 import axios from 'axios';
 import crypto from 'crypto';
 import { WatchlistScreeningResult } from './veriff.types';
+import { HttpService } from '@nestjs/axios';
+import { lastValueFrom } from 'rxjs';
 
 // --------- Verifiable Credential Factory ---------
 @Injectable()
@@ -54,6 +56,8 @@ export class VeriffWatchlistService {
   private readonly veriffBaseURL =
     process.env.VERIFF_BASE_URL || 'https://stationapi.veriff.com';
 
+  constructor(private readonly httpService: HttpService) {}
+
   async getWatchlistScreening(
     sessionId: string,
   ): Promise<WatchlistScreeningResult> {
@@ -65,7 +69,8 @@ export class VeriffWatchlistService {
 
     const url = `${this.veriffBaseURL}/v1/sessions/${sessionId}/watchlist-screening`;
 
-    const { data: result } = await axios.get(url, { headers });
+    const response$ = this.httpService.get(url, { headers });
+    const { data: result } = await lastValueFrom(response$);
 
     const {
       attemptId,

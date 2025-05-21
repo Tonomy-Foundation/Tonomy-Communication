@@ -23,6 +23,7 @@
     "release": "semantic-release --debug"
   },
   "dependencies": {
+    "@nestjs/axios": "^4.0.0",
     "@nestjs/common": "^10.2.3",
     "@nestjs/core": "^10.2.3",
     "@nestjs/mapped-types": "^2.0.2",

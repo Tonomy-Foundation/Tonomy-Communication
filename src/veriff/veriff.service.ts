@@ -1,4 +1,4 @@
-import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 
 import * as crypto from 'crypto';
 import {
@@ -11,6 +11,8 @@ import { VeriffWebhookPayload, WatchlistScreeningResult } from './veriff.types';
 export type VeriffPayload = {
   appName: string;
 };
+
+const ENABLE_PEP_CHECK = false;
 
 @Injectable()
 export class VeriffService {
@@ -35,22 +37,18 @@ export class VeriffService {
   async validateWebhookRequest(
     signature: string,
     payload: VeriffWebhookPayload,
-  ): Promise<{
-    accountName: string;
-    appName: string;
-  }> {
+  ): Promise<{ accountName: string; appName: string } | null> {
     this.logger.debug('Handling webhook payload from Veriff:', payload);
     const { vendorData: jwt, data, status } = payload;
     if (!jwt) {
-      throw new HttpException(
-        'vendorData (VC JWT) is missing',
-        HttpStatus.BAD_REQUEST,
-      );
+      this.logger.warn('vendorData (VC JWT) is missing, cannot proceed.');
+      return null;
     }
 
     // Verify signature
     if (!this.validateSignature(signature, payload)) {
-      throw new HttpException('Invalid signature', HttpStatus.UNAUTHORIZED);
+      this.logger.warn('Invalid signature, cannot proceed.');
+      return null;
     }
 
     try {
@@ -60,7 +58,8 @@ export class VeriffService {
       const did = vc.getId();
 
       if (!did) {
-        throw new HttpException('Invalid did', HttpStatus.BAD_REQUEST);
+        this.logger.warn('VC is missing DID, cannot proceed.');
+        return null;
       }
 
       const rawAccountName = this.accountNameHelper.getAccountNameFromDid(did);
@@ -70,25 +69,33 @@ export class VeriffService {
           : 'null';
 
       // Check pepSanctionMatches
-      let pepSanctionMatches: WatchlistScreeningResult | null = null;
       if (data.verification.decision === 'approved') {
         try {
-          pepSanctionMatches =
-            await this.veriffWatchlistService.getWatchlistScreening(
-              payload.sessionId,
-            );
-          this.logger.debug('Watchlist result:', pepSanctionMatches);
+          let pepSanctionMatches: WatchlistScreeningResult | null = null;
+          if (ENABLE_PEP_CHECK) {
+            pepSanctionMatches =
+              await this.veriffWatchlistService.getWatchlistScreening(
+                payload.sessionId,
+              );
+            this.logger.debug('Watchlist result:', pepSanctionMatches);
+          }
         } catch (e) {
           this.logger.warn('Failed to fetch watchlist screening:', e.message);
         }
-      }
 
-      return { accountName, appName };
-    } catch (e) {
-      throw new HttpException(
-        `VC verification failed: ${e.message}`,
-        HttpStatus.UNAUTHORIZED,
+        return { accountName, appName };
+      }
+      this.logger.debug(
+        'Verification decision is not approved, skipping response data.',
       );
+      return null;
+    } catch (e) {
+      this.logger.error(
+        'Failed to process Veriff webhook:',
+        e.message,
+        e.stack,
+      );
+      return null;
     }
   }
 }
