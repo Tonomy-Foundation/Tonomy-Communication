@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   util,
   getAccountNameFromDid as sdkGetAccountNameFromDid,
+  verifyClientAuthorization,
 } from '@tonomy/tonomy-id-sdk';
 import axios from 'axios';
 import crypto from 'crypto';
@@ -9,11 +10,29 @@ import { WatchlistScreeningResult } from './veriff.types';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
 
+// Add this interface to veriff.types.ts
+export interface VerifiedCredential<T> {
+  getId(): string;
+  getCredentialSubject(): Promise<T>;
+  getAccount(): string;
+}
+
 // --------- Verifiable Credential Factory ---------
 @Injectable()
 export class VerifiableCredentialFactory {
-  create<T extends object>(jwt: string): util.VerifiableCredential<T> {
-    return new util.VerifiableCredential<T>(jwt);
+  async create<T extends object>(jwt: string): Promise<VerifiedCredential<T>> {
+    // This will throw if verification fails
+    const result = await verifyClientAuthorization<T>(jwt, {
+      verifyUsername: false,
+      verifyOrigin: false,
+      verifyChainId: true,
+    });
+
+    return {
+      getId: () => result.did,
+      getCredentialSubject: async () => result.data,
+      getAccount: () => result.account,
+    };
   }
 }
 

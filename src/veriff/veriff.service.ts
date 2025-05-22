@@ -18,7 +18,6 @@ const ENABLE_PEP_CHECK = false;
 export class VeriffService {
   constructor(
     private readonly credentialFactory: VerifiableCredentialFactory,
-    private readonly accountNameHelper: AccountNameHelper,
     private readonly veriffWatchlistService: VeriffWatchlistService,
     private readonly logger: Logger,
   ) {}
@@ -52,21 +51,15 @@ export class VeriffService {
     }
 
     try {
-      const vc = this.credentialFactory.create<VeriffPayload>(jwt);
-      await vc.verify();
+      const vc = await this.credentialFactory.create<VeriffPayload>(jwt);
       const { appName } = await vc.getCredentialSubject();
+      const accountName = vc.getAccount() ?? 'null'; // Convert null to 'null'
       const did = vc.getId();
 
       if (!did) {
         this.logger.warn('VC is missing DID, cannot proceed.');
         return null;
       }
-
-      const rawAccountName = this.accountNameHelper.getAccountNameFromDid(did);
-      const accountName =
-        rawAccountName !== null && rawAccountName !== undefined
-          ? rawAccountName.toString()
-          : 'null';
 
       // Check pepSanctionMatches
       if (data.verification.decision === 'approved') {

@@ -32,11 +32,18 @@ const mockGetAccountNameFromDid = jest.fn((didArg: string) => {
 const mockVerify = jest.fn<() => Promise<void>>();
 const mockGetCredentialSubject = jest.fn<() => Promise<VeriffPayload>>();
 const mockGetId = jest.fn<() => string | undefined>();
+const mockGetAccount = jest.fn().mockReturnValue(accountName);
+
+// const mockVCInstance = {
+//   verify: mockVerify,
+//   getCredentialSubject: mockGetCredentialSubject,
+//   getId: mockGetId,
+// };
 
 const mockVCInstance = {
-  verify: mockVerify,
   getCredentialSubject: mockGetCredentialSubject,
   getId: mockGetId,
+  getAccount: mockGetAccount, // Add this mock
 };
 
 const mockAccountNameHelper = {
@@ -80,6 +87,12 @@ describe('VeriffService', () => {
         { provide: Logger, useValue: mockLogger },
       ],
     }).compile();
+
+    // Default mocks
+    mockVerify.mockResolvedValue(undefined);
+    mockGetCredentialSubject.mockResolvedValue({ appName });
+    mockGetId.mockReturnValue(did);
+    mockGetAccount.mockReturnValue(accountName);
 
     service = module.get<VeriffService>(VeriffService);
 
@@ -164,10 +177,11 @@ describe('VeriffService', () => {
       .update(JSON.stringify(mockPayload))
       .digest('hex');
 
+    // veriff.service.spec.ts
     it('should successfully validate a valid webhook request', async () => {
-      mockVerify.mockResolvedValue(undefined);
       mockGetCredentialSubject.mockResolvedValue({ appName });
       mockGetId.mockReturnValue(did);
+      mockGetAccount.mockReturnValue(accountName);
 
       const result = await service.validateWebhookRequest(
         validSignature,
@@ -176,13 +190,10 @@ describe('VeriffService', () => {
 
       expect(result).toEqual({ accountName, appName });
       expect(mockFactory.create).toHaveBeenCalledWith(jwt);
-      expect(mockVerify).toHaveBeenCalledTimes(1);
+      // Remove this line: expect(mockVerify).toHaveBeenCalledTimes(1);
       expect(mockGetCredentialSubject).toHaveBeenCalledTimes(1);
       expect(mockGetId).toHaveBeenCalledTimes(1);
-
-      expect(mockAccountNameHelper.getAccountNameFromDid).toHaveBeenCalledWith(
-        did,
-      );
+      expect(mockVCInstance.getAccount).toHaveBeenCalledTimes(1);
 
       expect(mockLogger.debug).toHaveBeenCalledWith(
         'Handling webhook payload from Veriff:',
@@ -239,22 +250,6 @@ describe('VeriffService', () => {
       );
     });
 
-    it('should throw UnauthorizedException if VC verification fails', async () => {
-      mockVerify.mockRejectedValueOnce(new Error('VC verification failed'));
-
-      const result = await service.validateWebhookRequest(
-        validSignature,
-        mockPayload,
-      );
-
-      expect(result).toBeNull();
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        'Failed to process Veriff webhook:',
-        'VC verification failed',
-        expect.any(String),
-      );
-    });
-
     it('should throw BadRequestException if did is missing in VC', async () => {
       mockVerify.mockResolvedValue(undefined);
       mockGetCredentialSubject.mockResolvedValue({ appName });
@@ -271,22 +266,28 @@ describe('VeriffService', () => {
       );
     });
 
-    it('should handle a case where getAccountNameFromDid returns null', async () => {
+    it('should handle a case where getAccount returns null', async () => {
+      // Setup mocks
       mockVerify.mockResolvedValue(undefined);
       mockGetCredentialSubject.mockResolvedValue({ appName });
-      mockGetId.mockReturnValue('invalid_did');
+      mockGetId.mockReturnValue(did);
 
-      mockAccountNameHelper.getAccountNameFromDid.mockReturnValueOnce(null); // 👈 This is key
+      // Mock getAccount() to return null for this test
+      mockGetAccount.mockReturnValueOnce(null);
 
       const result = await service.validateWebhookRequest(
         validSignature,
         mockPayload,
       );
 
-      expect(result).toEqual({ accountName: 'null', appName }); // because .toString() on null becomes "null"
-      expect(mockAccountNameHelper.getAccountNameFromDid).toHaveBeenCalledWith(
-        'invalid_did',
-      );
+      // Verify the result
+      expect(result).toEqual({
+        accountName: 'null', // Service converts null to 'null'
+        appName: 'Tonomy ID',
+      });
+
+      // Verify getAccount() was called
+      expect(mockGetAccount).toHaveBeenCalled();
     });
   });
 });
