@@ -1,14 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import {
-  util,
+  createSigner,
   getAccountNameFromDid as sdkGetAccountNameFromDid,
   verifyClientAuthorization,
 } from '@tonomy/tonomy-id-sdk';
-import axios from 'axios';
 import crypto from 'crypto';
 import { WatchlistScreeningResult } from './veriff.types';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
+import { getChainInfo } from '../../node_modules/@tonomy/tonomy-id-sdk/build/sdk/types/sdk/services/blockchain';
+import settings from '../settings';
+import { PrivateKey } from '@wharfkit/antelope';
 
 // Add this interface to veriff.types.ts
 export interface VerifiedCredential<T> {
@@ -117,4 +119,26 @@ export class VeriffWatchlistService {
       hits,
     };
   }
+}
+
+export async function getDid(account: string): Promise<string> {
+  const chainID = (await getChainInfo()).chain_id.toString();
+  return `did:antelope:${chainID}:${account}`;
+}
+
+export async function getTonomyOpsDid(): Promise<string> {
+  return getDid('ops.tmy');
+}
+
+export async function getTonomyOpsIssuer() {
+  const did = await getTonomyOpsDid();
+  const signer = createSigner(
+    PrivateKey.from(settings.secrets.createAccountPrivateKey),
+  );
+
+  return {
+    did,
+    signer,
+    alg: 'ES256K-R',
+  };
 }
