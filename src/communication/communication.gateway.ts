@@ -5,6 +5,7 @@ import {
   ConnectedSocket,
   OnGatewayDisconnect,
   BaseWsExceptionFilter,
+  WebSocketServer,
 } from '@nestjs/websockets';
 import { CommunicationService } from './communication.service';
 import {
@@ -21,7 +22,7 @@ import { WsExceptionFilter } from './ws-exception/ws-exception.filter';
 import { AuthenticationMessage } from '@tonomy/tonomy-id-sdk';
 import { CommunicationGuard } from './communication.guard';
 import { BodyDto } from './dto/body.dto';
-
+import { Server } from 'socket.io';
 export type WebsocketReturnType = {
   status: HttpStatus;
   details?: any;
@@ -39,6 +40,9 @@ export type WebsocketReturnType = {
 })
 @UseFilters(new BaseWsExceptionFilter())
 export class CommunicationGateway implements OnGatewayDisconnect {
+  @WebSocketServer()
+  server!: Server;
+
   private readonly logger = new Logger(CommunicationGateway.name);
   constructor(private readonly usersService: CommunicationService) {}
 
@@ -96,6 +100,31 @@ export class CommunicationGateway implements OnGatewayDisconnect {
       };
     } catch (e) {
       return this.usersService.handleError(e);
+    }
+  }
+
+  /**
+   * Send veriff verification to a specific user by DID
+   * This method is called from VeriffService to emit verification results
+   * @param recipientDid the recipient DID
+   * @param payload the verification payload
+   * @returns boolean indicating success
+   */
+  sendVeriffVerificationToDid(recipientDid: string, payload: string): boolean {
+    try {
+      const recipientSocketId = this.usersService.getLoggedInUser(recipientDid);
+
+      if (!recipientSocketId) {
+        this.logger.warn(`User ${recipientDid} is not connected`);
+        return false;
+      }
+
+      // Use server.to() to emit to specific socket ID
+      this.server.to(recipientSocketId).emit('veriffVerification', payload);
+      return true;
+    } catch (error) {
+      this.logger.error('Error sending veriff verification:', error);
+      return false;
     }
   }
 

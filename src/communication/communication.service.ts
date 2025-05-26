@@ -22,6 +22,15 @@ export class CommunicationService {
   }
 
   /**
+   * Get the socket ID of a logged-in user by their DID
+   * @param did the user DID
+   * @returns socket ID if user is logged in, undefined otherwise
+   */
+  getLoggedInUser(did: string): string | undefined {
+    return this.loggedInUsers.get(did);
+  }
+
+  /**
    * add user to the loggedIn Map and add user's did to his socket for easier use
    * @param did the user did
    * @param socket user socket

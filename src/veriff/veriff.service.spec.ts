@@ -2,10 +2,11 @@
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { VeriffService, VeriffPayload } from './veriff.service';
-import { HttpException, HttpStatus, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { jest } from '@jest/globals';
-
+import { CommunicationService } from '../communication/communication.service';
+import { CommunicationGateway } from '../communication/communication.gateway';
 import {
   VerifiableCredentialFactory,
   AccountNameHelper,
@@ -68,6 +69,8 @@ jest.mock('@tonomy/tonomy-id-sdk', () => ({
 
 describe('VeriffService', () => {
   let service: VeriffService;
+  let mockCommunicationService: Partial<CommunicationService>;
+  let mockCommunicationGateway: Partial<CommunicationGateway>;
 
   const mockLogger = {
     debug: jest.fn(),
@@ -76,6 +79,16 @@ describe('VeriffService', () => {
   } as unknown as Logger;
 
   beforeEach(async () => {
+    mockCommunicationService = {
+      getLoggedInUser: jest.fn((did: string) => 'mock-socket-id'),
+    };
+
+    mockCommunicationGateway = {
+      sendVeriffVerificationToDid: jest.fn(
+        (recipientDid: string, payload: string) => true,
+      ),
+    };
+
     jest.clearAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
@@ -85,6 +98,14 @@ describe('VeriffService', () => {
         { provide: AccountNameHelper, useValue: mockAccountNameHelper },
         { provide: VeriffWatchlistService, useValue: mockWatchlistService },
         { provide: Logger, useValue: mockLogger },
+        {
+          provide: CommunicationService,
+          useValue: mockCommunicationService,
+        },
+        {
+          provide: CommunicationGateway,
+          useValue: mockCommunicationGateway,
+        },
       ],
     }).compile();
 
