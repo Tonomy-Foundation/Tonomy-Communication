@@ -1,14 +1,19 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 
 import * as crypto from 'crypto';
 import {
   VerifiableCredentialFactory,
   VeriffWatchlistService,
-  getDid,
   getTonomyOpsIssuer,
+  getFieldValue,
 } from './veriff.helpers';
 import { VeriffWebhookPayload, WatchlistScreeningResult } from './veriff.types';
-import { CommunicationService } from '../communication/communication.service';
 
 import { util } from '@tonomy/tonomy-id-sdk';
 
@@ -42,35 +47,36 @@ export class VeriffService {
   async validateWebhookRequest(
     signature: string,
     payload: VeriffWebhookPayload,
-  ): Promise<{ accountName: string; appName: string } | null> {
+  ): Promise<void> {
     this.logger.debug('Handling webhook payload from Veriff:', payload);
     const { vendorData: jwt, data, status } = payload;
     if (!jwt) {
       this.logger.warn('vendorData (VC JWT) is missing, cannot proceed.');
-      return null;
+      throw new BadRequestException(
+        'vendorData (VC JWT) is missing, cannot proceed.',
+      );
     }
 
     // Verify signature
     if (!this.validateSignature(signature, payload)) {
       this.logger.warn('Invalid signature, cannot proceed.');
-      return null;
+      throw new UnauthorizedException('Invalid Veriff signature.');
     }
 
     try {
       const vc = await this.credentialFactory.create<VeriffPayload>(jwt);
-      const { appName } = await vc.getCredentialSubject();
-      const accountName = vc.getAccount() ?? 'null'; // Convert null to 'null'
+
       const did = vc.getId();
 
       if (!did) {
         this.logger.warn('VC is missing DID, cannot proceed.');
-        return null;
+        throw new BadRequestException('Verifiable Credential is missing DID.');
       }
 
       // Check pepSanctionMatches
       if (data.verification.decision === 'approved') {
         try {
-          let pepSanctionMatches: WatchlistScreeningResult | null = null;
+          let pepSanctionMatches: WatchlistScreeningResult | undefined;
           if (ENABLE_PEP_CHECK) {
             pepSanctionMatches =
               await this.veriffWatchlistService.getWatchlistScreening(
@@ -84,6 +90,49 @@ export class VeriffService {
 
         const issuer = await getTonomyOpsIssuer();
 
+        const person = data.verification.person;
+
+        const firstName = getFieldValue(person, 'firstName');
+        const lastName = getFieldValue(person, 'lastName');
+        const birthDate = getFieldValue(person, 'dateOfBirth');
+        const nationality = getFieldValue(person, 'nationality');
+
+        if (!firstName || !birthDate || !nationality) {
+          throw new Error('Missing required personal data.');
+        }
+
+        const signedFirstNameVc = await util.VerifiableCredential.sign(
+          '',
+          'FirstNameCredential',
+          { firstName },
+          issuer,
+          { subject: did },
+        );
+
+        const signedLastNameVc = await util.VerifiableCredential.sign(
+          '',
+          'LastNameCredential',
+          { lastName },
+          issuer,
+          { subject: did },
+        );
+
+        const signedBirthDateVc = await util.VerifiableCredential.sign(
+          '',
+          'BirthDateCredential',
+          { birthDate },
+          issuer,
+          { subject: did },
+        );
+
+        const signedNationalityVc = await util.VerifiableCredential.sign(
+          '',
+          'NationalityCredential',
+          { nationality },
+          issuer,
+          { subject: did },
+        );
+
         const signedVc = await util.VerifiableCredential.sign(
           '',
           'VeriffCredential',
@@ -92,34 +141,35 @@ export class VeriffService {
           },
           issuer,
           {
-            subject: '',
+            subject: did,
           },
         );
 
         const mewPayload = JSON.stringify({
           kyc: signedVc,
+          firstName: signedFirstNameVc,
+          lastName: signedLastNameVc,
+          birthDate: signedBirthDateVc,
+          nationality: signedNationalityVc,
         });
 
-        const recipientDid = await getDid(accountName);
-
-        this.communicationGateway.sendVeriffVerificationToDid(
-          recipientDid,
-          mewPayload,
-        );
-
-        return { accountName, appName };
+        this.communicationGateway.sendVeriffVerificationToDid(did, mewPayload);
       }
       this.logger.debug(
         'Verification decision is not approved, skipping response data.',
       );
-      return null;
+      throw new BadRequestException(
+        'Verification decision is not approved, skipping response data.',
+      );
     } catch (e) {
       this.logger.error(
         'Failed to process Veriff webhook:',
         e.message,
         e.stack,
       );
-      return null;
+      throw new InternalServerErrorException(
+        `Veriff webhook processing failed: ${e.message}`,
+      );
     }
   }
 }

@@ -1,7 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { VeriffController } from './veriff.controller';
 import { VeriffService } from './veriff.service';
-import { HttpException, HttpStatus, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Logger,
+} from '@nestjs/common';
 import { Response } from 'express';
 import { jest } from '@jest/globals';
 
@@ -11,8 +16,10 @@ type ValidateWebhookResult = { accountName: string; appName: string } | null;
 
 // Mock the VeriffService
 const mockVeriffService = {
-  validateWebhookRequest: jest.fn(),
-} as Partial<VeriffService>;
+  validateWebhookRequest: jest.fn(
+    (signature: string, payload: VeriffWebhookPayload) => Promise.resolve(),
+  ),
+};
 
 const mockLogger = {
   debug: jest.fn(),
@@ -42,6 +49,8 @@ describe('VeriffController', () => {
       status: jest.fn<(code: number) => Response>().mockReturnThis(),
       send: jest.fn<(body?: any) => Response>(),
     };
+
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -137,16 +146,7 @@ describe('VeriffController', () => {
     };
 
     it('should call veriffService.validateWebhookRequest and return 200 OK', async () => {
-      const mockAccountName = 'paccountname';
-      const mockAppName = 'Tonomy ID';
-      (
-        mockVeriffService.validateWebhookRequest as jest.Mock<
-          (signature: string, payload: any) => Promise<ValidateWebhookResult>
-        >
-      ).mockResolvedValue({
-        accountName: mockAccountName,
-        appName: mockAppName,
-      });
+      mockVeriffService.validateWebhookRequest.mockResolvedValue(undefined);
 
       await controller.handleWebhook(
         mockHeaders['x-hmac-signature'],
@@ -154,70 +154,85 @@ describe('VeriffController', () => {
         mockResponse as Response,
       );
 
-      expect(service.validateWebhookRequest).toHaveBeenCalledWith(
+      expect(mockVeriffService.validateWebhookRequest).toHaveBeenCalledWith(
         mockHeaders['x-hmac-signature'],
         mockBody,
       );
       expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.OK);
       expect(mockLogger.debug).toHaveBeenCalledWith(
-        'Handling webhook payload from Veriff:',
-        { accountName: mockAccountName, appName: mockAppName },
+        'Handling webhook payload from Veriff',
       );
+    });
+
+    it('should throw and not respond if validateWebhookRequest fails', async () => {
+      const errorMessage = 'Invalid signature';
+      const errorStatus = HttpStatus.UNAUTHORIZED;
+
+      mockVeriffService.validateWebhookRequest.mockRejectedValue(
+        new HttpException(errorMessage, errorStatus),
+      );
+
+      await expect(() =>
+        controller.handleWebhook(
+          mockHeaders['x-hmac-signature'],
+          mockBody,
+          mockResponse as Response,
+        ),
+      ).rejects.toThrow(HttpException);
+
+      expect(mockVeriffService.validateWebhookRequest).toHaveBeenCalled();
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
 
     it('should handle errors thrown by veriffService.validateWebhookRequest', async () => {
       const errorMessage = 'Invalid signature';
       const errorStatus = HttpStatus.UNAUTHORIZED;
 
-      // Explicitly cast mockVeriffService.validateWebhookRequest and its rejection type
-      (
-        mockVeriffService.validateWebhookRequest as jest.Mock<
-          (signature: string, payload: any) => Promise<ValidateWebhookResult>
-        >
-      ).mockRejectedValue(new HttpException(errorMessage, errorStatus));
+      // Configure the mock to reject with an HttpException
+      mockVeriffService.validateWebhookRequest.mockRejectedValue(
+        new HttpException(errorMessage, errorStatus),
+      );
 
-      try {
-        await controller.handleWebhook(
+      await expect(
+        controller.handleWebhook(
           mockHeaders['x-hmac-signature'],
           mockBody,
           mockResponse as Response,
-        );
-      } catch (error) {
-        expect(service.validateWebhookRequest).toHaveBeenCalledWith(
-          mockHeaders['x-hmac-signature'],
-          mockBody,
-        );
-        expect(error).toBeInstanceOf(HttpException);
-        expect(error.message).toBe(errorMessage);
-        expect(error.getStatus()).toBe(errorStatus);
-        expect(mockResponse.status).not.toHaveBeenCalled();
-      }
+        ),
+      ).rejects.toThrow(HttpException);
+
+      expect(mockVeriffService.validateWebhookRequest).toHaveBeenCalledWith(
+        mockHeaders['x-hmac-signature'],
+        mockBody,
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
 
-    it('should handle status !== "approved" and still return 200 OK', async () => {
-      mockBody.data.verification.decision = 'declined';
+    it('should throw if verification decision is not approved', async () => {
+      // Create a new body object to avoid mutating the original mockBody
+      const declinedBody = {
+        ...mockBody,
+        data: {
+          ...mockBody.data,
+          verification: {
+            ...mockBody.data.verification,
+            decision: 'declined',
+          },
+        },
+      };
 
-      (
-        mockVeriffService.validateWebhookRequest as jest.Mock<
-          (signature: string, payload: any) => Promise<ValidateWebhookResult>
-        >
-      ).mockResolvedValue(null);
-
-      await controller.handleWebhook(
-        mockHeaders['x-hmac-signature'],
-        mockBody,
-        mockResponse as Response,
+      // Configure the existing mock to reject with BadRequestException
+      mockVeriffService.validateWebhookRequest.mockRejectedValue(
+        new BadRequestException('Verification not approved'),
       );
 
-      expect(service.validateWebhookRequest).toHaveBeenCalledWith(
-        mockHeaders['x-hmac-signature'],
-        mockBody,
-      );
-      expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.OK);
-      expect(mockLogger.debug).toHaveBeenCalledWith(
-        'Handling webhook payload from Veriff:',
-        null,
-      );
+      await expect(
+        controller.handleWebhook(
+          mockHeaders['x-hmac-signature'],
+          declinedBody,
+          mockResponse as Response,
+        ),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 });

@@ -2,7 +2,12 @@
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { VeriffService, VeriffPayload } from './veriff.service';
-import { Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  InternalServerErrorException,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import * as crypto from 'crypto';
 import { jest } from '@jest/globals';
 import { CommunicationService } from '../communication/communication.service';
@@ -35,16 +40,10 @@ const mockGetCredentialSubject = jest.fn<() => Promise<VeriffPayload>>();
 const mockGetId = jest.fn<() => string | undefined>();
 const mockGetAccount = jest.fn().mockReturnValue(accountName);
 
-// const mockVCInstance = {
-//   verify: mockVerify,
-//   getCredentialSubject: mockGetCredentialSubject,
-//   getId: mockGetId,
-// };
-
 const mockVCInstance = {
   getCredentialSubject: mockGetCredentialSubject,
   getId: mockGetId,
-  getAccount: mockGetAccount, // Add this mock
+  getAccount: mockGetAccount,
 };
 
 const mockAccountNameHelper = {
@@ -59,7 +58,6 @@ const mockFactory = {
   create: jest.fn().mockReturnValue(mockVCInstance),
 };
 
-// Override the actual SDK module and inject our mock
 jest.mock('@tonomy/tonomy-id-sdk', () => ({
   getAccountNameFromDid: mockGetAccountNameFromDid,
   util: {
@@ -198,7 +196,6 @@ describe('VeriffService', () => {
       .update(JSON.stringify(mockPayload))
       .digest('hex');
 
-    // veriff.service.spec.ts
     it('should successfully validate a valid webhook request', async () => {
       mockGetCredentialSubject.mockResolvedValue({ appName });
       mockGetId.mockReturnValue(did);
@@ -209,9 +206,9 @@ describe('VeriffService', () => {
         mockPayload,
       );
 
-      expect(result).toEqual({ accountName, appName });
+      expect(result).toBeUndefined();
       expect(mockFactory.create).toHaveBeenCalledWith(jwt);
-      // Remove this line: expect(mockVerify).toHaveBeenCalledTimes(1);
+
       expect(mockGetCredentialSubject).toHaveBeenCalledTimes(1);
       expect(mockGetId).toHaveBeenCalledTimes(1);
       expect(mockVCInstance.getAccount).toHaveBeenCalledTimes(1);
@@ -223,36 +220,15 @@ describe('VeriffService', () => {
     });
 
     it('should throw BadRequestException if vendorData is missing', async () => {
-      const payloadWithoutVendorData: VeriffWebhookPayload = {
-        status: 'success',
-        eventType: 'fullauto',
-        sessionId: 'dummy-session-id',
-        attemptId: 'dummy-attempt-id',
-        vendorData: null, // explicitly null to simulate missing value
-        endUserId: null,
-        version: '1.0.0',
-        acceptanceTime: new Date().toISOString(),
-        time: new Date().toISOString(),
-        data: {
-          verification: {
-            decisionScore: 0.98,
-            decision: 'approved',
-            person: {},
-            document: {
-              type: null,
-              country: null,
-            },
-            insights: [],
-          },
-        },
-      };
+      const payloadWithoutVendorData = { ...mockPayload, vendorData: null };
 
-      const result = await service.validateWebhookRequest(
-        validSignature,
-        payloadWithoutVendorData,
-      );
+      await expect(
+        service.validateWebhookRequest(
+          validSignature,
+          payloadWithoutVendorData,
+        ),
+      ).rejects.toThrow(BadRequestException);
 
-      expect(result).toBeNull();
       expect(mockLogger.warn).toHaveBeenCalledWith(
         'vendorData (VC JWT) is missing, cannot proceed.',
       );
@@ -260,55 +236,26 @@ describe('VeriffService', () => {
 
     it('should throw UnauthorizedException for an invalid signature', async () => {
       const invalidSignature = 'invalid_signature';
-      const result = await service.validateWebhookRequest(
-        invalidSignature,
-        mockPayload,
-      );
 
-      expect(result).toBeNull();
+      await expect(
+        service.validateWebhookRequest(invalidSignature, mockPayload),
+      ).rejects.toThrow(UnauthorizedException);
+
       expect(mockLogger.warn).toHaveBeenCalledWith(
         'Invalid signature, cannot proceed.',
       );
     });
 
     it('should throw BadRequestException if did is missing in VC', async () => {
-      mockVerify.mockResolvedValue(undefined);
-      mockGetCredentialSubject.mockResolvedValue({ appName });
       mockGetId.mockReturnValue(undefined);
 
-      const result = await service.validateWebhookRequest(
-        validSignature,
-        mockPayload,
-      );
+      await expect(
+        service.validateWebhookRequest(validSignature, mockPayload),
+      ).rejects.toThrow(InternalServerErrorException);
 
-      expect(result).toBeNull();
       expect(mockLogger.warn).toHaveBeenCalledWith(
         'VC is missing DID, cannot proceed.',
       );
-    });
-
-    it('should handle a case where getAccount returns null', async () => {
-      // Setup mocks
-      mockVerify.mockResolvedValue(undefined);
-      mockGetCredentialSubject.mockResolvedValue({ appName });
-      mockGetId.mockReturnValue(did);
-
-      // Mock getAccount() to return null for this test
-      mockGetAccount.mockReturnValueOnce(null);
-
-      const result = await service.validateWebhookRequest(
-        validSignature,
-        mockPayload,
-      );
-
-      // Verify the result
-      expect(result).toEqual({
-        accountName: 'null', // Service converts null to 'null'
-        appName: 'Tonomy ID',
-      });
-
-      // Verify getAccount() was called
-      expect(mockGetAccount).toHaveBeenCalled();
     });
   });
 });

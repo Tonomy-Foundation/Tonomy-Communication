@@ -24,12 +24,9 @@ export class VeriffController {
     @Body() body: any,
     @Res() res: Response,
   ) {
-    const result = await this.veriffService.validateWebhookRequest(
-      signature,
-      body,
-    );
+    await this.veriffService.validateWebhookRequest(signature, body);
 
-    this.logger.debug('Handling webhook payload from Veriff:', result);
+    this.logger.debug('Handling webhook payload from Veriff');
     return res.status(200);
   }
 }
