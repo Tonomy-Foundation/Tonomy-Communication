@@ -12,6 +12,7 @@ import {
   VeriffWatchlistService,
   getTonomyOpsIssuer,
   getFieldValue,
+  signVerifiableCredential,
 } from './veriff.helpers';
 import { VeriffWebhookPayload, WatchlistScreeningResult } from './veriff.types';
 
@@ -86,6 +87,9 @@ export class VeriffService {
           }
         } catch (e) {
           this.logger.warn('Failed to fetch watchlist screening:', e.message);
+          throw new InternalServerErrorException(
+            `Veriff webhook processing failed: ${e.message}`,
+          );
         }
 
         const issuer = await getTonomyOpsIssuer();
@@ -101,48 +105,39 @@ export class VeriffService {
           throw new Error('Missing required personal data.');
         }
 
-        const signedFirstNameVc = await util.VerifiableCredential.sign(
-          '',
+        const signedFirstNameVc = await signVerifiableCredential(
           'FirstNameCredential',
           { firstName },
           issuer,
-          { subject: did },
+          did,
         );
 
-        const signedLastNameVc = await util.VerifiableCredential.sign(
-          '',
+        const signedLastNameVc = await signVerifiableCredential(
           'LastNameCredential',
           { lastName },
           issuer,
-          { subject: did },
+          did,
         );
 
-        const signedBirthDateVc = await util.VerifiableCredential.sign(
-          '',
+        const signedBirthDateVc = await signVerifiableCredential(
           'BirthDateCredential',
           { birthDate },
           issuer,
-          { subject: did },
+          did,
         );
 
-        const signedNationalityVc = await util.VerifiableCredential.sign(
-          '',
+        const signedNationalityVc = await signVerifiableCredential(
           'NationalityCredential',
           { nationality },
           issuer,
-          { subject: did },
+          did,
         );
 
-        const signedVc = await util.VerifiableCredential.sign(
-          '',
+        const signedVc = await signVerifiableCredential(
           'VeriffCredential',
-          {
-            verification: payload,
-          },
+          { verification: payload },
           issuer,
-          {
-            subject: did,
-          },
+          did,
         );
 
         const mewPayload = JSON.stringify({
@@ -154,13 +149,14 @@ export class VeriffService {
         });
 
         this.communicationGateway.sendVeriffVerificationToDid(did, mewPayload);
+      } else {
+        this.logger.debug(
+          'Verification decision is not approved, skipping response data.',
+        );
+        throw new BadRequestException(
+          'Verification decision is not approved, skipping response data.',
+        );
       }
-      this.logger.debug(
-        'Verification decision is not approved, skipping response data.',
-      );
-      throw new BadRequestException(
-        'Verification decision is not approved, skipping response data.',
-      );
     } catch (e) {
       this.logger.error(
         'Failed to process Veriff webhook:',

@@ -2,7 +2,9 @@ import { Injectable } from '@nestjs/common';
 import {
   createSigner,
   EosioUtil,
+  randomString,
   getAccountNameFromDid as sdkGetAccountNameFromDid,
+  util,
   verifyClientAuthorization,
 } from '@tonomy/tonomy-id-sdk';
 import crypto from 'crypto';
@@ -150,4 +152,16 @@ export function getFieldValue(
   key: string,
 ): string | undefined {
   return person?.[key]?.value ?? undefined;
+}
+
+export async function signVerifiableCredential(
+  type: string,
+  data: any,
+  issuer: any,
+  subject: string,
+): Promise<util.VerifiableCredential> {
+  const id = 'https://tonomy.foundation/vc/id/' + randomString(10);
+  return await util.VerifiableCredential.sign(id, type, data, issuer, {
+    subject,
+  });
 }
