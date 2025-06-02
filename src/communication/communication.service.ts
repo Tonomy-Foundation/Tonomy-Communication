@@ -4,6 +4,7 @@ import { Client } from './dto/client.dto';
 import { MessageDto } from './dto/message.dto';
 import { WebsocketReturnType } from './communication.gateway';
 import Debug from 'debug';
+import { Server } from 'socket.io';
 
 const debug = Debug('tonomy-communication:communication:communication.service');
 
@@ -12,6 +13,11 @@ export class CommunicationService {
   private readonly logger = new Logger(CommunicationService.name);
 
   private readonly loggedInUsers = new Map<string, Socket['id']>();
+  private server!: Server;
+
+  setServer(server: Server) {
+    this.server = server;
+  }
 
   /**
    * delete the disconnecting user from the users map
@@ -26,8 +32,16 @@ export class CommunicationService {
    * @param did the user DID
    * @returns socket ID if user is logged in, undefined otherwise
    */
-  getLoggedInUser(did: string): string | undefined {
-    return this.loggedInUsers.get(did);
+  getLoggedInUser(did: string): string {
+    try {
+      const socketId = this.loggedInUsers.get(did);
+      if (socketId === undefined) {
+        throw new Error(`User with DID ${did} not found`);
+      }
+      return socketId;
+    } catch (e) {
+      throw e;
+    }
   }
 
   /**
@@ -75,6 +89,16 @@ export class CommunicationService {
       socket.to(recipient).emit('message', message.toString());
     }
 
+    return true;
+  }
+
+  sendEventToUser(did: string, event: string, payload: any): boolean {
+    const socketId = this.loggedInUsers.get(did);
+    if (!socketId) {
+      this.logger.warn(`User ${did} is not connected`);
+      return false;
+    }
+    this.server.to(socketId).emit(event, payload);
     return true;
   }
 

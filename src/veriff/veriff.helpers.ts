@@ -154,9 +154,9 @@ export function getFieldValue(
   return person?.[key]?.value ?? undefined;
 }
 
-export async function signVerifiableCredential(
+export async function signVerifiableCredential<T extends object>(
   type: string,
-  data: any,
+  data: T,
   issuer: any,
   subject: string,
 ): Promise<util.VerifiableCredential> {

@@ -126,7 +126,7 @@ describe('VeriffService', () => {
 
   describe('validateSignature', () => {
     it('should return true for a valid signature', () => {
-      const payload = { data: 'test' };
+      const payload: any = { data: 'test' };
       const expectedSignature = crypto
         .createHmac('sha256', 'default_secret')
         .update(JSON.stringify(payload))
@@ -136,7 +136,7 @@ describe('VeriffService', () => {
     });
 
     it('should return false for an invalid signature', () => {
-      const payload = { data: 'test' };
+      const payload: any = { data: 'test' };
       const invalidSignature = 'invalid_signature';
       const isValid = service.validateSignature(invalidSignature, payload);
       expect(isValid).toBe(false);

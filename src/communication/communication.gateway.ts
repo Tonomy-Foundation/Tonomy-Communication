@@ -6,6 +6,7 @@ import {
   OnGatewayDisconnect,
   BaseWsExceptionFilter,
   WebSocketServer,
+  OnGatewayInit,
 } from '@nestjs/websockets';
 import { CommunicationService } from './communication.service';
 import {
@@ -39,12 +40,18 @@ export type WebsocketReturnType = {
   },
 })
 @UseFilters(new BaseWsExceptionFilter())
-export class CommunicationGateway implements OnGatewayDisconnect {
+export class CommunicationGateway
+  implements OnGatewayDisconnect, OnGatewayInit
+{
   @WebSocketServer()
   server!: Server;
 
   private readonly logger = new Logger(CommunicationGateway.name);
   constructor(private readonly usersService: CommunicationService) {}
+
+  afterInit(server: Server) {
+    this.usersService.setServer(server);
+  }
 
   /**
    * Logs in the user and added it to the loggedIn map
@@ -112,16 +119,11 @@ export class CommunicationGateway implements OnGatewayDisconnect {
    */
   sendVeriffVerificationToDid(recipientDid: string, payload: string): boolean {
     try {
-      const recipientSocketId = this.usersService.getLoggedInUser(recipientDid);
-
-      if (!recipientSocketId) {
-        this.logger.warn(`User ${recipientDid} is not connected`);
-        return false;
-      }
-
-      // Use server.to() to emit to specific socket ID
-      this.server.to(recipientSocketId).emit('veriffVerification', payload);
-      return true;
+      return this.usersService.sendEventToUser(
+        recipientDid,
+        'veriffVerification',
+        payload,
+      );
     } catch (error) {
       this.logger.error('Error sending veriff verification:', error);
       return false;

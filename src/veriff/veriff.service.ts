@@ -36,7 +36,7 @@ export class VeriffService {
   private readonly VERIFF_SECRET =
     process.env.VERIFF_SECRET || 'default_secret'; // .env usage
 
-  validateSignature(signature: string, payload: any): boolean {
+  validateSignature(signature: string, payload: VeriffWebhookPayload): boolean {
     const computedSignature = crypto
       .createHmac('sha256', this.VERIFF_SECRET)
       .update(JSON.stringify(payload))
