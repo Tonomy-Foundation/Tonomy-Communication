@@ -40,18 +40,10 @@ export type WebsocketReturnType = {
   },
 })
 @UseFilters(new BaseWsExceptionFilter())
-export class CommunicationGateway
-  implements OnGatewayDisconnect, OnGatewayInit
-{
+export class CommunicationGateway implements OnGatewayDisconnect {
   @WebSocketServer()
-  server!: Server;
-
   private readonly logger = new Logger(CommunicationGateway.name);
   constructor(private readonly usersService: CommunicationService) {}
-
-  afterInit(server: Server) {
-    this.usersService.setServer(server);
-  }
 
   /**
    * Logs in the user and added it to the loggedIn map
@@ -59,7 +51,7 @@ export class CommunicationGateway
    * @param {BodyDto} body - The message VC or an error from the transformer
    * @param {Client} client - user socket
    */
-  @SubscribeMessage('login')
+  @SubscribeMessage('v1/login')
   async connectUser(
     @MessageBody() body: BodyDto,
     @ConnectedSocket() client: Client,
@@ -90,7 +82,7 @@ export class CommunicationGateway
    * @param {BodyDto} body - The message VC or an error from the transformer
    * @param client user socket
    */
-  @SubscribeMessage('message')
+  @SubscribeMessage('v1/message/relay')
   @UseGuards(CommunicationGuard)
   async relayMessage(
     @MessageBody() body: BodyDto,
@@ -121,7 +113,7 @@ export class CommunicationGateway
     try {
       return this.usersService.sendEventToUser(
         recipientDid,
-        'veriffVerification',
+        'v1/verification/veriff/receive',
         payload,
       );
     } catch (error) {

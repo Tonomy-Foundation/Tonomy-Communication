@@ -13,18 +13,18 @@ export class CommunicationService {
   private readonly logger = new Logger(CommunicationService.name);
 
   private readonly loggedInUsers = new Map<string, Socket['id']>();
-  private server!: Server;
-
-  setServer(server: Server) {
-    this.server = server;
-  }
+  private readonly userSockets = new Map<string, Client>();
 
   /**
    * delete the disconnecting user from the users map
    * @param socket user socket
    */
   safeDisconnect(socket: Client) {
-    this.loggedInUsers.delete(socket.did);
+    if (socket.did) {
+      this.loggedInUsers.delete(socket.did);
+      this.userSockets.delete(socket.did);
+      this.logger.debug(`User ${socket.did} disconnected`);
+    }
   }
 
   /**
@@ -33,15 +33,11 @@ export class CommunicationService {
    * @returns socket ID if user is logged in, undefined otherwise
    */
   getLoggedInUser(did: string): string {
-    try {
-      const socketId = this.loggedInUsers.get(did);
-      if (socketId === undefined) {
-        throw new Error(`User with DID ${did} not found`);
-      }
-      return socketId;
-    } catch (e) {
-      throw e;
+    const socketId = this.loggedInUsers.get(did);
+    if (socketId === undefined) {
+      throw new Error(`User with DID ${did} not found`);
     }
+    return socketId;
   }
 
   /**
@@ -55,6 +51,7 @@ export class CommunicationService {
 
     if (this.loggedInUsers.get(did) === socket.id) return false;
     this.loggedInUsers.set(did, socket.id);
+    this.userSockets.set(did, socket);
     socket.did = did;
 
     return true;
@@ -92,14 +89,28 @@ export class CommunicationService {
     return true;
   }
 
+  /**
+   * Send event to a specific user by DID (similar to sendMessage approach)
+   * @param did the user DID
+   * @param event the event name
+   * @param payload the payload to send
+   * @returns boolean indicating success
+   */
   sendEventToUser(did: string, event: string, payload: any): boolean {
-    const socketId = this.loggedInUsers.get(did);
-    if (!socketId) {
+    const userSocket = this.userSockets.get(did);
+    if (!userSocket) {
       this.logger.warn(`User ${did} is not connected`);
       return false;
     }
-    this.server.to(socketId).emit(event, payload);
-    return true;
+
+    try {
+      userSocket.emit(event, payload);
+      this.logger.debug(`Event ${event} sent to user ${did}`);
+      return true;
+    } catch (error) {
+      this.logger.error(`Failed to send event ${event} to user ${did}:`, error);
+      return false;
+    }
   }
 
   handleError(e): WebsocketReturnType {

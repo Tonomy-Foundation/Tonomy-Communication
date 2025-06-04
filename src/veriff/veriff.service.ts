@@ -74,6 +74,14 @@ export class VeriffService {
         throw new BadRequestException('Verifiable Credential is missing DID.');
       }
 
+      const issuer = await getTonomyOpsIssuer();
+      const signedVc = await signVerifiableCredential(
+        'VeriffCredential',
+        { data },
+        issuer,
+        did,
+      );
+
       // Check pepSanctionMatches
       if (data.verification.decision === 'approved') {
         try {
@@ -91,8 +99,6 @@ export class VeriffService {
             `Veriff webhook processing failed: ${e.message}`,
           );
         }
-
-        const issuer = await getTonomyOpsIssuer();
 
         const person = data.verification.person;
 
@@ -133,15 +139,16 @@ export class VeriffService {
           did,
         );
 
-        const signedVc = await signVerifiableCredential(
-          'VeriffCredential',
-          { verification: payload },
+        const signedDecision = await signVerifiableCredential(
+          'BirthDateCredential',
+          { decision: data.verification.decision },
           issuer,
           did,
         );
 
         const mewPayload = JSON.stringify({
           kyc: signedVc,
+          decision: signedDecision,
           firstName: signedFirstNameVc,
           lastName: signedLastNameVc,
           birthDate: signedBirthDateVc,
@@ -153,9 +160,20 @@ export class VeriffService {
         this.logger.debug(
           'Verification decision is not approved, skipping response data.',
         );
-        throw new BadRequestException(
-          'Verification decision is not approved, skipping response data.',
+
+        const signedDecision = await signVerifiableCredential(
+          'BirthDateCredential',
+          { decision: data.verification.decision },
+          issuer,
+          did,
         );
+
+        const newPayload = JSON.stringify({
+          kyc: signedVc,
+          decision: signedDecision,
+        });
+
+        this.communicationGateway.sendVeriffVerificationToDid(did, newPayload);
       }
     } catch (e) {
       this.logger.error(
