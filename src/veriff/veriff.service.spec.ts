@@ -18,6 +18,8 @@ import {
   VeriffWatchlistService,
 } from './veriff.helpers';
 import { VeriffWebhookPayload } from './veriff.types';
+import { setSettings } from '@tonomy/tonomy-id-sdk';
+import settings from '../settings';
 
 // Constants
 const accountName = 'paccountname';
@@ -86,6 +88,11 @@ describe('VeriffService', () => {
         (recipientDid: string, payload: string) => true,
       ),
     };
+
+    await setSettings({
+      blockchainUrl: settings.config.blockchainUrl,
+      loggerLevel: settings.config.loggerLevel,
+    });
 
     jest.clearAllMocks();
 

@@ -15,6 +15,11 @@ export class CommunicationService {
   private readonly loggedInUsers = new Map<string, Socket['id']>();
   private readonly userSockets = new Map<string, Client>();
 
+  private server!: Server;
+
+  setServer(server: Server) {
+    this.server = server;
+  }
   /**
    * delete the disconnecting user from the users map
    * @param socket user socket
@@ -97,20 +102,13 @@ export class CommunicationService {
    * @returns boolean indicating success
    */
   sendEventToUser(did: string, event: string, payload: any): boolean {
-    const userSocket = this.userSockets.get(did);
-    if (!userSocket) {
+    const socketId = this.loggedInUsers.get(did);
+    if (!socketId) {
       this.logger.warn(`User ${did} is not connected`);
       return false;
     }
-
-    try {
-      userSocket.emit(event, payload);
-      this.logger.debug(`Event ${event} sent to user ${did}`);
-      return true;
-    } catch (error) {
-      this.logger.error(`Failed to send event ${event} to user ${did}:`, error);
-      return false;
-    }
+    this.server.to(socketId).emit(event, payload);
+    return true;
   }
 
   handleError(e): WebsocketReturnType {
