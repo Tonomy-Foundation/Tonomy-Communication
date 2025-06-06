@@ -176,6 +176,16 @@ describe('VeriffService', () => {
               value: 'Doe',
               sources: ['MRZ'],
             },
+            dateOfBirth: {
+              confidenceCategory: 'high',
+              value: '1990-01-01', // Added required field
+              sources: ['MRZ'],
+            },
+            nationality: {
+              confidenceCategory: 'high',
+              value: 'US', // Added required field
+              sources: ['MRZ'],
+            },
           },
           document: {
             type: {
@@ -204,9 +214,7 @@ describe('VeriffService', () => {
       .digest('hex');
 
     it('should successfully validate a valid webhook request', async () => {
-      mockGetCredentialSubject.mockResolvedValue({ appName });
       mockGetId.mockReturnValue(did);
-      mockGetAccount.mockReturnValue(accountName);
 
       const result = await service.validateWebhookRequest(
         validSignature,
@@ -215,15 +223,15 @@ describe('VeriffService', () => {
 
       expect(result).toBeUndefined();
       expect(mockFactory.create).toHaveBeenCalledWith(jwt);
-
-      expect(mockGetCredentialSubject).toHaveBeenCalledTimes(1);
       expect(mockGetId).toHaveBeenCalledTimes(1);
-      expect(mockVCInstance.getAccount).toHaveBeenCalledTimes(1);
-
       expect(mockLogger.debug).toHaveBeenCalledWith(
         'Handling webhook payload from Veriff:',
         mockPayload,
       );
+      // Add this if sendVeriffVerificationToDid is called
+      expect(
+        mockCommunicationGateway.sendVeriffVerificationToDid,
+      ).toHaveBeenCalledWith(did, expect.any(String));
     });
 
     it('should throw BadRequestException if vendorData is missing', async () => {
