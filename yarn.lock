@@ -3523,9 +3523,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tonomy/tonomy-id-sdk@npm:0.32.0-development.1":
-  version: 0.32.0-development.1
-  resolution: "@tonomy/tonomy-id-sdk@npm:0.32.0-development.1"
+"@tonomy/tonomy-id-sdk@npm:0.32.0-development.2":
+  version: 0.32.0-development.2
+  resolution: "@tonomy/tonomy-id-sdk@npm:0.32.0-development.2"
   dependencies:
     "@consento/sync-randombytes": "npm:^1.0.5"
     "@tonomy/antelope-did-resolver": "npm:^0.10.0"
@@ -3552,7 +3552,7 @@ __metadata:
     typeorm: "npm:^0.3.20"
     universal-base64url: "npm:^1.1.0"
     web-did-resolver: "npm:^2.0.27"
-  checksum: 10c0/466ab7a564f97c1ac5deb8c79b77c9d66416fb3c05b5f18c87f677fe4517dd83f9dddb6e6d6c9bb090b96335fb16910a07eb5d65c06b1ec24fec5b6d5d5df058
+  checksum: 10c0/99e99a2ca58db2b9b2795597ac854e18eb6d99211d29fb1b2d264bd751932b92681f6da0affd2b404b234db910162005bebc08e6c95d03d165761446f5f45319
   languageName: node
   linkType: hard
 
@@ -13347,7 +13347,7 @@ __metadata:
     "@nestjs/testing": "npm:^10.2.3"
     "@nestjs/websockets": "npm:^10.2.3"
     "@semantic-release/git": "npm:^10.0.1"
-    "@tonomy/tonomy-id-sdk": "npm:0.32.0-development.1"
+    "@tonomy/tonomy-id-sdk": "npm:0.32.0-development.2"
     "@types/eslint__js": "npm:^8.42.3"
     "@types/express": "npm:^4.17.13"
     "@types/jest": "npm:29.5.12"
