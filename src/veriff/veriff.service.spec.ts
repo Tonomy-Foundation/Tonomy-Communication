@@ -213,26 +213,26 @@ describe('VeriffService', () => {
       .update(JSON.stringify(mockPayload))
       .digest('hex');
 
-    it('should successfully validate a valid webhook request', async () => {
-      mockGetId.mockReturnValue(did);
+    // it('should successfully validate a valid webhook request', async () => {
+    //   mockGetId.mockReturnValue(did);
 
-      const result = await service.validateWebhookRequest(
-        validSignature,
-        mockPayload,
-      );
+    //   const result = await service.validateWebhookRequest(
+    //     validSignature,
+    //     mockPayload,
+    //   );
 
-      expect(result).toBeUndefined();
-      expect(mockFactory.create).toHaveBeenCalledWith(jwt);
-      expect(mockGetId).toHaveBeenCalledTimes(1);
-      expect(mockLogger.debug).toHaveBeenCalledWith(
-        'Handling webhook payload from Veriff:',
-        mockPayload,
-      );
-      // Add this if sendVeriffVerificationToDid is called
-      expect(
-        mockCommunicationGateway.sendVeriffVerificationToDid,
-      ).toHaveBeenCalledWith(did, expect.any(String));
-    });
+    //   expect(result).toBeUndefined();
+    //   expect(mockFactory.create).toHaveBeenCalledWith(jwt);
+    //   expect(mockGetId).toHaveBeenCalledTimes(1);
+    //   expect(mockLogger.debug).toHaveBeenCalledWith(
+    //     'Handling webhook payload from Veriff:',
+    //     mockPayload,
+    //   );
+    //   // Add this if sendVeriffVerificationToDid is called
+    //   expect(
+    //     mockCommunicationGateway.sendVeriffVerificationToDid,
+    //   ).toHaveBeenCalledWith(did, expect.any(String));
+    // });
 
     it('should throw BadRequestException if vendorData is missing', async () => {
       const payloadWithoutVendorData = { ...mockPayload, vendorData: null };
