@@ -9,8 +9,7 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import { jest } from '@jest/globals';
-
-import { VeriffWebhookPayload } from './veriff.types';
+import { VeriffWebhookPayload } from '@tonomy/tonomy-id-sdk';
 
 type ValidateWebhookResult = { accountName: string; appName: string } | null;
 

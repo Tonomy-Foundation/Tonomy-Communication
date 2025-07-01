@@ -17,8 +17,7 @@ import {
   AccountNameHelper,
   VeriffWatchlistService,
 } from './veriff.helpers';
-import { VeriffWebhookPayload } from './veriff.types';
-import { setSettings } from '@tonomy/tonomy-id-sdk';
+import { setSettings, VeriffWebhookPayload } from '@tonomy/tonomy-id-sdk';
 import settings from '../settings';
 
 // Constants
@@ -139,6 +138,7 @@ describe('VeriffService', () => {
         .update(JSON.stringify(payload))
         .digest('hex');
       const isValid = service.validateSignature(expectedSignature, payload);
+
       expect(isValid).toBe(true);
     });
 
@@ -146,6 +146,7 @@ describe('VeriffService', () => {
       const payload: any = { data: 'test' };
       const invalidSignature = 'invalid_signature';
       const isValid = service.validateSignature(invalidSignature, payload);
+
       expect(isValid).toBe(false);
     });
   });
