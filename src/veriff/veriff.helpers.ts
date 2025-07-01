@@ -127,6 +127,7 @@ export class VeriffWatchlistService {
 export async function getDid(account: string): Promise<string> {
   const chainID = (await EosioUtil.getChainInfo())
     .chain_id as unknown as Checksum256;
+
   return `did:antelope:${chainID}:${account}`;
 }
 
@@ -152,16 +153,4 @@ export function getFieldValue(
   key: string,
 ): string | undefined {
   return person?.[key]?.value ?? undefined;
-}
-
-export async function signVerifiableCredential<T extends object>(
-  type: string,
-  data: T,
-  issuer: any,
-  subject: string,
-): Promise<util.VerifiableCredential> {
-  const id = 'https://tonomy.foundation/vc/id/' + randomString(10);
-  return await util.VerifiableCredential.sign(id, type, data, issuer, {
-    subject,
-  });
 }

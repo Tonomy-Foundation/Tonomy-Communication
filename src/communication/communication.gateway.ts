@@ -20,10 +20,14 @@ import {
 import { TransformVcPipe } from './transform-vc/transform-vc.pipe';
 import { Client } from './dto/client.dto';
 import { WsExceptionFilter } from './ws-exception/ws-exception.filter';
-import { AuthenticationMessage } from '@tonomy/tonomy-id-sdk';
+import {
+  AuthenticationMessage,
+  VerificationMessage,
+} from '@tonomy/tonomy-id-sdk';
 import { CommunicationGuard } from './communication.guard';
 import { BodyDto } from './dto/body.dto';
 import { Server } from 'socket.io';
+
 export type WebsocketReturnType = {
   status: HttpStatus;
   details?: any;
@@ -113,16 +117,20 @@ export class CommunicationGateway
   /**
    * Send veriff verification to a specific user by DID
    * This method is called from VeriffService to emit verification results
-   * @param recipientDid the recipient DID
-   * @param payload the verification payload
-   * @returns boolean indicating success
+   * @param {string} recipientDid the recipient DID
+   * @param {VerificationMessage} verificationMessage the verification payload
+   * @returns {boolean} indicating success
    */
-  sendVeriffVerificationToDid(recipientDid: string, payload: string): boolean {
+  sendVeriffVerificationToDid(
+    recipientDid: string,
+    verificationMessage: VerificationMessage,
+  ): boolean {
     try {
       const recipientSocketId = this.usersService.getLoggedInUser(recipientDid);
+
       this.server
         .to(recipientSocketId)
-        .emit('v1/verification/veriff/receive', payload);
+        .emit('v1/verification/veriff/receive', verificationMessage);
       return true;
     } catch (error) {
       this.logger.error('Error sending veriff verification:', error);

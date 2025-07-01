@@ -12,13 +12,21 @@ import {
   VeriffWatchlistService,
   getTonomyOpsIssuer,
   getFieldValue,
-  signVerifiableCredential,
 } from './veriff.helpers';
-import { VeriffWebhookPayload, WatchlistScreeningResult } from './veriff.types';
-
-import { util } from '@tonomy/tonomy-id-sdk';
+import { WatchlistScreeningResult } from './veriff.types';
+import {
+  KYCVC,
+  FirstNameVC,
+  LastNameVC,
+  BirthDateVC,
+  NationalityVC,
+  FullKycObject,
+  VeriffWebhookPayload,
+  VerificationMessage,
+} from '@tonomy/tonomy-id-sdk';
 
 import { CommunicationGateway } from '../communication/communication.gateway';
+
 export type VeriffPayload = {
   appName: string;
 };
@@ -47,10 +55,11 @@ export class VeriffService {
 
   async validateWebhookRequest(
     signature: string,
-    payload: VeriffWebhookPayload,
+    webhookPayload: VeriffWebhookPayload,
   ): Promise<void> {
-    this.logger.debug('Handling webhook payload from Veriff:', payload);
-    const { vendorData: jwt, data, status } = payload;
+    this.logger.debug('Handling webhook payload from Veriff:', webhookPayload);
+    const { vendorData: jwt, data } = webhookPayload;
+
     if (!jwt) {
       this.logger.warn('vendorData (VC JWT) is missing, cannot proceed.');
       throw new BadRequestException(
@@ -59,7 +68,7 @@ export class VeriffService {
     }
 
     // Verify signature
-    if (!this.validateSignature(signature, payload)) {
+    if (!this.validateSignature(signature, webhookPayload)) {
       this.logger.warn('Invalid signature, cannot proceed.');
       throw new UnauthorizedException('Invalid Veriff signature.');
     }
@@ -67,29 +76,25 @@ export class VeriffService {
     try {
       const vc = await this.credentialFactory.create<VeriffPayload>(jwt);
 
-      const did = vc.getId();
+      const subject = vc.getId();
 
-      if (!did) {
+      if (!subject) {
         this.logger.warn('VC is missing DID, cannot proceed.');
         throw new BadRequestException('Verifiable Credential is missing DID.');
       }
 
       const issuer = await getTonomyOpsIssuer();
-      const signedVc = await signVerifiableCredential(
-        'VeriffCredential',
-        { data },
-        issuer,
-        did,
-      );
+      const signedVc = await KYCVC.sign(webhookPayload, issuer, { subject });
 
       // Check pepSanctionMatches
       if (data.verification.decision === 'approved') {
         try {
           let pepSanctionMatches: WatchlistScreeningResult | undefined;
+
           if (ENABLE_PEP_CHECK) {
             pepSanctionMatches =
               await this.veriffWatchlistService.getWatchlistScreening(
-                payload.sessionId,
+                webhookPayload.sessionId,
               );
             this.logger.debug('Watchlist result:', pepSanctionMatches);
           }
@@ -111,69 +116,66 @@ export class VeriffService {
           throw new Error('Missing required personal data.');
         }
 
-        const signedFirstNameVc = await signVerifiableCredential(
-          'FirstNameCredential',
+        const signedFirstNameVc = await FirstNameVC.sign(
           { firstName },
           issuer,
-          did,
+          { subject },
         );
+        const signedLastNameVc = await LastNameVC.sign({ lastName }, issuer, {
+          subject,
+        });
 
-        const signedLastNameVc = await signVerifiableCredential(
-          'LastNameCredential',
-          { lastName },
-          issuer,
-          did,
-        );
-
-        const signedBirthDateVc = await signVerifiableCredential(
-          'BirthDateCredential',
+        const signedBirthDateVc = await BirthDateVC.sign(
           { birthDate },
           issuer,
-          did,
+          { subject },
         );
 
-        const signedNationalityVc = await signVerifiableCredential(
-          'NationalityCredential',
+        const signedNationalityVc = await NationalityVC.sign(
           { nationality },
           issuer,
-          did,
+          { subject },
         );
 
-        const signedDecision = await signVerifiableCredential(
-          'BirthDateCredential',
-          { decision: data.verification.decision },
-          issuer,
-          did,
-        );
-
-        const mewPayload = JSON.stringify({
+        const payload: FullKycObject = {
           kyc: signedVc,
-          decision: signedDecision,
           firstName: signedFirstNameVc,
           lastName: signedLastNameVc,
           birthDate: signedBirthDateVc,
           nationality: signedNationalityVc,
-        });
+        };
 
-        this.communicationGateway.sendVeriffVerificationToDid(did, mewPayload);
+        const verificationMessage = await VerificationMessage.signMessage(
+          payload,
+          issuer,
+          subject,
+          { subject },
+        );
+
+        this.communicationGateway.sendVeriffVerificationToDid(
+          subject,
+          verificationMessage,
+        );
       } else {
         this.logger.debug(
           'Verification decision is not approved, skipping response data.',
         );
 
-        const signedDecision = await signVerifiableCredential(
-          'BirthDateCredential',
-          { decision: data.verification.decision },
+        const payload: FullKycObject = {
+          kyc: signedVc,
+        };
+
+        const verificationMessage = await VerificationMessage.signMessage(
+          payload,
           issuer,
-          did,
+          subject,
+          { subject },
         );
 
-        const newPayload = JSON.stringify({
-          kyc: signedVc,
-          decision: signedDecision,
-        });
-
-        this.communicationGateway.sendVeriffVerificationToDid(did, newPayload);
+        this.communicationGateway.sendVeriffVerificationToDid(
+          subject,
+          verificationMessage,
+        );
       }
     } catch (e) {
       this.logger.error(
