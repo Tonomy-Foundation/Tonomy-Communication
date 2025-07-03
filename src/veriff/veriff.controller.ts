@@ -12,7 +12,7 @@ import { Response } from 'express';
 import { VeriffService } from './veriff.service';
 import { VeriffWebhookPayload } from '@tonomy/tonomy-id-sdk';
 
-@Controller('/v1/veriff/webhook')
+@Controller('v1/verification/veriff/webhook')
 export class VeriffController {
   constructor(
     private readonly veriffService: VeriffService,

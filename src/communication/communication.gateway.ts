@@ -94,7 +94,7 @@ export class CommunicationGateway
    * @param {BodyDto} body - The message VC or an error from the transformer
    * @param client user socket
    */
-  @SubscribeMessage('v1/message/relay')
+  @SubscribeMessage('v1/message/relay/send')
   @UseGuards(CommunicationGuard)
   async relayMessage(
     @MessageBody() body: BodyDto,

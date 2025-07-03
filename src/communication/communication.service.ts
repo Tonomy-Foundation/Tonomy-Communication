@@ -39,9 +39,11 @@ export class CommunicationService {
    */
   getLoggedInUser(did: string): string {
     const socketId = this.loggedInUsers.get(did);
+
     if (socketId === undefined) {
       throw new Error(`User with DID ${did} not found`);
     }
+
     return socketId;
   }
 
@@ -88,7 +90,7 @@ export class CommunicationService {
       );
     } else {
       // TODO: should check for acknowledgement
-      socket.to(recipient).emit('message', message.toString());
+      socket.to(recipient).emit('v1/message/relay/receive', message.toString());
     }
 
     return true;
@@ -103,10 +105,12 @@ export class CommunicationService {
    */
   sendEventToUser(did: string, event: string, payload: any): boolean {
     const socketId = this.loggedInUsers.get(did);
+
     if (!socketId) {
       this.logger.warn(`User ${did} is not connected`);
       return false;
     }
+
     this.server.to(socketId).emit(event, payload);
     return true;
   }
