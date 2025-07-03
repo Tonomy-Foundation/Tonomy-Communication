@@ -5,27 +5,27 @@ import {
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
-
 import * as crypto from 'crypto';
 import {
   VerifiableCredentialFactory,
   VeriffWatchlistService,
   getTonomyOpsIssuer,
-  getFieldValue,
 } from './veriff.helpers';
 import { WatchlistScreeningResult } from './veriff.types';
 import {
   KYCVC,
   FirstNameVC,
-  LastNameVC,
   BirthDateVC,
+  AddressVC,
   NationalityVC,
-  FullKycObject,
   VeriffWebhookPayload,
   VerificationMessage,
+  VerificationMessagePayload,
+  LastNameVC,
 } from '@tonomy/tonomy-id-sdk';
 
 import { CommunicationGateway } from '../communication/communication.gateway';
+import settings from 'src/settings';
 
 export type VeriffPayload = {
   appName: string;
@@ -41,12 +41,10 @@ export class VeriffService {
     private readonly logger: Logger,
     private readonly communicationGateway: CommunicationGateway,
   ) {}
-  private readonly VERIFF_SECRET =
-    process.env.VERIFF_SECRET || 'default_secret'; // .env usage
 
   validateSignature(signature: string, payload: VeriffWebhookPayload): boolean {
     const computedSignature = crypto
-      .createHmac('sha256', this.VERIFF_SECRET)
+      .createHmac('sha256', settings.secrets.veriffSecret)
       .update(JSON.stringify(payload))
       .digest('hex');
 
@@ -84,7 +82,9 @@ export class VeriffService {
       }
 
       const issuer = await getTonomyOpsIssuer();
-      const signedVc = await KYCVC.sign(webhookPayload, issuer, { subject });
+      const signedVc = await KYCVC.signData(webhookPayload, issuer, {
+        subject,
+      });
 
       // Check pepSanctionMatches
       if (data.verification.decision === 'approved') {
@@ -107,41 +107,56 @@ export class VeriffService {
 
         const person = data.verification.person;
 
-        const firstName = getFieldValue(person, 'firstName');
-        const lastName = getFieldValue(person, 'lastName');
-        const birthDate = getFieldValue(person, 'dateOfBirth');
-        const nationality = getFieldValue(person, 'nationality');
+        const firstName = person.firstName?.value;
+        const lastName = person.lastName?.value;
+        const birthDate = person.dateOfBirth?.value;
+        const address = person.address?.value;
+        const components = person.address?.components;
+        const nationality = person.nationality?.value;
 
-        if (!firstName || !birthDate || !nationality) {
+        if (!firstName || !lastName || !birthDate || !address || !nationality) {
           throw new Error('Missing required personal data.');
         }
 
-        const signedFirstNameVc = await FirstNameVC.sign(
+        const signedFirstNameVc = await FirstNameVC.signData(
           { firstName },
           issuer,
           { subject },
         );
-        const signedLastNameVc = await LastNameVC.sign({ lastName }, issuer, {
-          subject,
-        });
+        const signedLastNameVc = await LastNameVC.signData(
+          { lastName },
+          issuer,
+          {
+            subject,
+          },
+        );
 
-        const signedBirthDateVc = await BirthDateVC.sign(
+        const signedBirthDateVc = await BirthDateVC.signData(
           { birthDate },
           issuer,
           { subject },
         );
 
-        const signedNationalityVc = await NationalityVC.sign(
+        const signedAddressVc = await AddressVC.signData(
+          { address, components },
+          issuer,
+          {
+            subject,
+          },
+        );
+
+        const signedNationalityVc = await NationalityVC.signData(
           { nationality },
           issuer,
           { subject },
         );
 
-        const payload: FullKycObject = {
+        const payload: VerificationMessagePayload = {
           kyc: signedVc,
           firstName: signedFirstNameVc,
           lastName: signedLastNameVc,
           birthDate: signedBirthDateVc,
+          address: signedAddressVc,
           nationality: signedNationalityVc,
         };
 
@@ -161,7 +176,7 @@ export class VeriffService {
           'Verification decision is not approved, skipping response data.',
         );
 
-        const payload: FullKycObject = {
+        const payload: VerificationMessagePayload = {
           kyc: signedVc,
         };
 

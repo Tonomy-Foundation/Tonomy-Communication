@@ -10,8 +10,9 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import { VeriffService } from './veriff.service';
+import { VeriffWebhookPayload } from '@tonomy/tonomy-id-sdk';
 
-@Controller('veriff')
+@Controller('/v1/veriff/webhook')
 export class VeriffController {
   constructor(
     private readonly veriffService: VeriffService,
@@ -21,7 +22,7 @@ export class VeriffController {
   @HttpCode(HttpStatus.OK)
   async handleWebhook(
     @Headers('x-hmac-signature') signature: string,
-    @Body() body: any,
+    @Body() body: VeriffWebhookPayload,
     @Res() res: Response,
   ) {
     await this.veriffService.validateWebhookRequest(signature, body);

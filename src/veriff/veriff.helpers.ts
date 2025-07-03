@@ -2,9 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   createSigner,
   EosioUtil,
-  randomString,
   getAccountNameFromDid as sdkGetAccountNameFromDid,
-  util,
   verifyClientAuthorization,
 } from '@tonomy/tonomy-id-sdk';
 import crypto from 'crypto';
@@ -146,11 +144,4 @@ export async function getTonomyOpsIssuer() {
     signer,
     alg: 'ES256K-R',
   };
-}
-
-export function getFieldValue(
-  person: Record<string, { value: string | null } | null | undefined>,
-  key: string,
-): string | undefined {
-  return person?.[key]?.value ?? undefined;
 }

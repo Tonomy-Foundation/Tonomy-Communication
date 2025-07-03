@@ -1,13 +1,4 @@
-import {
-  ClientAuthorizationData,
-  VeriffWebhookPayload,
-} from '@tonomy/tonomy-id-sdk';
-
-export type DocumentField = {
-  confidenceCategory?: 'high' | 'medium' | 'low' | null;
-  value: string | null;
-  sources?: ('VIZ' | 'MRZ' | 'NFC' | 'BARCODE')[];
-};
+import { ClientAuthorizationData } from '@tonomy/tonomy-id-sdk';
 
 // --------- Watchlist Screening Result Type ---------
 export type WatchlistScreeningResult = {

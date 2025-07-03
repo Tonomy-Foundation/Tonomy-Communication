@@ -15,7 +15,7 @@ import {
 } from './dto/create-account.dto';
 import { Response } from 'express';
 
-@Controller('accounts')
+@Controller('v1/accounts/create')
 export class AccountsController {
   private readonly logger = new Logger(AccountsController.name);
   constructor(private accountService: AccountsService) {}
