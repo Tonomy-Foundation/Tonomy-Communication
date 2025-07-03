@@ -23,9 +23,8 @@ import {
   VerificationMessagePayload,
   LastNameVC,
 } from '@tonomy/tonomy-id-sdk';
-
 import { CommunicationGateway } from '../communication/communication.gateway';
-import settings from 'src/settings';
+import settings from '../settings';
 
 export type VeriffPayload = {
   appName: string;
