@@ -96,25 +96,6 @@ export class CommunicationService {
     return true;
   }
 
-  /**
-   * Send event to a specific user by DID (similar to sendMessage approach)
-   * @param did the user DID
-   * @param event the event name
-   * @param payload the payload to send
-   * @returns boolean indicating success
-   */
-  sendEventToUser(did: string, event: string, payload: any): boolean {
-    const socketId = this.loggedInUsers.get(did);
-
-    if (!socketId) {
-      this.logger.warn(`User ${did} is not connected`);
-      return false;
-    }
-
-    this.server.to(socketId).emit(event, payload);
-    return true;
-  }
-
   handleError(e): WebsocketReturnType {
     debug('handleError()', e);
 

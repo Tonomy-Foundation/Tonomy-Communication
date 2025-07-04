@@ -6,36 +6,28 @@ import {
   verifyClientAuthorization,
 } from '@tonomy/tonomy-id-sdk';
 import crypto from 'crypto';
-import { WatchlistScreeningResult } from './veriff.types';
+import {
+  VerifiedClientAuthorization,
+  WatchlistScreeningResult,
+} from './veriff.types';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
 
 import settings from '../settings';
 import { Checksum256, PrivateKey } from '@wharfkit/antelope';
 
-// Add this interface to veriff.types.ts
-export interface VerifiedCredential<T> {
-  getId(): string;
-  getCredentialSubject(): Promise<T>;
-  getAccount(): string;
-}
-
 // --------- Verifiable Credential Factory ---------
 @Injectable()
 export class VerifiableCredentialFactory {
-  async create<T extends object>(jwt: string): Promise<VerifiedCredential<T>> {
+  async create<T extends object>(
+    jwt: string,
+  ): Promise<VerifiedClientAuthorization> {
     // This will throw if verification fails
-    const result = await verifyClientAuthorization<T>(jwt, {
+    return await verifyClientAuthorization<T>(jwt, {
       verifyUsername: false,
       verifyOrigin: false,
       verifyChainId: true,
     });
-
-    return {
-      getId: () => result.did,
-      getCredentialSubject: async () => result.data,
-      getAccount: () => result.account,
-    };
   }
 }
 
@@ -134,7 +126,7 @@ export async function getTonomyOpsDid(): Promise<string> {
 }
 
 export async function getTonomyOpsIssuer() {
-  const did = await getTonomyOpsDid();
+  const did = (await getTonomyOpsDid()) + '#active';
   const signer = createSigner(
     PrivateKey.from(settings.secrets.createAccountPrivateKey),
   );

@@ -55,9 +55,9 @@ export class VeriffService {
     webhookPayload: VeriffWebhookPayload,
   ): Promise<void> {
     this.logger.debug('Handling webhook payload from Veriff:', webhookPayload);
-    const { vendorData: jwt, data } = webhookPayload;
+    const { vendorData, data } = webhookPayload;
 
-    if (!jwt) {
+    if (!vendorData) {
       this.logger.warn('vendorData (VC JWT) is missing, cannot proceed.');
       throw new BadRequestException(
         'vendorData (VC JWT) is missing, cannot proceed.',
@@ -71,37 +71,37 @@ export class VeriffService {
     }
 
     try {
-      const vc = await this.credentialFactory.create<VeriffPayload>(jwt);
-
-      const subject = vc.getId();
+      const { did: subject } = await this.credentialFactory.create(vendorData);
 
       if (!subject) {
         this.logger.warn('VC is missing DID, cannot proceed.');
         throw new BadRequestException('Verifiable Credential is missing DID.');
       }
 
+      this.logger.debug(
+        `Verified the origin did of the veriff verification: ${subject}`,
+      );
+
       const issuer = await getTonomyOpsIssuer();
       const signedVc = await KYCVC.signData(webhookPayload, issuer, {
         subject,
       });
 
-      // Check pepSanctionMatches
       if (data.verification.decision === 'approved') {
-        try {
-          let pepSanctionMatches: WatchlistScreeningResult | undefined;
-
-          if (ENABLE_PEP_CHECK) {
-            pepSanctionMatches =
+        if (ENABLE_PEP_CHECK) {
+          try {
+            const pepSanctionMatches: WatchlistScreeningResult | undefined =
               await this.veriffWatchlistService.getWatchlistScreening(
                 webhookPayload.sessionId,
               );
+
             this.logger.debug('Watchlist result:', pepSanctionMatches);
+          } catch (e) {
+            this.logger.warn('Failed to fetch watchlist screening:', e.message);
+            throw new InternalServerErrorException(
+              `Veriff webhook processing failed: ${e.message}`,
+            );
           }
-        } catch (e) {
-          this.logger.warn('Failed to fetch watchlist screening:', e.message);
-          throw new InternalServerErrorException(
-            `Veriff webhook processing failed: ${e.message}`,
-          );
         }
 
         const person = data.verification.person;
