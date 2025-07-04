@@ -7,6 +7,7 @@ import {
   HttpCode,
   HttpStatus,
   Logger,
+  HttpException,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { VeriffService } from './veriff.service';
@@ -23,11 +24,17 @@ export class VeriffController {
   async handleWebhook(
     @Headers('x-hmac-signature') signature: string,
     @Body() body: VeriffWebhookPayload,
-    @Res() res: Response,
+    @Res() response: Response,
   ) {
-    await this.veriffService.validateWebhookRequest(signature, body);
+    try {
+      await this.veriffService.validateWebhookRequest(signature, body);
 
-    this.logger.debug('Handling webhook payload from Veriff');
-    return res.status(200);
+      this.logger.debug('Handled webhook payload from Veriff');
+      response.status(HttpStatus.OK).send();
+    } catch (e) {
+      if (e instanceof HttpException) throw e;
+      this.logger.error(e, JSON.stringify(e, null, 2));
+      throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 }
