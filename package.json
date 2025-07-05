@@ -73,7 +73,8 @@
     "typescript-eslint": "^7.16.0"
   },
   "resolutions": {
-    "jsonld": "link:./node_modules/@digitalcredentials/jsonld"
+    "jsonld": "link:./node_modules/@digitalcredentials/jsonld",
+    "@wharfkit/antelope": "1.0.10"
   },
   "packageManager": "yarn@4.3.1",
   "engines": {
