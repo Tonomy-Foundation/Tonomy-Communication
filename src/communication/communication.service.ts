@@ -5,6 +5,7 @@ import { MessageDto } from './dto/message.dto';
 import { WebsocketReturnType } from './communication.gateway';
 import Debug from 'debug';
 import { Server } from 'socket.io';
+import { VerificationMessage } from '@tonomy/tonomy-id-sdk';
 
 const debug = Debug('tonomy-communication:communication:communication.service');
 
@@ -93,6 +94,30 @@ export class CommunicationService {
       socket.to(recipient).emit('v1/message/relay/receive', message.toString());
     }
 
+    return true;
+  }
+
+  /**
+   * Send a 'veriff' event to a specific user by DID
+   * @param did recipient DID
+   * @param payload data to send
+   * @throws if user is not connected
+   */
+  sendVeriffToDid(did: string, payload: VerificationMessage): boolean {
+    const socket = this.userSockets.get(did);
+
+    if (!socket) {
+      this.logger.warn(`Veriff: User with DID ${did} is not connected`);
+      throw new HttpException(
+        `User with DID ${did} is not connected`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    socket.emit('v1/verification/veriff/receive', payload);
+    this.logger.debug(
+      `Sent 'veriff' to DID ${did}: ${JSON.stringify(payload)}`,
+    );
     return true;
   }
 

@@ -26,7 +26,7 @@ export class VerifiableCredentialFactory {
     return await verifyClientAuthorization<T>(jwt, {
       verifyUsername: false,
       verifyOrigin: false,
-      verifyChainId: true,
+      verifyChainId: false,
     });
   }
 }

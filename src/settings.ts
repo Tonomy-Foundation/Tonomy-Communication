@@ -100,9 +100,9 @@ if (process.env.TONOMY_OPS_PRIVATE_KEY) {
   settings.secrets.createAccountPrivateKey = process.env.TONOMY_OPS_PRIVATE_KEY;
 }
 
-if (process.env.VERIFF_SECRET) {
+if (process.env.VERIFF_API_SECRET_KEY) {
   debug('Using VERIFF_SECRET from env');
-  settings.secrets.veriffSecret = process.env.VERIFF_SECRET;
+  settings.secrets.veriffSecret = process.env.VERIFF_API_SECRET_KEY;
 }
 
 export default settings;

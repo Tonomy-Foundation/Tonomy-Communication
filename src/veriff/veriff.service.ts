@@ -55,6 +55,7 @@ export class VeriffService {
     webhookPayload: VeriffWebhookPayload,
   ): Promise<void> {
     this.logger.debug('Handling webhook payload from Veriff:', webhookPayload);
+
     const { vendorData, data } = webhookPayload;
 
     if (!vendorData) {
@@ -70,7 +71,11 @@ export class VeriffService {
       throw new UnauthorizedException('Invalid Veriff signature.');
     }
 
-    const { did: subject } = await this.credentialFactory.create(vendorData);
+    const factory = new VerifiableCredentialFactory();
+
+    const verifiedVC = await factory.create(vendorData);
+
+    const subject = verifiedVC.did;
 
     if (!subject) {
       this.logger.warn('VC is missing DID, cannot proceed.');
@@ -112,46 +117,55 @@ export class VeriffService {
       const components = person.address?.components;
       const nationality = person.nationality?.value;
 
-      if (!firstName || !lastName || !birthDate || !address || !nationality) {
-        throw new Error('Missing required personal data.');
+      let signedFirstNameVc: FirstNameVC | undefined;
+      let signedLastNameVc: LastNameVC | undefined;
+      let signedAddressVc: AddressVC | undefined;
+      let signedNationalityVc: NationalityVC | undefined;
+      let signedBirthDateVc: BirthDateVC | undefined;
+
+      if (firstName) {
+        signedFirstNameVc = await FirstNameVC.signData({ firstName }, issuer, {
+          subject,
+        });
       }
 
-      const signedFirstNameVc = await FirstNameVC.signData(
-        { firstName },
-        issuer,
-        { subject },
-      );
-      const signedLastNameVc = await LastNameVC.signData({ lastName }, issuer, {
-        subject,
-      });
-
-      const signedBirthDateVc = await BirthDateVC.signData(
-        { birthDate },
-        issuer,
-        { subject },
-      );
-
-      const signedAddressVc = await AddressVC.signData(
-        { address, components },
-        issuer,
-        {
+      if (lastName) {
+        signedLastNameVc = await LastNameVC.signData({ lastName }, issuer, {
           subject,
-        },
-      );
+        });
+      }
 
-      const signedNationalityVc = await NationalityVC.signData(
-        { nationality },
-        issuer,
-        { subject },
-      );
+      if (birthDate) {
+        signedBirthDateVc = await BirthDateVC.signData({ birthDate }, issuer, {
+          subject,
+        });
+      }
+
+      if (address && components) {
+        signedAddressVc = await AddressVC.signData(
+          { address, components },
+          issuer,
+          {
+            subject,
+          },
+        );
+      }
+
+      if (nationality) {
+        signedNationalityVc = await NationalityVC.signData(
+          { nationality },
+          issuer,
+          { subject },
+        );
+      }
 
       const payload: VerificationMessagePayload = {
         kyc: signedVc,
-        firstName: signedFirstNameVc,
-        lastName: signedLastNameVc,
-        birthDate: signedBirthDateVc,
-        address: signedAddressVc,
-        nationality: signedNationalityVc,
+        ...(signedFirstNameVc && { firstName: signedFirstNameVc }),
+        ...(signedLastNameVc && { lastName: signedLastNameVc }),
+        ...(signedBirthDateVc && { birthDate: signedBirthDateVc }),
+        ...(signedAddressVc && { address: signedAddressVc }),
+        ...(signedNationalityVc && { nationality: signedNationalityVc }),
       };
 
       const verificationMessage = await VerificationMessage.signMessage(

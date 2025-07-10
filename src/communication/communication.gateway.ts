@@ -115,34 +115,18 @@ export class CommunicationGateway
   }
 
   /**
-   * Send veriff verification to a specific user by DID
-   * This method is called from VeriffService to emit verification results
-   * @param {string} recipientDid the recipient DID
-   * @param {VerificationMessage} verificationMessage the verification payload
-   * @returns {boolean} indicating success
-   */
-  sendVeriffVerificationToDid(
-    recipientDid: string,
-    verificationMessage: VerificationMessage,
-  ): boolean {
-    try {
-      const recipientSocketId = this.usersService.getLoggedInUser(recipientDid);
-
-      this.server
-        .to(recipientSocketId)
-        .emit('v1/verification/veriff/receive', verificationMessage);
-      return true;
-    } catch (error) {
-      this.logger.error('Error sending veriff verification:', error);
-      return false;
-    }
-  }
-
-  /**
    * safely disconnect the user from the server when user disconnects
    * @param socket user socket
    */
   handleDisconnect(socket: Client) {
     this.usersService.safeDisconnect(socket);
+  }
+
+  sendVeriffVerificationToDid(did: string, payload: VerificationMessage) {
+    try {
+      this.usersService.sendVeriffToDid(did, payload);
+    } catch (err) {
+      this.logger.error(`Failed to send veriff to ${did}: ${err.message}`);
+    }
   }
 }
