@@ -5,6 +5,8 @@ import {
   ConnectedSocket,
   OnGatewayDisconnect,
   BaseWsExceptionFilter,
+  WebSocketServer,
+  OnGatewayInit,
 } from '@nestjs/websockets';
 import { CommunicationService } from './communication.service';
 import {
@@ -18,9 +20,13 @@ import {
 import { TransformVcPipe } from './transform-vc/transform-vc.pipe';
 import { Client } from './dto/client.dto';
 import { WsExceptionFilter } from './ws-exception/ws-exception.filter';
-import { AuthenticationMessage } from '@tonomy/tonomy-id-sdk';
+import {
+  AuthenticationMessage,
+  VerificationMessage,
+} from '@tonomy/tonomy-id-sdk';
 import { CommunicationGuard } from './communication.guard';
 import { BodyDto } from './dto/body.dto';
+import { Server } from 'socket.io';
 
 export type WebsocketReturnType = {
   status: HttpStatus;
@@ -38,9 +44,18 @@ export type WebsocketReturnType = {
   },
 })
 @UseFilters(new BaseWsExceptionFilter())
-export class CommunicationGateway implements OnGatewayDisconnect {
+export class CommunicationGateway
+  implements OnGatewayDisconnect, OnGatewayInit
+{
+  @WebSocketServer()
+  server!: Server;
+
   private readonly logger = new Logger(CommunicationGateway.name);
   constructor(private readonly usersService: CommunicationService) {}
+
+  afterInit(server: Server) {
+    this.usersService.setServer(server);
+  }
 
   /**
    * Logs in the user and added it to the loggedIn map
@@ -48,7 +63,7 @@ export class CommunicationGateway implements OnGatewayDisconnect {
    * @param {BodyDto} body - The message VC or an error from the transformer
    * @param {Client} client - user socket
    */
-  @SubscribeMessage('login')
+  @SubscribeMessage('v1/login')
   async connectUser(
     @MessageBody() body: BodyDto,
     @ConnectedSocket() client: Client,
@@ -79,7 +94,7 @@ export class CommunicationGateway implements OnGatewayDisconnect {
    * @param {BodyDto} body - The message VC or an error from the transformer
    * @param client user socket
    */
-  @SubscribeMessage('message')
+  @SubscribeMessage('v1/message/relay/send')
   @UseGuards(CommunicationGuard)
   async relayMessage(
     @MessageBody() body: BodyDto,
@@ -105,5 +120,13 @@ export class CommunicationGateway implements OnGatewayDisconnect {
    */
   handleDisconnect(socket: Client) {
     this.usersService.safeDisconnect(socket);
+  }
+
+  sendVeriffVerificationToDid(did: string, payload: VerificationMessage) {
+    try {
+      this.usersService.sendVeriffToDid(did, payload);
+    } catch (err) {
+      this.logger.error(`Failed to send veriff to ${did}: ${err.message}`);
+    }
   }
 }

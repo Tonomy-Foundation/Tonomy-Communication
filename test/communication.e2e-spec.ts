@@ -37,7 +37,7 @@ describe('CommunicationGateway (e2e)', () => {
 
   describe('login event', () => {
     it('fails when provide an empty body', async () => {
-      await expect(() => emitMessage(socket, 'login', {})).rejects.toThrow(
+      await expect(() => emitMessage(socket, 'v1/login', {})).rejects.toThrow(
         "Cannot read properties of undefined (reading 'getCredentialSubject')",
       );
     });
@@ -51,7 +51,7 @@ describe('CommunicationGateway (e2e)', () => {
         issuer,
       );
 
-      const response = await emitMessage(socket, 'login', { message });
+      const response = await emitMessage(socket, 'v1/login', { message });
 
       expect(response).toBeTruthy();
     });
