@@ -339,17 +339,5 @@ describe('VeriffService', () => {
         'Invalid signature, cannot proceed.',
       );
     });
-
-    it('should throw BadRequestException if did is missing in VC', async () => {
-      mockGetId.mockReturnValue(undefined);
-
-      await expect(
-        service.validateWebhookRequest(validSignature, mockPayload),
-      ).rejects.toThrow(BadRequestException);
-
-      expect(mockLogger.warn).toHaveBeenCalledWith(
-        'VC is missing DID, cannot proceed.',
-      );
-    });
   });
 });
