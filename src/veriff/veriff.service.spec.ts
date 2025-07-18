@@ -157,15 +157,16 @@ describe('VeriffService', () => {
 
   describe('validateWebhookRequest', () => {
     const mockPayload: VeriffWebhookPayload = {
-      vendorData: jwt,
       status: 'success',
       eventType: 'fullauto',
-      sessionId: 'some-id',
-      attemptId: 'another-id',
+      sessionId: '7ad83f3b-8af0-4028-8a92-6a191c248b3b',
+      attemptId: '7bc6a3f4-096d-42d9-8e93-0c2f82b635a1',
+      vendorData:
+        'eyJhbGciOiJFUzI1NkstUiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJkaWQ6YW50ZWxvcGU6OGEzNGVjN2RmMWI4Y2QwNmZmNGE4YWJiYWE3Y2M1MDMwMDgyMzM1MGNhZGM1OWFiMjk2Y2IwMGQxMDRkMmI4Zjpwc3RsbG9mcHFhNGYjbG9jYWwiLCJqdGkiOiJkaWQ6YW50ZWxvcGU6OGEzNGVjN2RmMWI4Y2QwNmZmNGE4YWJiYWE3Y2M1MDMwMDgyMzM1MGNhZGM1OWFiMjk2Y2IwMGQxMDRkMmI4Zjpwc3RsbG9mcHFhNGYiLCJuYmYiOjE3NTI1MTAzMTYsInZjIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIl0sImNyZWRlbnRpYWxTdWJqZWN0Ijp7ImFwcE5hbWUiOiJUb25vbXkgSUQgRGV2ZWxvcG1lbnQifSwidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCJdfX0.KNXYTux8bCxz5FGei82HT-0e4buAuZVBfPYGoMFl3L5KRKzjajWfdxpOe6VRXK-aPz5Ryl2nfbM2_7FzaqRPYwA',
       endUserId: null,
       version: '1.0.0',
-      acceptanceTime: new Date().toISOString(),
-      time: new Date().toISOString(),
+      acceptanceTime: '2025-07-14T16:25:18.064121Z',
+      time: '2025-07-14T16:26:00.754Z',
       data: {
         verification: {
           decisionScore: 1,
@@ -173,43 +174,137 @@ describe('VeriffService', () => {
           person: {
             firstName: {
               confidenceCategory: 'high',
-              value: 'John',
+              value: 'SADIA ABBAS',
               sources: ['VIZ'],
             },
-            lastName: {
-              confidenceCategory: 'high',
-              value: 'Doe',
-              sources: ['MRZ'],
-            },
+            lastName: { confidenceCategory: null, value: null, sources: [] },
             dateOfBirth: {
               confidenceCategory: 'high',
-              value: '1990-01-01', // Added required field
-              sources: ['MRZ'],
+              value: '1994-04-04',
+              sources: ['VIZ'],
             },
-            nationality: {
+            gender: {
               confidenceCategory: 'high',
-              value: 'US', // Added required field
-              sources: ['MRZ'],
+              value: 'F',
+              sources: ['VIZ'],
             },
+            idNumber: {
+              confidenceCategory: 'high',
+              value: '37405-4676115-4',
+              sources: ['VIZ'],
+            },
+            nationality: { confidenceCategory: null, value: null, sources: [] },
+            address: {
+              confidenceCategory: null,
+              value: null,
+              components: {},
+              sources: [],
+            },
+            placeOfBirth: null,
+            foreignerStatus: null,
+            occupation: null,
+            employer: null,
+            extraNames: null,
           },
           document: {
-            type: {
-              confidenceCategory: 'high',
-              value: 'PASSPORT',
-              sources: ['VIZ'],
-            },
-            country: {
-              confidenceCategory: 'high',
-              value: 'US',
-              sources: ['MRZ'],
-            },
             number: {
               confidenceCategory: 'high',
-              value: '123456789',
+              value: '37405-4676115-4',
               sources: ['VIZ'],
             },
+            type: { value: 'id_card' },
+            country: { value: 'PK' },
+            validUntil: {
+              confidenceCategory: 'high',
+              value: '2030-11-06',
+              sources: ['VIZ'],
+            },
+            validFrom: {
+              confidenceCategory: 'high',
+              value: '2020-11-06',
+              sources: ['VIZ'],
+            },
+            firstIssue: null,
+            placeOfIssue: null,
+            processNumber: null,
+            residencePermitType: null,
+            licenseNumber: null,
           },
-          insights: [],
+          insights: [
+            { label: 'allowedIpLocation', result: 'yes', category: 'fraud' },
+            { label: 'documentAccepted', result: 'yes', category: 'document' },
+            {
+              label: 'documentBackFullyVisible',
+              result: 'yes',
+              category: 'document',
+            },
+            {
+              label: 'documentBackImageAvailable',
+              result: 'yes',
+              category: 'document',
+            },
+            {
+              label: 'documentFrontFullyVisible',
+              result: 'yes',
+              category: 'document',
+            },
+            {
+              label: 'documentFrontImageAvailable',
+              result: 'yes',
+              category: 'document',
+            },
+            {
+              label: 'documentImageQualitySufficient',
+              result: 'yes',
+              category: 'document',
+            },
+            {
+              label: 'documentNotExpired',
+              result: 'yes',
+              category: 'document',
+            },
+            {
+              label: 'documentRecognised',
+              result: 'yes',
+              category: 'document',
+            },
+            {
+              label: 'expectedTrafficBehaviour',
+              result: 'yes',
+              category: 'fraud',
+            },
+            {
+              label: 'faceImageAvailable',
+              result: 'yes',
+              category: 'biometric',
+            },
+            {
+              label: 'faceImageQualitySufficient',
+              result: 'yes',
+              category: 'biometric',
+            },
+            { label: 'faceLiveness', result: 'yes', category: 'biometric' },
+            {
+              label: 'faceNotInBlocklist',
+              result: 'yes',
+              category: 'biometric',
+            },
+            {
+              label: 'faceSimilarToPortrait',
+              result: 'yes',
+              category: 'biometric',
+            },
+            {
+              label: 'physicalDocumentPresent',
+              result: 'yes',
+              category: 'document',
+            },
+            {
+              label: 'validDocumentAppearance',
+              result: 'yes',
+              category: 'document',
+            },
+          ],
         },
       },
     };
@@ -250,7 +345,7 @@ describe('VeriffService', () => {
 
       await expect(
         service.validateWebhookRequest(validSignature, mockPayload),
-      ).rejects.toThrow(InternalServerErrorException);
+      ).rejects.toThrow(BadRequestException);
 
       expect(mockLogger.warn).toHaveBeenCalledWith(
         'VC is missing DID, cannot proceed.',
