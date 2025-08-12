@@ -5,7 +5,14 @@ import { MessageDto } from './dto/message.dto';
 import { WebsocketReturnType } from './communication.gateway';
 import Debug from 'debug';
 import { Server } from 'socket.io';
-import { VerificationMessage } from '@tonomy/tonomy-id-sdk';
+import {
+  VerificationMessage,
+  SwapTokenMessage,
+  verifySignature,
+  getAccountNameFromDid,
+  EosioTokenContract,
+  getBaseTokenContract,
+} from '@tonomy/tonomy-id-sdk';
 
 const debug = Debug('tonomy-communication:communication:communication.service');
 
@@ -92,6 +99,59 @@ export class CommunicationService {
     } else {
       // TODO: should check for acknowledgement
       socket.to(recipient).emit('v1/message/relay/receive', message.toString());
+    }
+
+    return true;
+  }
+
+  /**
+   * Swaps the $TONO token from Base-chain to Tonomy blockchain
+   * @param {Client} socket user socket
+   * @param {SwapTokenMessage} message signed VC
+   * @throws if the receiving user isn't online or loggedIn
+   * @returns boolean if message is sent to the user
+   */
+  swapToken(socket: Client, message: SwapTokenMessage): boolean {
+    const payload = message.getPayload();
+    const issuer = message.getIssuer();
+
+    debug('swapToken()', issuer, payload, message.getType());
+
+    const baseAddress = payload.baseAddress;
+    const tonomyAccount = getAccountNameFromDid(issuer);
+    const amount = payload.amount;
+
+    if (
+      !verifySignature(
+        payload.proof.message,
+        payload.proof.signature,
+        baseAddress,
+      )
+    ) {
+      throw new HttpException(
+        'Invalid proof of base address',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (payload.amount <= 0) {
+      throw new HttpException(
+        `Invalid amount ${payload.amount}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (payload.destination === 'base') {
+      await EosioTokenContract.Instance.burn(tonomyAccount, amount);
+      await getBaseTokenContract().mint(baseAddress, amount);
+    } else if (payload.destination === 'tonomy') {
+      await getTonomyTokenContract().burn(baseAddress, amount);
+      await EosioTokenContract.Instance.mint(tonomyAccount, amount);
+    } else {
+      throw new HttpException(
+        `Invalid destination ${payload.destination}`,
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     return true;
