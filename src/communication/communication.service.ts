@@ -5,7 +5,7 @@ import { MessageDto } from './dto/message.dto';
 import { WebsocketReturnType } from './communication.gateway';
 import Debug from 'debug';
 import { Server } from 'socket.io';
-import { VerificationMessage } from '@tonomy/tonomy-id-sdk';
+import { VerificationMessage, SwapTokenMessage } from '@tonomy/tonomy-id-sdk';
 
 const debug = Debug('tonomy-communication:communication:communication.service');
 
@@ -93,6 +93,25 @@ export class CommunicationService {
       // TODO: should check for acknowledgement
       socket.to(recipient).emit('v1/message/relay/receive', message.toString());
     }
+
+    return true;
+  }
+
+  /**
+   * Swaps the $TONO token from Base-chain to Tonomy blockchain
+   * @param {Client} socket user socket
+   * @param {SwapTokenMessage} message signed VC
+   * @throws if the receiving user isn't online or loggedIn
+   * @returns boolean if message is sent to the user
+   */
+  swapToken(socket: Client, message: SwapTokenMessage): boolean {
+    const payload = message.getPayload();
+
+    debug('swapToken()', message.getIssuer(), payload, message.getType());
+
+    // it should verify base proof
+    // then it should try burn tokens from the from account
+    // then it should mint tokens to the to account
 
     return true;
   }
