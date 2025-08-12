@@ -11,6 +11,7 @@ import {
   verifySignature,
   getAccountNameFromDid,
   EosioTokenContract,
+  getBaseTokenContract,
 } from '@tonomy/tonomy-id-sdk';
 
 const debug = Debug('tonomy-communication:communication:communication.service');
@@ -142,9 +143,9 @@ export class CommunicationService {
 
     if (payload.destination === 'base') {
       await EosioTokenContract.Instance.burn(tonomyAccount, amount);
-      await createBaseTokenContract().mint(baseAddress, amount);
+      await getBaseTokenContract().mint(baseAddress, amount);
     } else if (payload.destination === 'tonomy') {
-      await createTonomyTokenContract().burn(baseAddress, amount);
+      await getTonomyTokenContract().burn(baseAddress, amount);
       await EosioTokenContract.Instance.mint(tonomyAccount, amount);
     } else {
       throw new HttpException(
