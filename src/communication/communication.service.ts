@@ -5,7 +5,13 @@ import { MessageDto } from './dto/message.dto';
 import { WebsocketReturnType } from './communication.gateway';
 import Debug from 'debug';
 import { Server } from 'socket.io';
-import { VerificationMessage, SwapTokenMessage } from '@tonomy/tonomy-id-sdk';
+import {
+  VerificationMessage,
+  SwapTokenMessage,
+  verifySignature,
+  getAccountNameFromDid,
+  EosioTokenContract,
+} from '@tonomy/tonomy-id-sdk';
 
 const debug = Debug('tonomy-communication:communication:communication.service');
 
@@ -106,12 +112,46 @@ export class CommunicationService {
    */
   swapToken(socket: Client, message: SwapTokenMessage): boolean {
     const payload = message.getPayload();
+    const issuer = message.getIssuer();
 
-    debug('swapToken()', message.getIssuer(), payload, message.getType());
+    debug('swapToken()', issuer, payload, message.getType());
 
-    // it should verify base proof
-    // then it should try burn tokens from the from account
-    // then it should mint tokens to the to account
+    const baseAddress = payload.baseAddress;
+    const tonomyAccount = getAccountNameFromDid(issuer);
+    const amount = payload.amount;
+
+    if (
+      !verifySignature(
+        payload.proof.message,
+        payload.proof.signature,
+        baseAddress,
+      )
+    ) {
+      throw new HttpException(
+        'Invalid proof of base address',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (payload.amount <= 0) {
+      throw new HttpException(
+        `Invalid amount ${payload.amount}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (payload.destination === 'base') {
+      await EosioTokenContract.Instance.burn(tonomyAccount, amount);
+      await createBaseTokenContract().mint(baseAddress, amount);
+    } else if (payload.destination === 'tonomy') {
+      await createTonomyTokenContract().burn(baseAddress, amount);
+      await EosioTokenContract.Instance.mint(tonomyAccount, amount);
+    } else {
+      throw new HttpException(
+        `Invalid destination ${payload.destination}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
 
     return true;
   }
