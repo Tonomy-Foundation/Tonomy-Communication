@@ -9,7 +9,7 @@ import { PushTransactionResponse } from '@wharfkit/antelope/src/api/v1/types';
 import {
   EosioUtil,
   AntelopePushTransactionError,
-  tonomyContract,
+  getTonomyContract,
 } from '@tonomy/tonomy-id-sdk';
 import { verify } from 'hcaptcha';
 
@@ -67,7 +67,7 @@ export class AccountsService {
     let res: PushTransactionResponse;
 
     try {
-      res = await tonomyContract.newPerson(
+      res = await getTonomyContract().newPerson(
         createAccountRequest.usernameHash,
         createAccountRequest.publicKey,
         createAccountRequest.salt,
