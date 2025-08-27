@@ -10,9 +10,16 @@ import {
   SwapTokenMessage,
   verifySignature,
   getAccountNameFromDid,
-  EosioTokenContract,
   getBaseTokenContract,
+  parseDid,
+  getTonomyContract,
+  TonomyUsername,
+  AccountType,
+  getSettings,
+  getTokenContract,
 } from '@tonomy/tonomy-id-sdk';
+import { tonomySigner } from 'src/signer';
+import { ethers } from 'ethers';
 
 const debug = Debug('tonomy-communication:communication:communication.service');
 
@@ -111,9 +118,11 @@ export class CommunicationService {
    * @throws if the receiving user isn't online or loggedIn
    * @returns boolean if message is sent to the user
    */
-  swapToken(socket: Client, message: SwapTokenMessage): boolean {
+  async swapToken(socket: Client, message: SwapTokenMessage): Promise<boolean> {
     const payload = message.getPayload();
     const issuer = message.getIssuer();
+
+    await checkIssuerFromSwapPlatform(issuer);
 
     debug('swapToken()', issuer, payload, message.getType());
 
@@ -134,19 +143,34 @@ export class CommunicationService {
       );
     }
 
-    if (payload.amount <= 0) {
+    if (payload.amount.lessThanOrEqualTo(0)) {
       throw new HttpException(
         `Invalid amount ${payload.amount}`,
         HttpStatus.BAD_REQUEST,
       );
     }
 
+    const antelopeAsset = `${amount.toFixed(6)} ${getSettings().currencySymbol}`;
+    const ethAmount = ethers.parseEther(amount.toFixed(6));
+
     if (payload.destination === 'base') {
-      await EosioTokenContract.Instance.burn(tonomyAccount, amount);
-      await getBaseTokenContract().mint(baseAddress, amount);
+      await getTokenContract().bridgeRetire(
+        tonomyAccount,
+        antelopeAsset,
+        '$TONO swap to base',
+        tonomySigner,
+      );
+      // TODO: wait for transaction confirmation
+      await getBaseTokenContract().mint(baseAddress, ethAmount);
     } else if (payload.destination === 'tonomy') {
-      await getTonomyTokenContract().burn(baseAddress, amount);
-      await EosioTokenContract.Instance.mint(tonomyAccount, amount);
+      await getTokenContract().bridgeIssue(
+        baseAddress,
+        antelopeAsset,
+        '$TONO swap to tonomy',
+        tonomySigner,
+      );
+      // TODO: wait for transaction confirmation
+      await getBaseTokenContract().burn(tonomyAccount, ethAmount);
     } else {
       throw new HttpException(
         `Invalid destination ${payload.destination}`,
@@ -189,5 +213,24 @@ export class CommunicationService {
     }
 
     throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+}
+
+async function checkIssuerFromSwapPlatform(issuer: string) {
+  const { fragment } = parseDid(issuer);
+
+  const app = await getTonomyContract().getApp(
+    TonomyUsername.fromUsername(
+      'apps',
+      AccountType.APP,
+      getSettings().accountSuffix,
+    ),
+  );
+
+  if (fragment !== app.accountName.toString()) {
+    throw new HttpException(
+      `Invalid DID fragment ${fragment}, did not match the account name from the Tonomy apps platform`,
+      HttpStatus.BAD_REQUEST,
+    );
   }
 }
