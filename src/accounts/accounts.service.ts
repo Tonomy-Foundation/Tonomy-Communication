@@ -3,17 +3,17 @@ import {
   CreateAccountRequest,
   CreateAccountResponse,
 } from './dto/create-account.dto';
-import { Name, PrivateKey } from '@wharfkit/antelope';
+import { Name } from '@wharfkit/antelope';
 import settings from '../settings';
 import { PushTransactionResponse } from '@wharfkit/antelope/src/api/v1/types';
 import {
-  TonomyContract,
-  EosioUtil,
   AntelopePushTransactionError,
+  getTonomyContract,
 } from '@tonomy/tonomy-id-sdk';
 import { verify } from 'hcaptcha';
+import { tonomySigner } from 'src/signer';
 
-const tonomyContract = TonomyContract.Instance;
+const tonomyContract = getTonomyContract();
 
 @Injectable()
 export class AccountsService {
@@ -62,19 +62,14 @@ export class AccountsService {
       );
     }
 
-    const idTonomyActiveKey = PrivateKey.from(
-      settings.secrets.createAccountPrivateKey,
-    );
-
     let res: PushTransactionResponse;
 
     try {
-      res = await tonomyContract.newperson(
+      res = await tonomyContract.newPerson(
         createAccountRequest.usernameHash,
         createAccountRequest.publicKey,
         createAccountRequest.salt,
-        // @ts-ignore PrivateKey type error
-        EosioUtil.createSigner(idTonomyActiveKey),
+        tonomySigner,
       );
     } catch (e) {
       if (
