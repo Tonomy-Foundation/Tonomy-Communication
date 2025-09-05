@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import {
-  createSigner,
   EosioUtil,
   getAccountNameFromDid as sdkGetAccountNameFromDid,
   verifyClientAuthorization,
@@ -12,9 +11,8 @@ import {
 } from './veriff.types';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
-
-import settings from '../settings';
-import { Checksum256, PrivateKey } from '@wharfkit/antelope';
+import { Checksum256 } from '@wharfkit/antelope';
+import { tonomyIssuerSigner } from 'src/signer';
 
 // --------- Verifiable Credential Factory ---------
 @Injectable()
@@ -127,13 +125,10 @@ export async function getTonomyOpsDid(): Promise<string> {
 
 export async function getTonomyOpsIssuer() {
   const did = (await getTonomyOpsDid()) + '#active';
-  const signer = createSigner(
-    PrivateKey.from(settings.secrets.tonomyOpsPrivateKey),
-  );
 
   return {
     did,
-    signer,
+    signer: tonomyIssuerSigner,
     alg: 'ES256K-R',
   };
 }
