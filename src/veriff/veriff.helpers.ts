@@ -128,7 +128,7 @@ export async function getTonomyOpsDid(): Promise<string> {
 export async function getTonomyOpsIssuer() {
   const did = (await getTonomyOpsDid()) + '#active';
   const signer = createSigner(
-    PrivateKey.from(settings.secrets.createAccountPrivateKey),
+    PrivateKey.from(settings.secrets.tonomyOpsPrivateKey),
   );
 
   return {

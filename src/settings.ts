@@ -21,6 +21,8 @@ type ConfigType = {
     | 'notice'
     | 'info'
     | 'debug';
+  baseRpcUrl: string;
+  baseTokenAddress?: string;
 };
 
 type SettingsType = {
@@ -28,8 +30,9 @@ type SettingsType = {
   config: ConfigType;
   isProduction: () => boolean;
   secrets: {
-    createAccountPrivateKey: string;
+    tonomyOpsPrivateKey: string;
     hCaptchaSecret: string;
+    basePrivateKey: string;
     veriffSecret: string;
   };
 };
@@ -81,12 +84,22 @@ if (process.env.BLOCKCHAIN_URL) {
   settings.config.blockchainUrl = process.env.BLOCKCHAIN_URL;
 }
 
+if (process.env.BASE_TOKEN_ADDRESS) {
+  debug(
+    `Using BASE_TOKEN_ADDRESS from env:  ${process.env.BASE_TOKEN_ADDRESS}`,
+  );
+
+  settings.config.baseTokenAddress = process.env.BASE_TOKEN_ADDRESS;
+}
+
 debug('settings', settings);
 
 settings.secrets = {
-  createAccountPrivateKey:
+  tonomyOpsPrivateKey:
     'PVT_K1_24kG9VcMk3VkkgY4hh42X262AWV18YcPjBTd2Hox4YWoP8vRTU',
   hCaptchaSecret: '0x0000000000000000000000000000000000000000',
+  basePrivateKey:
+    '0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e',
   veriffSecret: 'default_secret',
 };
 
@@ -95,9 +108,19 @@ if (process.env.HCAPTCHA_SECRET) {
   settings.secrets.hCaptchaSecret = process.env.HCAPTCHA_SECRET;
 }
 
+if (process.env.ETHEREUM_PRIVATE_KEY) {
+  debug('Using ETHEREUM_PRIVATE_KEY from env');
+  settings.secrets.basePrivateKey = process.env.ETHEREUM_PRIVATE_KEY;
+}
+
+if (process.env.INFURA_API_KEY) {
+  debug('Using INFURA_API_KEY from env');
+  settings.config.baseRpcUrl += process.env.INFURA_API_KEY;
+}
+
 if (process.env.TONOMY_OPS_PRIVATE_KEY) {
   debug('Using TONOMY_OPS_PRIVATE_KEY from env');
-  settings.secrets.createAccountPrivateKey = process.env.TONOMY_OPS_PRIVATE_KEY;
+  settings.secrets.tonomyOpsPrivateKey = process.env.TONOMY_OPS_PRIVATE_KEY;
 }
 
 if (process.env.VERIFF_API_SECRET_KEY) {

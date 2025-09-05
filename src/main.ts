@@ -39,6 +39,9 @@ async function testVeramo() {
 setSettings({
   blockchainUrl: settings.config.blockchainUrl,
   loggerLevel: settings.config.loggerLevel,
+  basePrivateKey: settings.secrets.basePrivateKey,
+  baseRpcUrl: settings.config.baseRpcUrl,
+  baseTokenAddress: settings.config.baseTokenAddress,
 });
 
 async function bootstrap() {
