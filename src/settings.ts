@@ -21,6 +21,7 @@ type ConfigType = {
     | 'notice'
     | 'info'
     | 'debug';
+  baseNetwork: 'base' | 'base_testnet' | 'hardhat' | 'localhost';
   baseRpcUrl: string;
   baseTokenAddress?: string;
 };

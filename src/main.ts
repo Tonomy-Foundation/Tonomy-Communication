@@ -40,6 +40,7 @@ setSettings({
   blockchainUrl: settings.config.blockchainUrl,
   loggerLevel: settings.config.loggerLevel,
   basePrivateKey: settings.secrets.basePrivateKey,
+  baseNetwork: settings.config.baseNetwork,
   baseRpcUrl: settings.config.baseRpcUrl,
   baseTokenAddress: settings.config.baseTokenAddress,
 });
