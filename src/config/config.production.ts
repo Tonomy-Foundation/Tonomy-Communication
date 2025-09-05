@@ -3,5 +3,5 @@ export default {
   loggerLevel: 'info',
   baseNetwork: 'base',
   baseRpcUrl: 'https://base-mainnet.infura.io/v3/',
-  baseTokenAddress: '',
+  baseTokenAddress: 'TODO:',
 };
