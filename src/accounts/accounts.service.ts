@@ -13,8 +13,6 @@ import {
 import { verify } from 'hcaptcha';
 import { tonomySigner } from 'src/signer';
 
-const tonomyContract = getTonomyContract();
-
 @Injectable()
 export class AccountsService {
   private readonly logger = new Logger(AccountsService.name);
@@ -65,7 +63,7 @@ export class AccountsService {
     let res: PushTransactionResponse;
 
     try {
-      res = await tonomyContract.newPerson(
+      res = await getTonomyContract().newPerson(
         createAccountRequest.usernameHash,
         createAccountRequest.publicKey,
         createAccountRequest.salt,
