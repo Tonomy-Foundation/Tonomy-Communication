@@ -1,7 +1,7 @@
 export default {
   blockchainUrl: 'https://blockchain-api-testnet.tonomy.io',
   loggerLevel: 'info',
-  baseNetwork: 'base_testnet',
+  baseNetwork: 'base_testnet' as const,
   baseRpcUrl: 'https://base-sepolia.infura.io/v3/',
   baseTokenAddress: 'TODO:',
 };
