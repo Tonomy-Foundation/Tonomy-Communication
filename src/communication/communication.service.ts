@@ -122,7 +122,7 @@ export class CommunicationService {
     const payload = message.getPayload();
     const issuer = message.getIssuer();
 
-    await checkIssuerFromSwapPlatform(issuer);
+    await checkIssuerFromTonomyPlatform(issuer);
 
     debug('swapToken()', issuer, payload, message.getType());
 
@@ -216,12 +216,12 @@ export class CommunicationService {
   }
 }
 
-async function checkIssuerFromSwapPlatform(issuer: string) {
+async function checkIssuerFromTonomyPlatform(issuer: string) {
   const { fragment } = parseDid(issuer);
 
   const app = await getTonomyContract().getApp(
     TonomyUsername.fromUsername(
-      'apps',
+      'tonomy-apps',
       AccountType.APP,
       getSettings().accountSuffix,
     ),
