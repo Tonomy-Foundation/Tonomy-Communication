@@ -11,7 +11,7 @@ import {
   getTonomyContract,
 } from '@tonomy/tonomy-id-sdk';
 import { verify } from 'hcaptcha';
-import { tonomySigner } from 'src/signer';
+import { tonomySigner } from '../signer';
 
 @Injectable()
 export class AccountsService {

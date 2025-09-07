@@ -12,7 +12,7 @@ import {
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
 import { Checksum256 } from '@wharfkit/antelope';
-import { tonomyIssuerSigner } from 'src/signer';
+import { tonomyIssuerSigner } from '../signer';
 
 // --------- Verifiable Credential Factory ---------
 @Injectable()

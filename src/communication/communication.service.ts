@@ -18,7 +18,7 @@ import {
   getSettings,
   getTokenContract,
 } from '@tonomy/tonomy-id-sdk';
-import { tonomySigner } from 'src/signer';
+import { tonomySigner } from '../signer';
 import { ethers } from 'ethers';
 
 const debug = Debug('tonomy-communication:communication:communication.service');
