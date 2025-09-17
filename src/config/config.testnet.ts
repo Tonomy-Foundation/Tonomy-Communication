@@ -1,6 +1,7 @@
 export default {
   blockchainUrl: 'https://blockchain-api-testnet.tonomy.io',
   accountSuffix: '.testnet.pangea',
+  currencySymbol: 'TONO',
   loggerLevel: 'info',
   baseNetwork: 'base_testnet' as const,
   baseRpcUrl: 'https://base-sepolia.infura.io/v3/',

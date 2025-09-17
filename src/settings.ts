@@ -13,6 +13,7 @@ logger.log(`NODE_ENV=${env}`);
 type ConfigType = {
   blockchainUrl: string;
   accountSuffix: string;
+  currencySymbol: string;
   loggerLevel:
     | 'emergency'
     | 'alert'

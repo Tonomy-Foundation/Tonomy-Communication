@@ -21,6 +21,7 @@ import {
 import { tonomySigner } from '../signer';
 import { ethers } from 'ethers';
 import settings from '../settings';
+import { Decimal } from 'decimal.js';
 
 @Injectable()
 export class CommunicationService {
@@ -131,7 +132,7 @@ export class CommunicationService {
 
     const baseAddress = payload.baseAddress;
     const tonomyAccount = getAccountNameFromDid(issuer);
-    const amount = payload.amount;
+    const amount = new Decimal(payload.amount);
 
     if (
       !verifySignature(
@@ -146,9 +147,9 @@ export class CommunicationService {
       );
     }
 
-    if (payload.amount.lessThanOrEqualTo(0)) {
+    if (amount.lessThanOrEqualTo(0)) {
       throw new HttpException(
-        `Invalid amount ${payload.amount}`,
+        `Invalid amount ${amount.toString()}`,
         HttpStatus.BAD_REQUEST,
       );
     }

@@ -9,6 +9,7 @@ import helmet from 'helmet';
 setSettings({
   blockchainUrl: settings.config.blockchainUrl,
   accountSuffix: settings.config.accountSuffix,
+  currencySymbol: settings.config.currencySymbol,
   loggerLevel: settings.config.loggerLevel,
   basePrivateKey: settings.secrets.basePrivateKey,
   baseNetwork: settings.config.baseNetwork,
