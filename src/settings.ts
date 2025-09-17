@@ -100,7 +100,7 @@ settings.secrets = {
     'PVT_K1_24kG9VcMk3VkkgY4hh42X262AWV18YcPjBTd2Hox4YWoP8vRTU',
   hCaptchaSecret: '0x0000000000000000000000000000000000000000',
   basePrivateKey:
-    '0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e',
+    '0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e', // Hardhat account #19
   veriffSecret: 'default_secret',
 };
 
