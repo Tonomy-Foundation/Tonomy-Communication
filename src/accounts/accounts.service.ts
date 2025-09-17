@@ -3,15 +3,15 @@ import {
   CreateAccountRequest,
   CreateAccountResponse,
 } from './dto/create-account.dto';
-import { Name, PrivateKey } from '@wharfkit/antelope';
+import { Name } from '@wharfkit/antelope';
 import settings from '../settings';
 import { PushTransactionResponse } from '@wharfkit/antelope/src/api/v1/types';
 import {
-  EosioUtil,
   AntelopePushTransactionError,
   getTonomyContract,
 } from '@tonomy/tonomy-id-sdk';
 import { verify } from 'hcaptcha';
+import { tonomySigner } from '../signer';
 
 @Injectable()
 export class AccountsService {
@@ -60,10 +60,6 @@ export class AccountsService {
       );
     }
 
-    const idTonomyActiveKey = PrivateKey.from(
-      settings.secrets.createAccountPrivateKey,
-    );
-
     let res: PushTransactionResponse;
 
     try {
@@ -71,7 +67,7 @@ export class AccountsService {
         createAccountRequest.usernameHash,
         createAccountRequest.publicKey,
         createAccountRequest.salt,
-        EosioUtil.createSigner(idTonomyActiveKey),
+        tonomySigner,
       );
     } catch (e) {
       if (

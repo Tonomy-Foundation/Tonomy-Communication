@@ -23,7 +23,7 @@ import {
   VerificationMessagePayload,
   LastNameVC,
 } from '@tonomy/tonomy-id-sdk';
-import { CommunicationGateway } from '../communication/communication.gateway';
+import { CommunicationService } from '../communication/communication.service';
 import settings from '../settings';
 
 export type VeriffPayload = {
@@ -38,7 +38,7 @@ export class VeriffService {
     private readonly credentialFactory: VerifiableCredentialFactory,
     private readonly veriffWatchlistService: VeriffWatchlistService,
     private readonly logger: Logger,
-    private readonly communicationGateway: CommunicationGateway,
+    private readonly communicationService: CommunicationService,
   ) {}
 
   validateSignature(signature: string, payload: VeriffWebhookPayload): boolean {
@@ -175,10 +175,7 @@ export class VeriffService {
         { subject },
       );
 
-      this.communicationGateway.sendVeriffVerificationToDid(
-        subject,
-        verificationMessage,
-      );
+      this.communicationService.sendVeriffToDid(subject, verificationMessage);
     } else {
       this.logger.debug(
         'Verification decision is not approved, skipping response data.',
@@ -195,10 +192,7 @@ export class VeriffService {
         { subject },
       );
 
-      this.communicationGateway.sendVeriffVerificationToDid(
-        subject,
-        verificationMessage,
-      );
+      this.communicationService.sendVeriffToDid(subject, verificationMessage);
     }
   }
 }
