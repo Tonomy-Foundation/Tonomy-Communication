@@ -12,6 +12,7 @@ logger.log(`NODE_ENV=${env}`);
 
 type ConfigType = {
   blockchainUrl: string;
+  accountSuffix: string;
   loggerLevel:
     | 'emergency'
     | 'alert'

@@ -3,7 +3,6 @@ import { Socket } from 'socket.io';
 import { Client } from './dto/client.dto';
 import { MessageDto } from './dto/message.dto';
 import { WebsocketReturnType } from './communication.gateway';
-import Debug from 'debug';
 import { Server } from 'socket.io';
 import {
   VerificationMessage,
@@ -22,8 +21,6 @@ import {
 import { tonomySigner } from '../signer';
 import { ethers } from 'ethers';
 import settings from '../settings';
-
-const debug = Debug('tonomy-communication:communication:communication.service');
 
 @Injectable()
 export class CommunicationService {
@@ -71,7 +68,7 @@ export class CommunicationService {
    * @returns boolean if user is connected successfully
    */
   login(did: string, socket: Client): boolean {
-    debug('login()', did, socket.id);
+    this.logger.debug('login()', did, socket.id);
 
     if (this.loggedInUsers.get(did) === socket.id) return false;
     this.loggedInUsers.set(did, socket.id);
@@ -91,7 +88,7 @@ export class CommunicationService {
   sendMessage(socket: Client, message: MessageDto): boolean {
     const recipient = this.loggedInUsers.get(message.getRecipient());
 
-    debug(
+    this.logger.debug(
       'sendMessage()',
       message.getIssuer(),
       message.getRecipient(),
@@ -121,6 +118,7 @@ export class CommunicationService {
    * @returns boolean if message is sent to the user
    */
   async swapToken(socket: Client, message: SwapTokenMessage): Promise<boolean> {
+    this.logger.log('swapToken()');
     const payload = message.getPayload();
     const issuer = message.getIssuer();
 
@@ -129,7 +127,7 @@ export class CommunicationService {
       payload._testOnly_tonomyAppsWebsiteUsername,
     );
 
-    debug('swapToken()', issuer, payload, message.getType());
+    this.logger.debug('swapToken()', issuer, payload, message.getType());
 
     const baseAddress = payload.baseAddress;
     const tonomyAccount = getAccountNameFromDid(issuer);
@@ -167,7 +165,7 @@ export class CommunicationService {
       await getTokenContract().bridgeRetire(
         tonomyAccount,
         antelopeAsset,
-        '$TONO swap to base',
+        `$TONO swap to base ${loggerId}`,
         tonomySigner,
       );
       this.logger.debug(
@@ -192,7 +190,7 @@ export class CommunicationService {
       await getTokenContract().bridgeIssue(
         tonomyAccount,
         antelopeAsset,
-        '$TONO swap to tonomy',
+        `$TONO swap to tonomy ${loggerId}`,
         tonomySigner,
       );
       this.logger.debug(
@@ -235,7 +233,7 @@ export class CommunicationService {
   }
 
   handleError(e): WebsocketReturnType {
-    debug('handleError()', e);
+    this.logger.debug('handleError()', e);
 
     if (e instanceof HttpException) {
       throw e;

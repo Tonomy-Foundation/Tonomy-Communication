@@ -1,6 +1,6 @@
 export default {
   blockchainUrl: 'http://localhost:8888',
-  loggerLevel: 'debug',
-  baseNetwork: 'hardhat' as const,
+  accountSuffix: '.stag.tonomy.id',
+  baseNetwork: 'localhost' as const,
   baseRpcUrl: 'http://localhost:8545',
 };
