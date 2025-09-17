@@ -20,6 +20,7 @@ import {
 } from '@tonomy/tonomy-id-sdk';
 import { tonomySigner } from '../signer';
 import { ethers } from 'ethers';
+import settings from '../settings';
 
 const debug = Debug('tonomy-communication:communication:communication.service');
 
@@ -122,7 +123,10 @@ export class CommunicationService {
     const payload = message.getPayload();
     const issuer = message.getIssuer();
 
-    await checkIssuerFromTonomyPlatform(issuer);
+    await checkIssuerFromTonomyPlatform(
+      issuer,
+      payload._testOnly_tonomyAppsWebsiteUsername,
+    );
 
     debug('swapToken()', issuer, payload, message.getType());
 
@@ -161,16 +165,16 @@ export class CommunicationService {
         tonomySigner,
       );
       // TODO: wait for transaction confirmation
-      await getBaseTokenContract().mint(baseAddress, ethAmount);
+      await getBaseTokenContract().bridgeMint(baseAddress, ethAmount);
     } else if (payload.destination === 'tonomy') {
+      await getBaseTokenContract().bridgeBurn(baseAddress, ethAmount);
+      // TODO: wait for transaction confirmation
       await getTokenContract().bridgeIssue(
-        baseAddress,
+        tonomyAccount,
         antelopeAsset,
         '$TONO swap to tonomy',
         tonomySigner,
       );
-      // TODO: wait for transaction confirmation
-      await getBaseTokenContract().burn(tonomyAccount, ethAmount);
     } else {
       throw new HttpException(
         `Invalid destination ${payload.destination}`,
@@ -216,12 +220,25 @@ export class CommunicationService {
   }
 }
 
-async function checkIssuerFromTonomyPlatform(issuer: string) {
+async function checkIssuerFromTonomyPlatform(
+  issuer: string,
+  tonomyAppsWebsiteUsername?: string,
+) {
   const { fragment } = parseDid(issuer);
+
+  let usernamePrefix = 'tonomy-apps';
+
+  if (tonomyAppsWebsiteUsername) {
+    if (settings.isProduction())
+      throw new Error(
+        '_testOnly_tonomyAppsWebsiteUsername can only be used in non-production environments',
+      );
+    usernamePrefix = tonomyAppsWebsiteUsername;
+  }
 
   const app = await getTonomyContract().getApp(
     TonomyUsername.fromUsername(
-      'tonomy-apps',
+      usernamePrefix,
       AccountType.APP,
       getSettings().accountSuffix,
     ),
