@@ -119,30 +119,29 @@ export class CommunicationService {
    * @returns boolean if message is sent to the user
    */
   async swapToken(socket: Client, message: SwapTokenMessage): Promise<boolean> {
-    this.logger.log('swapToken()');
+    const loggerId = randomString(6);
     const payload = message.getPayload();
     const issuer = message.getIssuer();
+
+    this.logger.debug(`[Swap: ${loggerId}]: swapToken()`, issuer, payload);
 
     await checkIssuerFromTonomyPlatform(
       issuer,
       payload._testOnly_tonomyAppsWebsiteUsername,
     );
 
-    this.logger.debug('swapToken()', issuer, payload, message.getType());
-
     const baseAddress = payload.baseAddress;
     const tonomyAccount = getAccountNameFromDid(issuer);
     const amount = new Decimal(payload.amount);
+    const { result, reason } = verifySignature(
+      payload.proof.message,
+      payload.proof.signature,
+      baseAddress,
+    );
 
-    if (
-      !verifySignature(
-        payload.proof.message,
-        payload.proof.signature,
-        baseAddress,
-      )
-    ) {
+    if (!result) {
       throw new HttpException(
-        'Invalid proof of base address',
+        `Invalid proof of base address: ${reason}`,
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -156,8 +155,6 @@ export class CommunicationService {
 
     const antelopeAsset = `${amount.toFixed(6)} ${getSettings().currencySymbol}`;
     const ethAmount = ethers.parseEther(amount.toFixed(6));
-
-    const loggerId = randomString(6);
 
     if (payload.destination === 'base') {
       this.logger.log(
