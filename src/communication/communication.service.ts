@@ -17,6 +17,7 @@ import {
   AccountType,
   getSettings,
   getTokenContract,
+  randomString,
 } from '@tonomy/tonomy-id-sdk';
 import { tonomySigner } from '../signer';
 import { ethers } from 'ethers';
@@ -157,17 +158,36 @@ export class CommunicationService {
     const antelopeAsset = `${amount.toFixed(6)} ${getSettings().currencySymbol}`;
     const ethAmount = ethers.parseEther(amount.toFixed(6));
 
+    const loggerId = randomString(6);
+
     if (payload.destination === 'base') {
+      this.logger.log(
+        `[Swap: ${loggerId}]: Swapping ${antelopeAsset} from Tonomy account ${tonomyAccount} to Base address ${baseAddress}`,
+      );
       await getTokenContract().bridgeRetire(
         tonomyAccount,
         antelopeAsset,
         '$TONO swap to base',
         tonomySigner,
       );
+      this.logger.debug(
+        `[Swap: ${loggerId}]: Retired ${antelopeAsset} from Tonomy account ${tonomyAccount}`,
+      );
       // TODO: wait for transaction confirmation
       await getBaseTokenContract().bridgeMint(baseAddress, ethAmount);
+      this.logger.debug(
+        `[Swap: ${loggerId}]: Minted ${antelopeAsset} to Base address ${baseAddress}`,
+      );
+      //
+      //
     } else if (payload.destination === 'tonomy') {
+      this.logger.log(
+        `[Swap: ${loggerId}]: Swapping ${antelopeAsset} from Base address ${baseAddress} to Tonomy account ${tonomyAccount}`,
+      );
       await getBaseTokenContract().bridgeBurn(baseAddress, ethAmount);
+      this.logger.debug(
+        `[Swap: ${loggerId}]: Burned ${antelopeAsset} from Base address ${baseAddress}`,
+      );
       // TODO: wait for transaction confirmation
       await getTokenContract().bridgeIssue(
         tonomyAccount,
@@ -175,12 +195,17 @@ export class CommunicationService {
         '$TONO swap to tonomy',
         tonomySigner,
       );
+      this.logger.debug(
+        `[Swap: ${loggerId}]: Issued ${antelopeAsset} to Tonomy account ${tonomyAccount}`,
+      );
     } else {
       throw new HttpException(
         `Invalid destination ${payload.destination}`,
         HttpStatus.BAD_REQUEST,
       );
     }
+
+    this.logger.log(`[Swap: ${loggerId}]: Swap completed successfully`);
 
     return true;
   }

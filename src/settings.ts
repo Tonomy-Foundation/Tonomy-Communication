@@ -2,13 +2,13 @@ import configDefault from './config/config';
 import configStaging from './config/config.staging';
 import configTestnet from './config/config.testnet';
 import configProduction from './config/config.production';
-import Debug from 'debug';
+import { Logger } from '@nestjs/common';
 
-const debug = Debug('tonomy-communication:settings');
+const logger = new Logger('Settings');
 
 const env = process.env.NODE_ENV || 'development';
 
-debug(`NODE_ENV=${env}`);
+logger.log(`NODE_ENV=${env}`);
 
 type ConfigType = {
   blockchainUrl: string;
@@ -80,20 +80,20 @@ switch (env) {
 settings.config = Object.assign({}, config);
 
 if (process.env.BLOCKCHAIN_URL) {
-  debug(`Using BLOCKCHAIN_URL from env:  ${process.env.BLOCKCHAIN_URL}`);
+  logger.log(`Using BLOCKCHAIN_URL from env:  ${process.env.BLOCKCHAIN_URL}`);
 
   settings.config.blockchainUrl = process.env.BLOCKCHAIN_URL;
 }
 
 if (process.env.BASE_TOKEN_ADDRESS) {
-  debug(
+  logger.log(
     `Using BASE_TOKEN_ADDRESS from env:  ${process.env.BASE_TOKEN_ADDRESS}`,
   );
 
   settings.config.baseTokenAddress = process.env.BASE_TOKEN_ADDRESS;
 }
 
-debug('settings', settings);
+logger.debug('settings', settings);
 
 settings.secrets = {
   tonomyOpsPrivateKey:
@@ -105,27 +105,27 @@ settings.secrets = {
 };
 
 if (process.env.HCAPTCHA_SECRET) {
-  debug('Using HCAPTCHA_SECRET from env');
+  logger.log('Using HCAPTCHA_SECRET from env');
   settings.secrets.hCaptchaSecret = process.env.HCAPTCHA_SECRET;
 }
 
 if (process.env.ETHEREUM_PRIVATE_KEY) {
-  debug('Using ETHEREUM_PRIVATE_KEY from env');
+  logger.log('Using ETHEREUM_PRIVATE_KEY from env');
   settings.secrets.basePrivateKey = process.env.ETHEREUM_PRIVATE_KEY;
 }
 
 if (process.env.INFURA_API_KEY) {
-  debug('Using INFURA_API_KEY from env');
+  logger.log('Using INFURA_API_KEY from env');
   settings.config.baseRpcUrl += process.env.INFURA_API_KEY;
 }
 
 if (process.env.TONOMY_OPS_PRIVATE_KEY) {
-  debug('Using TONOMY_OPS_PRIVATE_KEY from env');
+  logger.log('Using TONOMY_OPS_PRIVATE_KEY from env');
   settings.secrets.tonomyOpsPrivateKey = process.env.TONOMY_OPS_PRIVATE_KEY;
 }
 
 if (process.env.VERIFF_API_SECRET_KEY) {
-  debug('Using VERIFF_SECRET from env');
+  logger.log('Using VERIFF_API_SECRET_KEY from env');
   settings.secrets.veriffSecret = process.env.VERIFF_API_SECRET_KEY;
 }
 
