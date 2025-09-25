@@ -26,7 +26,7 @@ yarn run start:prod
 ## Update the Tonomy-ID-SDK version to the latest
 
 ```bash
-yarn run updateSdkVersion testnet
+yarn run updateSdkVersion development
 # or
 yarn run updateSdkVersion master
 ```
