@@ -6,11 +6,10 @@ import {
   VeriffWatchlistService,
   VerifiableCredentialFactory,
 } from './veriff.helpers';
-import { CommunicationService } from '../communication/communication.service';
-import { CommunicationGateway } from '../communication/communication.gateway';
+import { CommunicationModule } from '../communication/communication.module';
 
 @Module({
-  imports: [HttpModule],
+  imports: [HttpModule, CommunicationModule],
   controllers: [VeriffController],
   providers: [
     VeriffService,
@@ -20,8 +19,6 @@ import { CommunicationGateway } from '../communication/communication.gateway';
       useValue: new VerifiableCredentialFactory(),
     },
     Logger,
-    CommunicationService,
-    CommunicationGateway,
   ],
 })
 export class VerffModule {}

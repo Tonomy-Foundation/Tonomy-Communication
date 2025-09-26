@@ -27,6 +27,7 @@ import {
 import { CommunicationGuard } from './communication.guard';
 import { BodyDto } from './dto/body.dto';
 import { Server } from 'socket.io';
+import { SwapBodyDto } from './dto/swapBody.dto';
 
 export type WebsocketReturnType = {
   status: HttpStatus;
@@ -108,6 +109,31 @@ export class CommunicationGateway
       return {
         status: HttpStatus.OK,
         details: await this.usersService.sendMessage(client, message),
+      };
+    } catch (e) {
+      return this.usersService.handleError(e);
+    }
+  }
+
+  /**
+   * Swaps the $TONO token from Base-chain to Tonomy blockchain
+   * @param {SwapBodyDto} body - The swap token message VC or an error from the transformer
+   * @param client user socket
+   */
+  @SubscribeMessage('v1/swap/token/tono')
+  @UseGuards(CommunicationGuard)
+  async swapToken(
+    @MessageBody() body: SwapBodyDto,
+    @ConnectedSocket() client: Client,
+  ) {
+    try {
+      if (body.error) throw body.error;
+      if (!body.value) throw new Error('Body not found');
+      const message = body.value;
+
+      return {
+        status: HttpStatus.OK,
+        details: await this.usersService.swapToken(client, message),
       };
     } catch (e) {
       return this.usersService.handleError(e);
