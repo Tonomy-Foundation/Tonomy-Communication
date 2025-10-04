@@ -7,6 +7,26 @@ import {
 } from '@tonomy/tonomy-id-sdk';
 import Decimal from 'decimal.js';
 
+// Cache of circulating supply, refreshable every hour
+let cachedCirculatingSupply: { value: string; timestamp: number } | null = null;
+const CACHE_DURATION_MS = 60 * 60 * 1000; // 1 hour
+
+async function getCirculatingCoinsFromCache(): Promise<string> {
+  const now = Date.now();
+
+  if (
+    cachedCirculatingSupply &&
+    now - cachedCirculatingSupply.timestamp < CACHE_DURATION_MS
+  ) {
+    return cachedCirculatingSupply.value;
+  }
+
+  const value = await getCirculatingCoins();
+
+  cachedCirculatingSupply = { value, timestamp: now };
+  return value;
+}
+
 function getTotalCoins(): string {
   return new Decimal(EosioTokenContract.TOTAL_SUPPLY).toFixed(6);
 }
@@ -65,7 +85,7 @@ export class InfoService {
     // Stub implementation. Replace with real CoinGecko fetch logic.
     // Intentionally not using network calls yet.
     return {
-      result: getCirculatingCoins(),
+      result: getCirculatingCoinsFromCache(),
     };
   }
 
@@ -82,7 +102,7 @@ export class InfoService {
       case 'totalcoins':
         return getTotalCoins();
       case 'circulating':
-        return getCirculatingCoins();
+        return getCirculatingCoinsFromCache();
       default:
         throw new HttpException(
           'Unsupported cmc query. Allowed values: totalcoins, circulating',
