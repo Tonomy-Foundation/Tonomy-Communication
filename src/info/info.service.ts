@@ -1,4 +1,10 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { EosioTokenContract } from '@tonomy/tonomy-id-sdk';
+import Decimal from 'decimal.js';
+
+function getTotalCoins(): string {
+  return new Decimal(EosioTokenContract.TOTAL_SUPPLY).toFixed(6);
+}
 
 @Injectable()
 export class InfoService {
@@ -21,10 +27,7 @@ export class InfoService {
     // Stub implementation. Replace with real CoinGecko fetch logic.
     // Intentionally not using network calls yet.
     return {
-      source: 'coingecko',
-      status: 'stub',
-      query: query ?? null,
-      data: null,
+      result: getTotalCoins(),
     };
   }
 
@@ -35,6 +38,10 @@ export class InfoService {
         'Query parameter "q" is required for source cmc',
         HttpStatus.BAD_REQUEST,
       );
+    }
+
+    if (query.toLowerCase() === 'totalcoins') {
+      return getTotalCoins();
     }
 
     if (!['totalcoins', 'circulating'].includes(query.toLowerCase())) {
