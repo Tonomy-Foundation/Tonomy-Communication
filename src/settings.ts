@@ -23,7 +23,7 @@ type ConfigType = {
     | 'notice'
     | 'info'
     | 'debug';
-  baseNetwork: 'base' | 'base_testnet' | 'hardhat' | 'localhost';
+  baseNetwork: 'base' | 'base-sepolia' | 'hardhat' | 'localhost';
   baseRpcUrl: string;
   baseTokenAddress?: string;
 };
