@@ -7,6 +7,7 @@ import { setupOpenApi } from './api';
 import helmet from 'helmet';
 
 setSettings({
+  environment: settings.env,
   blockchainUrl: settings.config.blockchainUrl,
   accountSuffix: settings.config.accountSuffix,
   currencySymbol: settings.config.currencySymbol,
