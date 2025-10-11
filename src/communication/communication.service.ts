@@ -173,10 +173,7 @@ export class CommunicationService {
         `[Swap: ${loggerId}]: Retired ${antelopeAsset} from Tonomy account ${tonomyAccount} with transaction ${trx.transaction_id}`,
       );
 
-      if (
-        getSettings().environment === 'production' ||
-        getSettings().environment === 'testnet'
-      ) {
+      if (settings.env === 'production' || settings.env === 'testnet') {
         // Depends on Hyperion API which is only available on testnet and mainnet
         await waitForTonomyTrxFinalization(trx.transaction_id);
         this.logger.debug(
@@ -198,7 +195,7 @@ export class CommunicationService {
       );
 
       this.logger.debug(
-        `[Swap: ${loggerId}]: Burned ${antelopeAsset} from Base address ${baseAddress} with transaction ${trx.transaction_id}`,
+        `[Swap: ${loggerId}]: Burned ${antelopeAsset} from Base address ${baseAddress} with transaction ${trx.hash}`,
       );
       await waitForEvmTrxFinalization(trx.hash);
       this.logger.debug(
