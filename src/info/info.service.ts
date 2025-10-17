@@ -7,6 +7,10 @@ import {
   getVestingContract,
 } from '@tonomy/tonomy-id-sdk';
 import Decimal from 'decimal.js';
+import {
+  getApi,
+  getChainInfo,
+} from '../../../build/sdk/types/src/sdk/services/blockchain';
 
 const CACHE_DURATION_MS = 24 * 60 * 60 * 1000; // 1 day
 
@@ -22,6 +26,7 @@ type Cache = {
   vestedCoins?: CachedValue<Decimal>;
   circulatingSupply?: CachedValue<string>;
   infoStats?: CachedValue<InfoStats>;
+  network?: CachedValue<NetworkInfo>;
 };
 
 const cache: Cache = {};
@@ -50,6 +55,10 @@ function fromCache(
   fn: () => Promise<InfoStats>,
   key: 'infoStats',
 ): Promise<InfoStats>;
+function fromCache(
+  fn: () => Promise<NetworkInfo>,
+  key: keyof Cache,
+): Promise<NetworkInfo>;
 async function fromCache(
   fn: () => Promise<unknown>,
   key: keyof Cache,
@@ -114,6 +123,13 @@ async function getCirculatingCoins(): Promise<string> {
   return circulatingCoins.toFixed(6);
 }
 
+type NetworkInfo = {
+  // ramPrice: string;
+  blocks: number;
+  startDate: string;
+  totalAccounts: number;
+};
+
 type InfoStats = {
   apps: {
     total: number;
@@ -125,12 +141,7 @@ type InfoStats = {
     total: number;
     last24h: number;
   };
-  network: {
-    ramPrice: string;
-    blocks: number;
-    startDate: string;
-    totalAccounts: number;
-  };
+  network: NetworkInfo;
   governance: {
     producers: number;
     proposals: number;
@@ -156,9 +167,26 @@ async function getPeopleCount(): Promise<number> {
   return people.length;
 }
 
+async function getNetwork(): Promise<NetworkInfo> {
+  const info = await getChainInfo();
+  const blockOne = await getApi().v1.chain.get_block(1);
+  // TODO: add the number of producers
+  const totalAccounts =
+    (await fromCache(getPeopleCount, 'peopleCount')) +
+    (await fromCache(getAppsCount, 'appsCount')) +
+    14; // non app accounts from bootstrap
+
+  return {
+    blocks: info.head_block_num.toNumber(),
+    startDate: blockOne.timestamp.toString(),
+    totalAccounts: totalAccounts,
+  };
+}
+
 async function getInfoStats(): Promise<InfoStats> {
   const appsCount = await fromCache(getAppsCount, 'appsCount');
   const peopleCount = await fromCache(getPeopleCount, 'peopleCount');
+  const network = await fromCache(getNetwork, 'infoStats');
 
   // Stub implementation. Replace with real stats fetching logic.
   return {
@@ -172,12 +200,7 @@ async function getInfoStats(): Promise<InfoStats> {
       total: 0,
       last24h: 0,
     },
-    network: {
-      ramPrice: '0.0000',
-      blocks: 0,
-      startDate: '',
-      totalAccounts: 0,
-    },
+    network,
     governance: {
       producers: 0,
       proposals: 0,
