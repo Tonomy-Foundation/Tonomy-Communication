@@ -7,9 +7,10 @@ import {
 } from '@tonomy/tonomy-id-sdk';
 import Decimal from 'decimal.js';
 
+const CACHE_DURATION_MS = 60 * 60 * 1000; // 1 hour
+
 // Cache of circulating supply, refreshable every hour
 let cachedCirculatingSupply: { value: string; timestamp: number } | null = null;
-const CACHE_DURATION_MS = 60 * 60 * 1000; // 1 hour
 
 async function getCirculatingCoinsFromCache(): Promise<string> {
   const now = Date.now();
@@ -40,9 +41,9 @@ async function getVestedCoins(): Promise<Decimal> {
 
   return allAllocations.reduce<Decimal>(
     (previous, allocation) =>
-    (previous += assetToDecimal(allocation.tokensAllocated)
-      .minus(assetToDecimal(allocation.tokensWithdrawn))
-      .toNumber()),
+      previous
+        .add(assetToDecimal(allocation.tokensAllocated))
+        .minus(assetToDecimal(allocation.tokensClaimed)),
     new Decimal(0),
   );
 }
@@ -64,6 +65,85 @@ async function getCirculatingCoins(): Promise<string> {
   return circulatingCoins.toFixed(6);
 }
 
+type InfoStats = {
+  apps: {
+    total: number;
+  };
+  people: {
+    total: number;
+  };
+  transactions: {
+    total: number;
+    last24h: number;
+  };
+  network: {
+    ramPrice: string;
+    blocks: number;
+    startDate: string;
+    totalAccounts: number;
+  };
+  governance: {
+    producers: number;
+    proposals: number;
+    governanceCouncil: number;
+  };
+  token: {
+    totalCoins: string;
+    circulatingSupply: string;
+    staked: string;
+    vested: string;
+  };
+};
+
+// cache for InfoStats
+let cachedInfoStats: { value: InfoStats; timestamp: number } | null = null;
+
+async function getInfoStatsFromCache(): Promise<InfoStats> {
+  const now = Date.now();
+
+  if (cachedInfoStats && now - cachedInfoStats.timestamp < CACHE_DURATION_MS) {
+    return cachedInfoStats.value;
+  }
+
+  const value = await getInfoStats();
+
+  cachedInfoStats = { value, timestamp: now };
+  return value;
+}
+
+async function getInfoStats(): Promise<InfoStats> {
+  // Stub implementation. Replace with real stats fetching logic.
+  return {
+    apps: {
+      total: 0,
+    },
+    people: {
+      total: 0,
+    },
+    transactions: {
+      total: 0,
+      last24h: 0,
+    },
+    network: {
+      ramPrice: '0.0000',
+      blocks: 0,
+      startDate: '',
+      totalAccounts: 0,
+    },
+    governance: {
+      producers: 0,
+      proposals: 0,
+      governanceCouncil: 0,
+    },
+    token: {
+      totalCoins: getTotalCoins(),
+      circulatingSupply: await getCirculatingCoinsFromCache(),
+      staked: (await getStakedCoins()).toFixed(6),
+      vested: (await getVestedCoins()).toFixed(6),
+    },
+  };
+}
+
 @Injectable()
 export class InfoService {
   private readonly logger = new Logger(InfoService.name);
@@ -77,7 +157,7 @@ export class InfoService {
       case 'cmc':
         return await this.getFromCoinMarketCap(query);
       default:
-        return await this.getFromCoinGecko(query);
+        return await this.getStats();
     }
   }
 
@@ -109,5 +189,9 @@ export class InfoService {
           HttpStatus.BAD_REQUEST,
         );
     }
+  }
+
+  private async getStats(): Promise<InfoStats> {
+    return await getInfoStatsFromCache();
   }
 }

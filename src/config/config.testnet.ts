@@ -1,5 +1,5 @@
 export default {
-  blockchainUrl: 'https://blockchain-api-testnet.tonomy.io',
+  blockchainUrl: 'https://test.pangea.eosusa.io',
   accountSuffix: '.testnet.pangea',
   currencySymbol: 'TONO',
   loggerLevel: 'info',
