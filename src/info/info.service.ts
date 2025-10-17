@@ -3,11 +3,12 @@ import {
   assetToDecimal,
   EosioTokenContract,
   getStakingContract,
+  getTonomyContract,
   getVestingContract,
 } from '@tonomy/tonomy-id-sdk';
 import Decimal from 'decimal.js';
 
-const CACHE_DURATION_MS = 60 * 60 * 1000; // 1 hour
+const CACHE_DURATION_MS = 24 * 60 * 60 * 1000; // 1 day
 
 type CachedValue<T> = {
   value?: T;
@@ -15,6 +16,8 @@ type CachedValue<T> = {
   fetching: boolean;
 };
 type Cache = {
+  appsCount?: CachedValue<number>;
+  peopleCount?: CachedValue<number>;
   stakedCoins?: CachedValue<Decimal>;
   vestedCoins?: CachedValue<Decimal>;
   circulatingSupply?: CachedValue<string>;
@@ -23,6 +26,14 @@ type Cache = {
 
 const cache: Cache = {};
 
+function fromCache(
+  fn: () => Promise<number>,
+  key: 'peopleCount',
+): Promise<number>;
+function fromCache(
+  fn: () => Promise<number>,
+  key: 'appsCount',
+): Promise<number>;
 function fromCache(
   fn: () => Promise<Decimal>,
   key: 'stakedCoins' | 'vestedCoins',
@@ -133,14 +144,29 @@ type InfoStats = {
   };
 };
 
+async function getAppsCount(): Promise<number> {
+  const apps = await getTonomyContract().getAllApps();
+
+  return apps.length;
+}
+
+async function getPeopleCount(): Promise<number> {
+  const people = await getTonomyContract().getAllPeople();
+
+  return people.length;
+}
+
 async function getInfoStats(): Promise<InfoStats> {
+  const appsCount = await fromCache(getAppsCount, 'appsCount');
+  const peopleCount = await fromCache(getPeopleCount, 'peopleCount');
+
   // Stub implementation. Replace with real stats fetching logic.
   return {
     apps: {
-      total: 0,
+      total: appsCount,
     },
     people: {
-      total: 0,
+      total: peopleCount,
     },
     transactions: {
       total: 0,
