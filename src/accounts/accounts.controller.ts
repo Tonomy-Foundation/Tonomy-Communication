@@ -18,7 +18,7 @@ import { Response } from 'express';
 @Controller('v1/accounts/create')
 export class AccountsController {
   private readonly logger = new Logger(AccountsController.name);
-  constructor(private accountService: AccountsService) {}
+  constructor(private accountService: AccountsService) { }
 
   @Post()
   @ApiOperation({
@@ -66,7 +66,7 @@ export class AccountsController {
       response.status(HttpStatus.CREATED).send(val);
     } catch (e) {
       if (e instanceof HttpException) throw e;
-      this.logger.error(e, JSON.stringify(e, null, 2));
+      console.error(e);
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }

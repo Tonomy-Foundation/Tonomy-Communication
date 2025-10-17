@@ -9,6 +9,7 @@ import Decimal from 'decimal.js';
 
 const CACHE_DURATION_MS = 60 * 60 * 1000; // 1 hour
 
+// TODO: add a flag to indicate that new data is currently fetching, so just use the old cache meanwhile
 // Cache of circulating supply, refreshable every hour
 let cachedCirculatingSupply: { value: string; timestamp: number } | null = null;
 
@@ -51,7 +52,7 @@ async function getVestedCoins(): Promise<Decimal> {
 async function getStakedCoins(): Promise<Decimal> {
   const settings = await getStakingContract().getSettings();
 
-  return new Decimal(settings.totalStaked);
+  return assetToDecimal(settings.totalStaked);
 }
 
 async function getCirculatingCoins(): Promise<string> {

@@ -46,7 +46,7 @@ export class InfoController {
       response.status(HttpStatus.OK).send(val);
     } catch (e) {
       if (e instanceof HttpException) throw e;
-      this.logger.error(e, JSON.stringify(e, null, 2));
+      console.error(e);
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }

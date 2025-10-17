@@ -18,7 +18,7 @@ export class VeriffController {
   constructor(
     private readonly veriffService: VeriffService,
     private readonly logger: Logger,
-  ) {}
+  ) { }
   @Post()
   @HttpCode(HttpStatus.OK)
   async handleWebhook(
@@ -33,7 +33,7 @@ export class VeriffController {
       response.status(HttpStatus.OK).send();
     } catch (e) {
       if (e instanceof HttpException) throw e;
-      this.logger.error(e, JSON.stringify(e, null, 2));
+      console.error(e);
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
