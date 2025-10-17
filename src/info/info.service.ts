@@ -9,23 +9,60 @@ import Decimal from 'decimal.js';
 
 const CACHE_DURATION_MS = 60 * 60 * 1000; // 1 hour
 
-// TODO: add a flag to indicate that new data is currently fetching, so just use the old cache meanwhile
-// Cache of circulating supply, refreshable every hour
-let cachedCirculatingSupply: { value: string; timestamp: number } | null = null;
+type CachedValue<T> = {
+  value?: T;
+  timestamp: number;
+  fetching: boolean;
+};
+type Cache = {
+  stakedCoins?: CachedValue<Decimal>;
+  vestedCoins?: CachedValue<Decimal>;
+  circulatingSupply?: CachedValue<string>;
+  infoStats?: CachedValue<InfoStats>;
+};
 
-async function getCirculatingCoinsFromCache(): Promise<string> {
+const cache: Cache = {};
+
+function fromCache(
+  fn: () => Promise<Decimal>,
+  key: 'stakedCoins' | 'vestedCoins',
+): Promise<Decimal>;
+function fromCache(
+  fn: () => Promise<Decimal>,
+  key: 'vestedCoins',
+): Promise<Decimal>;
+function fromCache(
+  fn: () => Promise<string>,
+  key: 'circulatingSupply',
+): Promise<string>;
+function fromCache(
+  fn: () => Promise<InfoStats>,
+  key: 'infoStats',
+): Promise<InfoStats>;
+async function fromCache(
+  fn: () => Promise<unknown>,
+  key: keyof Cache,
+): Promise<unknown> {
   const now = Date.now();
 
+  const cached = cache[key] as CachedValue<unknown> | undefined;
+
   if (
-    cachedCirculatingSupply &&
-    now - cachedCirculatingSupply.timestamp < CACHE_DURATION_MS
+    cached &&
+    cached.value &&
+    (cached.fetching || now - cached.timestamp < CACHE_DURATION_MS)
   ) {
-    return cachedCirculatingSupply.value;
+    return cached.value;
   }
 
-  const value = await getCirculatingCoins();
+  (cache as any)[key] = {
+    value: cached?.value,
+    timestamp: now,
+    fetching: true,
+  };
+  const value = await fn();
 
-  cachedCirculatingSupply = { value, timestamp: now };
+  (cache as any)[key] = { value, timestamp: now, fetching: false };
   return value;
 }
 
@@ -57,8 +94,8 @@ async function getStakedCoins(): Promise<Decimal> {
 
 async function getCirculatingCoins(): Promise<string> {
   const totalCoins = getTotalCoins();
-  const vestedCoins = await getVestedCoins();
-  const stakedCoins = await getStakedCoins();
+  const vestedCoins = await fromCache(getVestedCoins, 'vestedCoins');
+  const stakedCoins = await fromCache(getStakedCoins, 'stakedCoins');
   const circulatingCoins = new Decimal(totalCoins)
     .minus(vestedCoins)
     .minus(stakedCoins);
@@ -96,22 +133,6 @@ type InfoStats = {
   };
 };
 
-// cache for InfoStats
-let cachedInfoStats: { value: InfoStats; timestamp: number } | null = null;
-
-async function getInfoStatsFromCache(): Promise<InfoStats> {
-  const now = Date.now();
-
-  if (cachedInfoStats && now - cachedInfoStats.timestamp < CACHE_DURATION_MS) {
-    return cachedInfoStats.value;
-  }
-
-  const value = await getInfoStats();
-
-  cachedInfoStats = { value, timestamp: now };
-  return value;
-}
-
 async function getInfoStats(): Promise<InfoStats> {
   // Stub implementation. Replace with real stats fetching logic.
   return {
@@ -136,11 +157,20 @@ async function getInfoStats(): Promise<InfoStats> {
       proposals: 0,
       governanceCouncil: 0,
     },
+    // token: {
+    //   totalCoins: getTotalCoins(),
+    //   circulatingSupply: await fromCache(
+    //     getCirculatingCoins,
+    //     'circulatingSupply',
+    //   ),
+    //   staked: (await fromCache(getStakedCoins, 'stakedCoins')).toFixed(6),
+    //   vested: (await fromCache(getVestedCoins, 'vestedCoins')).toFixed(6),
+    // },
     token: {
-      totalCoins: getTotalCoins(),
-      circulatingSupply: await getCirculatingCoinsFromCache(),
-      staked: (await getStakedCoins()).toFixed(6),
-      vested: (await getVestedCoins()).toFixed(6),
+      totalCoins: '',
+      circulatingSupply: '',
+      staked: '',
+      vested: '',
     },
   };
 }
@@ -166,7 +196,7 @@ export class InfoService {
     // Stub implementation. Replace with real CoinGecko fetch logic.
     // Intentionally not using network calls yet.
     return {
-      result: getCirculatingCoinsFromCache(),
+      result: await fromCache(getCirculatingCoins, 'circulatingSupply'),
     };
   }
 
@@ -183,7 +213,7 @@ export class InfoService {
       case 'totalcoins':
         return getTotalCoins();
       case 'circulating':
-        return getCirculatingCoinsFromCache();
+        return fromCache(getCirculatingCoins, 'circulatingSupply');
       default:
         throw new HttpException(
           'Unsupported cmc query. Allowed values: totalcoins, circulating',
@@ -193,6 +223,6 @@ export class InfoService {
   }
 
   private async getStats(): Promise<InfoStats> {
-    return await getInfoStatsFromCache();
+    return await fromCache(getInfoStats, 'infoStats');
   }
 }
