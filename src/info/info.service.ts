@@ -90,16 +90,11 @@ async function fromCache(
   }
 
   if (cached && !cached.value && cached.fetching) {
-    const now = new Date();
-    const TIMEOUT = 300 * 1000; // 300 seconds
-
-    while (cached.fetching) {
-      if (new Date().getTime() - now.getTime() > TIMEOUT) {
-        throw new HttpException(`Fetch request timeout`, HttpStatus.CONFLICT);
-      }
-
-      await sleep(1000);
-    }
+    // TODO: wait for fetch, then retur value
+    throw new HttpException(
+      `Fetch request is already ongoing. Try again in a few minutes.`,
+      HttpStatus.CONFLICT,
+    );
   }
 
   (cache as any)[key] = {
@@ -107,10 +102,16 @@ async function fromCache(
     timestamp: now,
     fetching: true,
   };
-  const value = await fn();
 
-  (cache as any)[key] = { value, timestamp: now, fetching: false };
-  return value;
+  try {
+    const value = await fn();
+
+    (cache as any)[key] = { value, timestamp: now, fetching: false };
+    return value;
+  } catch (error) {
+    (cache as any)[key] = { timestamp: now, fetching: false };
+    throw error;
+  }
 }
 
 function sleep(ms: number): Promise<void> {
@@ -122,10 +123,10 @@ function getTotalCoins(): string {
 }
 
 async function getVestedCoins(): Promise<Decimal> {
-  const uniqueHolders = await getVestingContract().getAllUniqueHolders();
+  const uniqueHolders = await getVestingContract().getAllUniqueHolders(true);
   const allAllocations = await getVestingContract().getAllAllocations(
     uniqueHolders,
-    false,
+    true,
   );
 
   return allAllocations.reduce<Decimal>(
@@ -146,10 +147,7 @@ async function getStakedCoins(): Promise<Decimal> {
 async function getCirculatingCoins(): Promise<string> {
   const totalCoins = getTotalCoins();
   const vestedCoins = await fromCache(getVestedCoins, 'vestedCoins');
-  const stakedCoins = await fromCache(getStakedCoins, 'stakedCoins');
-  const circulatingCoins = new Decimal(totalCoins)
-    .minus(vestedCoins)
-    .minus(stakedCoins);
+  const circulatingCoins = new Decimal(totalCoins).minus(vestedCoins);
 
   return circulatingCoins.toFixed(6);
 }
@@ -318,9 +316,12 @@ async function getAllActions(query?: ActionQuery): Promise<ActionResponse[]> {
     });
 
     allActions = allActions.concat(actions);
-    console.log(
-      `Fetched ${actions.length} actions from ${allActions[0]['@timestamp']} to ${allActions[allActions.length - 1]['@timestamp']}`,
-    );
+
+    if (actions.length > 0) {
+      console.log(
+        `Fetched ${actions.length} actions from ${actions[0].timestamp} to ${actions[actions.length - 1].timestamp}`,
+      );
+    }
 
     if (actions.length < limit) {
       break;
@@ -338,7 +339,7 @@ async function getTransactionInfo(): Promise<TransactionInfo> {
   // const oneDayAgo = new Date('2024-01-01T00:00:00.000Z'); // (fetch ALL transactions since start of chain)
   const transactions = await getAllActions({
     after: oneDayAgo.toISOString(),
-    before: now.toISOString(),
+    // before: now.toISOString(),
   });
   const transfers = transactions.filter(
     (action) => action.act.name === 'transfer',
