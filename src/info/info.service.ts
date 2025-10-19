@@ -275,7 +275,9 @@ type ActionResponse = {
   signatures?: string[];
 };
 
-async function getActions(query?: ActionQuery): Promise<ActionResponse[]> {
+async function getActions(
+  query?: ActionQuery,
+): Promise<ActionResponse[] | undefined> {
   let url = `https://${getHost()}/v2/history/get_actions`;
 
   if (query) {
@@ -301,7 +303,7 @@ async function getActions(query?: ActionQuery): Promise<ActionResponse[]> {
 async function getAllActions(query?: ActionQuery): Promise<ActionResponse[]> {
   let allActions: ActionResponse[] = [];
   let skip = 0;
-  const limit = 100;
+  const limit = 1000;
 
   console.log('Fetching actions with query', query);
 
@@ -314,16 +316,16 @@ async function getAllActions(query?: ActionQuery): Promise<ActionResponse[]> {
       noBinary: true,
     });
 
+    if (!actions || actions.length < limit) {
+      break;
+    }
+
     allActions = allActions.concat(actions);
 
     if (actions.length > 0) {
       console.log(
         `Fetched ${actions.length} actions from ${actions[0].timestamp} to ${actions[actions.length - 1].timestamp}`,
       );
-    }
-
-    if (actions.length < limit) {
-      break;
     }
 
     skip += limit;
