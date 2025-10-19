@@ -7,6 +7,7 @@ import {
   getVestingContract,
   EosioUtil,
   getEosioMsigContract,
+  getSettings,
 } from '@tonomy/tonomy-id-sdk';
 import Decimal from 'decimal.js';
 
@@ -25,7 +26,7 @@ type Cache = {
   circulatingSupply?: CachedValue<string>;
   infoStats?: CachedValue<InfoStats>;
   network?: CachedValue<NetworkInfo>;
-  transactions?: CachedValue<TransactionInfo>;
+  transactions24hr?: CachedValue<TransactionInfo>;
   governance?: CachedValue<GovernanceInfo>;
   token?: CachedValue<InfoStats['token']>;
 };
@@ -58,7 +59,7 @@ function fromCache(
 ): Promise<InfoStats>;
 function fromCache(
   fn: () => Promise<TransactionInfo>,
-  key: 'transactions',
+  key: 'transactions24hr',
 ): Promise<TransactionInfo>;
 function fromCache(
   fn: () => Promise<GovernanceInfo>,
@@ -169,7 +170,6 @@ type GovernanceInfo = {
 type TransactionInfo = {
   total: number;
   transfers: number;
-  last24h: number;
 };
 
 type InfoStats = {
@@ -179,7 +179,7 @@ type InfoStats = {
   people: {
     total: number;
   };
-  transactions: TransactionInfo;
+  transactions24hr: TransactionInfo;
   network: NetworkInfo;
   governance: GovernanceInfo;
   token: {
@@ -220,12 +220,123 @@ async function getNetwork(): Promise<NetworkInfo> {
   };
 }
 
+function getHost(): string {
+  switch (getSettings().environment) {
+    case 'production':
+      return 'pangea.eosusa.io';
+    case 'testnet':
+      return 'test.pangea.eosusa.io';
+    default:
+      throw new Error(
+        `environment ${getSettings().environment} not supported for fetching all vesting holders`,
+      );
+  }
+}
+
+// https://hyperion.docs.eosrio.io/4.0/api/v2/#v2historyget_actions
+type ActionQuery = {
+  account?: string;
+  filter?: string;
+  track?: string;
+  skip?: number;
+  limit?: number;
+  sort?: string;
+  block_num?: string;
+  global_sequence?: string;
+  after?: string;
+  before?: string;
+  simple?: boolean;
+  noBinary?: boolean;
+  checkLib?: boolean;
+};
+
+type ActionResponse = {
+  '@timestamp': string;
+  timestamp: string;
+  block_num: number;
+  block_id: string;
+  trx_id: string;
+  act: {
+    account: string;
+    name: string;
+    authorization: { actor: string; permission: string }[];
+    data: any;
+  };
+  receipts: Array<{
+    receiver: string;
+    global_sequence: number;
+    recv_sequence: number;
+    auth_sequence: Array<{ account: string; sequence: number }>;
+  }>;
+  cpu_usage_us?: number;
+  net_usage_words?: number;
+  account_ram_deltas?: Array<{ account: string; delta: number }>;
+  global_sequence: number;
+  producer: string;
+  action_ordinal: number;
+  creator_action_ordinal: number;
+  signatures?: string[];
+};
+
+async function getActions(query?: ActionQuery): Promise<ActionResponse[]> {
+  let url = `https://${getHost()}/v2/history/get_actions`;
+
+  if (query) {
+    const params = new URLSearchParams();
+
+    for (const key of Object.keys(query)) {
+      const value = (query as any)[key];
+
+      if (value !== undefined) {
+        params.append(key, value.toString());
+      }
+    }
+
+    url += `?${params.toString()}`;
+  }
+
+  const res = await fetch(url);
+  const data = await res.json();
+
+  return data.actions;
+}
+
+async function getAllActions(query?: ActionQuery): Promise<ActionResponse[]> {
+  let allActions: ActionResponse[] = [];
+  let skip = 0;
+  const limit = 100;
+
+  while (true) {
+    const actions = await getActions({
+      ...query,
+      skip,
+      limit,
+      noBinary: true,
+    });
+
+    allActions = allActions.concat(actions);
+
+    if (actions.length < limit) {
+      break;
+    }
+
+    skip += limit;
+  }
+
+  return allActions;
+}
+
 async function getTransactionInfo(): Promise<TransactionInfo> {
-  // Stub implementation. Replace with real transaction fetching logic.
+  const now = new Date();
+  const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const transactions = await getAllActions({ after: oneDayAgo.toISOString() });
+  const transfers = transactions.filter(
+    (action) => action.act.name === 'transfer',
+  );
+
   return {
-    total: 0,
-    transfers: 0,
-    last24h: 0,
+    total: transactions.length,
+    transfers: transfers.length,
   };
 }
 
@@ -234,7 +345,7 @@ async function getGovernanceInfo(): Promise<GovernanceInfo> {
   // const proposals = (await getEosioMsigContract().
   const governanceAccount = await EosioUtil.getAccount('found.tmy');
   const councilLength =
-    governanceAccount.getPermission('active')?.required_auth.accounts.length;
+    governanceAccount.getPermission('owner')?.required_auth.accounts.length;
 
   // Stub implementation. Replace with real governance fetching logic.
   return {
@@ -262,7 +373,10 @@ async function getInfoStats(): Promise<InfoStats> {
   const appsCount = await fromCache(getAppsCount, 'appsCount');
   const peopleCount = await fromCache(getPeopleCount, 'peopleCount');
   const network = await fromCache(getNetwork, 'network');
-  const transactions = await fromCache(getTransactionInfo, 'transactions');
+  const transactions24hr = await fromCache(
+    getTransactionInfo,
+    'transactions24hr',
+  );
   const governance = await fromCache(getGovernanceInfo, 'governance');
   const token = await fromCache(getTokenInfo, 'token');
 
@@ -274,7 +388,7 @@ async function getInfoStats(): Promise<InfoStats> {
     people: {
       total: peopleCount,
     },
-    transactions,
+    transactions24hr,
     network,
     governance,
     token,
