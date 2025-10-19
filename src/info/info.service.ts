@@ -163,7 +163,7 @@ type NetworkInfo = {
 
 type GovernanceInfo = {
   producers: number;
-  proposals: number;
+  // proposals: number;
   governanceCouncil: number;
 };
 
@@ -306,7 +306,10 @@ async function getAllActions(query?: ActionQuery): Promise<ActionResponse[]> {
   let skip = 0;
   const limit = 100;
 
+  console.log('Fetching actions with query', query);
+
   while (true) {
+    console.log(`Fetching actions from ${skip} to ${skip + limit}...`);
     const actions = await getActions({
       ...query,
       skip,
@@ -315,6 +318,9 @@ async function getAllActions(query?: ActionQuery): Promise<ActionResponse[]> {
     });
 
     allActions = allActions.concat(actions);
+    console.log(
+      `Fetched ${actions.length} actions from ${allActions[0]['@timestamp']} to ${allActions[allActions.length - 1]['@timestamp']}`,
+    );
 
     if (actions.length < limit) {
       break;
@@ -329,7 +335,11 @@ async function getAllActions(query?: ActionQuery): Promise<ActionResponse[]> {
 async function getTransactionInfo(): Promise<TransactionInfo> {
   const now = new Date();
   const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-  const transactions = await getAllActions({ after: oneDayAgo.toISOString() });
+  // const oneDayAgo = new Date('2024-01-01T00:00:00.000Z'); // (fetch ALL transactions since start of chain)
+  const transactions = await getAllActions({
+    after: oneDayAgo.toISOString(),
+    before: now.toISOString(),
+  });
   const transfers = transactions.filter(
     (action) => action.act.name === 'transfer',
   );
@@ -347,40 +357,61 @@ async function getGovernanceInfo(): Promise<GovernanceInfo> {
   const councilLength =
     governanceAccount.getPermission('owner')?.required_auth.accounts.length;
 
-  // Stub implementation. Replace with real governance fetching logic.
   return {
     producers,
-    proposals: 0,
+    // proposals: 0,
     governanceCouncil: councilLength ?? 0,
   };
 }
 
 async function getTokenInfo(): Promise<InfoStats['token']> {
+  const totalCoins = getTotalCoins();
+
+  console.log('Fetching circulating supply...');
+  const circulatingSupply = await fromCache(
+    getCirculatingCoins,
+    'circulatingSupply',
+  );
+
+  console.log('Fetching staked coins...');
+  const staked = await fromCache(getStakedCoins, 'stakedCoins');
+
+  console.log('Fetching vested coins...');
+  const vested = await fromCache(getVestedCoins, 'vestedCoins');
+
   return {
     symbol: 'TONO',
     decimals: 6,
-    totalCoins: getTotalCoins(),
-    circulatingSupply: await fromCache(
-      getCirculatingCoins,
-      'circulatingSupply',
-    ),
-    staked: (await fromCache(getStakedCoins, 'stakedCoins')).toFixed(6),
-    vested: (await fromCache(getVestedCoins, 'vestedCoins')).toFixed(6),
+    totalCoins,
+    circulatingSupply,
+    staked: staked.toFixed(6),
+    vested: vested.toFixed(6),
   };
 }
 
 async function getInfoStats(): Promise<InfoStats> {
+  console.log('Fetching info stats...');
+  console.log('Fetching apps count...');
   const appsCount = await fromCache(getAppsCount, 'appsCount');
+
+  console.log('Fetching people count...');
   const peopleCount = await fromCache(getPeopleCount, 'peopleCount');
+
+  console.log('Fetching network info...');
   const network = await fromCache(getNetwork, 'network');
+
+  console.log('Fetching transactions info...');
   const transactions24hr = await fromCache(
     getTransactionInfo,
     'transactions24hr',
   );
+
+  console.log('Fetching governance info...');
   const governance = await fromCache(getGovernanceInfo, 'governance');
+
+  console.log('Fetching token info...');
   const token = await fromCache(getTokenInfo, 'token');
 
-  // Stub implementation. Replace with real stats fetching logic.
   return {
     apps: {
       total: appsCount,
@@ -413,15 +444,12 @@ export class InfoService {
   }
 
   private async getFromCoinGecko(query?: string): Promise<unknown> {
-    // Stub implementation. Replace with real CoinGecko fetch logic.
-    // Intentionally not using network calls yet.
     return {
       result: await fromCache(getCirculatingCoins, 'circulatingSupply'),
     };
   }
 
   private async getFromCoinMarketCap(query?: string): Promise<unknown> {
-    // Stub implementation. Replace with real CoinMarketCap fetch logic.
     if (!query) {
       throw new HttpException(
         'Query parameter "q" is required for source cmc',
