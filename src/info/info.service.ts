@@ -5,12 +5,10 @@ import {
   getStakingContract,
   getTonomyContract,
   getVestingContract,
+  EosioUtil,
+  getEosioMsigContract,
 } from '@tonomy/tonomy-id-sdk';
 import Decimal from 'decimal.js';
-import {
-  getApi,
-  getChainInfo,
-} from '../../../build/sdk/types/src/sdk/services/blockchain';
 
 const CACHE_DURATION_MS = 24 * 60 * 60 * 1000; // 1 day
 
@@ -27,6 +25,9 @@ type Cache = {
   circulatingSupply?: CachedValue<string>;
   infoStats?: CachedValue<InfoStats>;
   network?: CachedValue<NetworkInfo>;
+  transactions?: CachedValue<TransactionInfo>;
+  governance?: CachedValue<GovernanceInfo>;
+  token?: CachedValue<InfoStats['token']>;
 };
 
 const cache: Cache = {};
@@ -56,8 +57,20 @@ function fromCache(
   key: 'infoStats',
 ): Promise<InfoStats>;
 function fromCache(
+  fn: () => Promise<TransactionInfo>,
+  key: 'transactions',
+): Promise<TransactionInfo>;
+function fromCache(
+  fn: () => Promise<GovernanceInfo>,
+  key: 'governance',
+): Promise<GovernanceInfo>;
+function fromCache(
+  fn: () => Promise<InfoStats['token']>,
+  key: 'token',
+): Promise<InfoStats['token']>;
+function fromCache(
   fn: () => Promise<NetworkInfo>,
-  key: keyof Cache,
+  key: 'network',
 ): Promise<NetworkInfo>;
 async function fromCache(
   fn: () => Promise<unknown>,
@@ -75,6 +88,19 @@ async function fromCache(
     return cached.value;
   }
 
+  if (cached && !cached.value && cached.fetching) {
+    const now = new Date();
+    const TIMEOUT = 300 * 1000; // 300 seconds
+
+    while (cached.fetching) {
+      if (new Date().getTime() - now.getTime() > TIMEOUT) {
+        throw new HttpException(`Fetch request timeout`, HttpStatus.CONFLICT);
+      }
+
+      await sleep(1000);
+    }
+  }
+
   (cache as any)[key] = {
     value: cached?.value,
     timestamp: now,
@@ -84,6 +110,10 @@ async function fromCache(
 
   (cache as any)[key] = { value, timestamp: now, fetching: false };
   return value;
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function getTotalCoins(): string {
@@ -130,6 +160,18 @@ type NetworkInfo = {
   totalAccounts: number;
 };
 
+type GovernanceInfo = {
+  producers: number;
+  proposals: number;
+  governanceCouncil: number;
+};
+
+type TransactionInfo = {
+  total: number;
+  transfers: number;
+  last24h: number;
+};
+
 type InfoStats = {
   apps: {
     total: number;
@@ -137,17 +179,12 @@ type InfoStats = {
   people: {
     total: number;
   };
-  transactions: {
-    total: number;
-    last24h: number;
-  };
+  transactions: TransactionInfo;
   network: NetworkInfo;
-  governance: {
-    producers: number;
-    proposals: number;
-    governanceCouncil: number;
-  };
+  governance: GovernanceInfo;
   token: {
+    symbol: string;
+    decimals: number;
     totalCoins: string;
     circulatingSupply: string;
     staked: string;
@@ -168,8 +205,8 @@ async function getPeopleCount(): Promise<number> {
 }
 
 async function getNetwork(): Promise<NetworkInfo> {
-  const info = await getChainInfo();
-  const blockOne = await getApi().v1.chain.get_block(1);
+  const info = await EosioUtil.getChainInfo();
+  const blockOne = await EosioUtil.getApi().v1.chain.get_block(1);
   // TODO: add the number of producers
   const totalAccounts =
     (await fromCache(getPeopleCount, 'peopleCount')) +
@@ -183,10 +220,51 @@ async function getNetwork(): Promise<NetworkInfo> {
   };
 }
 
+async function getTransactionInfo(): Promise<TransactionInfo> {
+  // Stub implementation. Replace with real transaction fetching logic.
+  return {
+    total: 0,
+    transfers: 0,
+    last24h: 0,
+  };
+}
+
+async function getGovernanceInfo(): Promise<GovernanceInfo> {
+  const producers = (await EosioUtil.getProducers()).active.producers.length;
+  // const proposals = (await getEosioMsigContract().
+  const governanceAccount = await EosioUtil.getAccount('found.tmy');
+  const councilLength =
+    governanceAccount.getPermission('active')?.required_auth.accounts.length;
+
+  // Stub implementation. Replace with real governance fetching logic.
+  return {
+    producers,
+    proposals: 0,
+    governanceCouncil: councilLength ?? 0,
+  };
+}
+
+async function getTokenInfo(): Promise<InfoStats['token']> {
+  return {
+    symbol: 'TONO',
+    decimals: 6,
+    totalCoins: getTotalCoins(),
+    circulatingSupply: await fromCache(
+      getCirculatingCoins,
+      'circulatingSupply',
+    ),
+    staked: (await fromCache(getStakedCoins, 'stakedCoins')).toFixed(6),
+    vested: (await fromCache(getVestedCoins, 'vestedCoins')).toFixed(6),
+  };
+}
+
 async function getInfoStats(): Promise<InfoStats> {
   const appsCount = await fromCache(getAppsCount, 'appsCount');
   const peopleCount = await fromCache(getPeopleCount, 'peopleCount');
-  const network = await fromCache(getNetwork, 'infoStats');
+  const network = await fromCache(getNetwork, 'network');
+  const transactions = await fromCache(getTransactionInfo, 'transactions');
+  const governance = await fromCache(getGovernanceInfo, 'governance');
+  const token = await fromCache(getTokenInfo, 'token');
 
   // Stub implementation. Replace with real stats fetching logic.
   return {
@@ -196,31 +274,10 @@ async function getInfoStats(): Promise<InfoStats> {
     people: {
       total: peopleCount,
     },
-    transactions: {
-      total: 0,
-      last24h: 0,
-    },
+    transactions,
     network,
-    governance: {
-      producers: 0,
-      proposals: 0,
-      governanceCouncil: 0,
-    },
-    // token: {
-    //   totalCoins: getTotalCoins(),
-    //   circulatingSupply: await fromCache(
-    //     getCirculatingCoins,
-    //     'circulatingSupply',
-    //   ),
-    //   staked: (await fromCache(getStakedCoins, 'stakedCoins')).toFixed(6),
-    //   vested: (await fromCache(getVestedCoins, 'vestedCoins')).toFixed(6),
-    // },
-    token: {
-      totalCoins: '',
-      circulatingSupply: '',
-      staked: '',
-      vested: '',
-    },
+    governance,
+    token,
   };
 }
 
