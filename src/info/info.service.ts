@@ -123,11 +123,9 @@ function getTotalCoins(): string {
 }
 
 async function getVestedCoins(): Promise<Decimal> {
-  const uniqueHolders = await getVestingContract().getAllUniqueHolders(true);
-  const allAllocations = await getVestingContract().getAllAllocations(
-    uniqueHolders,
-    true,
-  );
+  const uniqueHolders = await getVestingContract().getAllUniqueHolders();
+  const allAllocations =
+    await getVestingContract().getAllAllocations(uniqueHolders);
 
   return allAllocations.reduce<Decimal>(
     (previous, allocation) =>
@@ -139,6 +137,7 @@ async function getVestedCoins(): Promise<Decimal> {
 }
 
 async function getStakedCoins(): Promise<Decimal> {
+  return new Decimal(0);
   const settings = await getStakingContract().getSettings();
 
   return assetToDecimal(settings.totalStaked);
