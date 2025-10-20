@@ -14,7 +14,7 @@ import { Response } from 'express';
 @Controller('v1/info')
 export class InfoController {
   private readonly logger = new Logger(InfoController.name);
-  constructor(private infoService: InfoService) { }
+  constructor(private infoService: InfoService) {}
 
   @Get()
   @ApiOperation({

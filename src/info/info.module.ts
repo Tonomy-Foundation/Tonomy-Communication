@@ -6,4 +6,4 @@ import { InfoService } from './info.service';
   controllers: [InfoController],
   providers: [InfoService],
 })
-export class InfoModule { }
+export class InfoModule {}
