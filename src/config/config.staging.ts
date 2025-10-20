@@ -5,5 +5,5 @@ export default {
   loggerLevel: 'debug',
   baseNetwork: 'base-sepolia' as const,
   baseRpcUrl: 'https://base-sepolia.infura.io/v3/',
-  baseTokenAddress: '0x7d52931e8123D3f6efCacD83d59A0E5E0c58273f',
+  baseTokenAddress: '0xC71Ae7EBa91037Ff145671D0d25Ba415BB69450c',
 };

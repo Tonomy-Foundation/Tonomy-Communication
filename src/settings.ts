@@ -3,6 +3,7 @@ import configStaging from './config/config.staging';
 import configTestnet from './config/config.testnet';
 import configProduction from './config/config.production';
 import { Logger } from '@nestjs/common';
+import { ethers } from 'ethers';
 
 const logger = new Logger('Settings');
 
@@ -115,6 +116,10 @@ if (process.env.ETHEREUM_PRIVATE_KEY) {
   logger.log('Using ETHEREUM_PRIVATE_KEY from env');
   settings.secrets.basePrivateKey = process.env.ETHEREUM_PRIVATE_KEY;
 }
+
+console.log(
+  `Ethereum signing address: ${new ethers.Wallet(settings.secrets.basePrivateKey).address}`,
+);
 
 if (process.env.INFURA_API_KEY) {
   logger.log('Using INFURA_API_KEY from env');
