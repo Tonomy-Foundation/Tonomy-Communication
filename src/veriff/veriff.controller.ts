@@ -18,7 +18,7 @@ export class VeriffController {
   constructor(
     private readonly veriffService: VeriffService,
     private readonly logger: Logger,
-  ) { }
+  ) {}
   @Post()
   @HttpCode(HttpStatus.OK)
   async handleWebhook(
