@@ -17,6 +17,8 @@ import {
   getSettings,
   getTokenContract,
   randomString,
+  waitForTonomyTrxFinalization,
+  waitForEvmTrxFinalization,
 } from '@tonomy/tonomy-id-sdk';
 import { tonomySigner } from '../signer';
 import { ethers } from 'ethers';
@@ -160,31 +162,45 @@ export class CommunicationService {
       this.logger.log(
         `[Swap: ${loggerId}]: Swapping ${antelopeAsset} from Tonomy account ${tonomyAccount} to Base address ${baseAddress}`,
       );
-      await getTokenContract().bridgeRetire(
+      const trx = await getTokenContract().bridgeRetire(
         tonomyAccount,
         antelopeAsset,
         `$TONO swap to base ${loggerId}`,
         tonomySigner,
       );
+
       this.logger.debug(
-        `[Swap: ${loggerId}]: Retired ${antelopeAsset} from Tonomy account ${tonomyAccount}`,
+        `[Swap: ${loggerId}]: Retired ${antelopeAsset} from Tonomy account ${tonomyAccount} with transaction ${trx.transaction_id}`,
       );
-      // TODO: wait for transaction confirmation
+
+      if (settings.env === 'production' || settings.env === 'testnet') {
+        // Depends on Hyperion API which is only available on testnet and mainnet
+        await waitForTonomyTrxFinalization(trx.transaction_id);
+        this.logger.debug(
+          `[Swap: ${loggerId}]: Tonomy transaction ${trx.transaction_id} finalized`,
+        );
+      }
+
       await getBaseTokenContract().bridgeMint(baseAddress, ethAmount);
       this.logger.debug(
         `[Swap: ${loggerId}]: Minted ${antelopeAsset} to Base address ${baseAddress}`,
       );
-      //
-      //
     } else if (payload.destination === 'tonomy') {
       this.logger.log(
         `[Swap: ${loggerId}]: Swapping ${antelopeAsset} from Base address ${baseAddress} to Tonomy account ${tonomyAccount}`,
       );
-      await getBaseTokenContract().bridgeBurn(baseAddress, ethAmount);
-      this.logger.debug(
-        `[Swap: ${loggerId}]: Burned ${antelopeAsset} from Base address ${baseAddress}`,
+      const trx = await getBaseTokenContract().bridgeBurn(
+        baseAddress,
+        ethAmount,
       );
-      // TODO: wait for transaction confirmation
+
+      this.logger.debug(
+        `[Swap: ${loggerId}]: Burned ${antelopeAsset} from Base address ${baseAddress} with transaction ${trx.hash}`,
+      );
+      await waitForEvmTrxFinalization(trx.hash);
+      this.logger.debug(
+        `[Swap: ${loggerId}]: Base transaction ${trx.hash} finalized`,
+      );
       await getTokenContract().bridgeIssue(
         tonomyAccount,
         antelopeAsset,
