@@ -8,8 +8,11 @@ import {
   EosioUtil,
   getEosioMsigContract,
   getSettings,
+  getTokenContract,
 } from '@tonomy/tonomy-id-sdk';
 import Decimal from 'decimal.js';
+import { getPriceCoinGecko } from './price';
+import { getAllActions } from './actions';
 
 const CACHE_DURATION_MS = 24 * 60 * 60 * 1000; // 1 day
 
@@ -123,21 +126,24 @@ function getTotalCoins(): string {
 }
 
 async function getVestedCoins(): Promise<Decimal> {
-  const uniqueHolders = await getVestingContract().getAllUniqueHolders();
-  const allAllocations =
-    await getVestingContract().getAllAllocations(uniqueHolders);
+  // Accurate but slow method:
+  // const uniqueHolders = await getVestingContract().getAllUniqueHolders();
+  // const allAllocations =
+  //   await getVestingContract().getAllAllocations(uniqueHolders);
 
-  return allAllocations.reduce<Decimal>(
-    (previous, allocation) =>
-      previous
-        .add(assetToDecimal(allocation.tokensAllocated))
-        .minus(assetToDecimal(allocation.tokensClaimed)),
-    new Decimal(0),
-  );
+  // return allAllocations.reduce<Decimal>(
+  //   (previous, allocation) =>
+  //     previous
+  //       .add(assetToDecimal(allocation.tokensAllocated))
+  //       .minus(assetToDecimal(allocation.tokensClaimed)),
+  //   new Decimal(0),
+  // );
+
+  // Faster approximate method:
+  return await getTokenContract().getBalanceDecimal('vesting.tmy');
 }
 
 async function getStakedCoins(): Promise<Decimal> {
-  return new Decimal(0);
   const settings = await getStakingContract().getSettings();
 
   return assetToDecimal(settings.totalStaked);
@@ -182,6 +188,7 @@ type InfoStats = {
   token: {
     symbol: string;
     decimals: number;
+    price: number;
     totalCoins: string;
     circulatingSupply: string;
     staked: string;
@@ -217,130 +224,23 @@ async function getNetwork(): Promise<NetworkInfo> {
   };
 }
 
-function getHost(): string {
-  switch (getSettings().environment) {
-    case 'production':
-      return 'pangea.eosusa.io';
-    case 'testnet':
-      return 'test.pangea.eosusa.io';
-    default:
-      throw new Error(
-        `environment ${getSettings().environment} not supported for fetching all vesting holders`,
-      );
-  }
-}
-
-// https://hyperion.docs.eosrio.io/4.0/api/v2/#v2historyget_actions
-type ActionQuery = {
-  account?: string;
-  filter?: string;
-  track?: string;
-  skip?: number;
-  limit?: number;
-  sort?: string;
-  block_num?: string;
-  global_sequence?: string;
-  after?: string;
-  before?: string;
-  simple?: boolean;
-  noBinary?: boolean;
-  checkLib?: boolean;
-};
-
-type ActionResponse = {
-  '@timestamp': string;
-  timestamp: string;
-  block_num: number;
-  block_id: string;
-  trx_id: string;
-  act: {
-    account: string;
-    name: string;
-    authorization: { actor: string; permission: string }[];
-    data: any;
-  };
-  receipts: Array<{
-    receiver: string;
-    global_sequence: number;
-    recv_sequence: number;
-    auth_sequence: Array<{ account: string; sequence: number }>;
-  }>;
-  cpu_usage_us?: number;
-  net_usage_words?: number;
-  account_ram_deltas?: Array<{ account: string; delta: number }>;
-  global_sequence: number;
-  producer: string;
-  action_ordinal: number;
-  creator_action_ordinal: number;
-  signatures?: string[];
-};
-
-async function getActions(
-  query?: ActionQuery,
-): Promise<ActionResponse[] | undefined> {
-  let url = `https://${getHost()}/v2/history/get_actions`;
-
-  if (query) {
-    const params = new URLSearchParams();
-
-    for (const key of Object.keys(query)) {
-      const value = (query as any)[key];
-
-      if (value !== undefined) {
-        params.append(key, value.toString());
-      }
-    }
-
-    url += `?${params.toString()}`;
-  }
-
-  const res = await fetch(url);
-  const data = await res.json();
-
-  return data.actions;
-}
-
-async function getAllActions(query?: ActionQuery): Promise<ActionResponse[]> {
-  let allActions: ActionResponse[] = [];
-  let skip = 0;
-  const limit = 1000;
-
-  console.log('Fetching actions with query', query);
-
-  while (true) {
-    console.log(`Fetching actions from ${skip} to ${skip + limit}...`);
-    const actions = await getActions({
-      ...query,
-      skip,
-      limit,
-      noBinary: true,
-    });
-
-    if (!actions || actions.length < limit) {
-      break;
-    }
-
-    allActions = allActions.concat(actions);
-
-    if (actions.length > 0) {
-      console.log(
-        `Fetched ${actions.length} actions from ${actions[0].timestamp} to ${actions[actions.length - 1].timestamp}`,
-      );
-    }
-
-    skip += limit;
-  }
-
-  return allActions;
-}
-
 async function getTransactionInfo(): Promise<TransactionInfo> {
+  if (
+    getSettings().environment !== 'production' &&
+    getSettings().environment !== 'testnet'
+  ) {
+    return {
+      total: 0,
+      transfers: 0,
+    };
+  }
+
   const now = new Date();
   const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
   // const oneDayAgo = new Date('2024-01-01T00:00:00.000Z'); // (fetch ALL transactions since start of chain)
   const transactions = await getAllActions({
     after: oneDayAgo.toISOString(),
-    // before: now.toISOString(),
+    before: now.toISOString(),
   });
   const transfers = transactions.filter(
     (action) => action.act.name === 'transfer',
@@ -368,22 +268,18 @@ async function getGovernanceInfo(): Promise<GovernanceInfo> {
 
 async function getTokenInfo(): Promise<InfoStats['token']> {
   const totalCoins = getTotalCoins();
-
-  console.log('Fetching circulating supply...');
   const circulatingSupply = await fromCache(
     getCirculatingCoins,
     'circulatingSupply',
   );
-
-  console.log('Fetching staked coins...');
   const staked = await fromCache(getStakedCoins, 'stakedCoins');
-
-  console.log('Fetching vested coins...');
   const vested = await fromCache(getVestedCoins, 'vestedCoins');
+  const price = await getPriceCoinGecko('tonomy', 'usd');
 
   return {
     symbol: 'TONO',
     decimals: 6,
+    price,
     totalCoins,
     circulatingSupply,
     staked: staked.toFixed(6),
@@ -392,27 +288,15 @@ async function getTokenInfo(): Promise<InfoStats['token']> {
 }
 
 async function getInfoStats(): Promise<InfoStats> {
-  console.log('Fetching info stats...');
-  console.log('Fetching apps count...');
   const appsCount = await fromCache(getAppsCount, 'appsCount');
-
-  console.log('Fetching people count...');
   const peopleCount = await fromCache(getPeopleCount, 'peopleCount');
-
-  console.log('Fetching network info...');
   const network = await fromCache(getNetwork, 'network');
-
-  console.log('Fetching transactions info...');
   const transactions24hr = await fromCache(
     getTransactionInfo,
     'transactions24hr',
   );
-
-  console.log('Fetching governance info...');
   const governance = await fromCache(getGovernanceInfo, 'governance');
-
-  console.log('Fetching token info...');
-  const token = await fromCache(getTokenInfo, 'token');
+  const token = await getTokenInfo();
 
   return {
     apps: {
@@ -473,6 +357,6 @@ export class InfoService {
   }
 
   private async getStats(): Promise<InfoStats> {
-    return await fromCache(getInfoStats, 'infoStats');
+    return await getInfoStats();
   }
 }
