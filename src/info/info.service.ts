@@ -8,6 +8,7 @@ import {
   EosioUtil,
   getEosioMsigContract,
   getSettings,
+  getTokenContract,
 } from '@tonomy/tonomy-id-sdk';
 import Decimal from 'decimal.js';
 
@@ -123,21 +124,24 @@ function getTotalCoins(): string {
 }
 
 async function getVestedCoins(): Promise<Decimal> {
-  const uniqueHolders = await getVestingContract().getAllUniqueHolders();
-  const allAllocations =
-    await getVestingContract().getAllAllocations(uniqueHolders);
+  // Accurate but slow method:
+  // const uniqueHolders = await getVestingContract().getAllUniqueHolders();
+  // const allAllocations =
+  //   await getVestingContract().getAllAllocations(uniqueHolders);
 
-  return allAllocations.reduce<Decimal>(
-    (previous, allocation) =>
-      previous
-        .add(assetToDecimal(allocation.tokensAllocated))
-        .minus(assetToDecimal(allocation.tokensClaimed)),
-    new Decimal(0),
-  );
+  // return allAllocations.reduce<Decimal>(
+  //   (previous, allocation) =>
+  //     previous
+  //       .add(assetToDecimal(allocation.tokensAllocated))
+  //       .minus(assetToDecimal(allocation.tokensClaimed)),
+  //   new Decimal(0),
+  // );
+
+  // Faster approximate method:
+  return await getTokenContract().getBalanceDecimal('vesting.tmy');
 }
 
 async function getStakedCoins(): Promise<Decimal> {
-  return new Decimal(0);
   const settings = await getStakingContract().getSettings();
 
   return assetToDecimal(settings.totalStaked);
