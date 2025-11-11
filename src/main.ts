@@ -22,6 +22,14 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.use(helmet());
+  app.enableCors({
+    origin: '*', // Allow all origins; tighten this in production if possible
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders:
+      'Content-Type, Authorization, Accept, Origin, X-Requested-With',
+    exposedHeaders: 'Content-Length, Content-Type',
+    credentials: false,
+  });
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
   await setupOpenApi(app);
