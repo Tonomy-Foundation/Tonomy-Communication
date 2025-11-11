@@ -11,6 +11,7 @@ import {
   getTokenContract,
 } from '@tonomy/tonomy-id-sdk';
 import Decimal from 'decimal.js';
+import { getPriceCoinGecko } from './price';
 
 const CACHE_DURATION_MS = 24 * 60 * 60 * 1000; // 1 day
 
@@ -186,6 +187,7 @@ type InfoStats = {
   token: {
     symbol: string;
     decimals: number;
+    price: number;
     totalCoins: string;
     circulatingSupply: string;
     staked: string;
@@ -372,22 +374,18 @@ async function getGovernanceInfo(): Promise<GovernanceInfo> {
 
 async function getTokenInfo(): Promise<InfoStats['token']> {
   const totalCoins = getTotalCoins();
-
-  console.log('Fetching circulating supply...');
   const circulatingSupply = await fromCache(
     getCirculatingCoins,
     'circulatingSupply',
   );
-
-  console.log('Fetching staked coins...');
   const staked = await fromCache(getStakedCoins, 'stakedCoins');
-
-  console.log('Fetching vested coins...');
   const vested = await fromCache(getVestedCoins, 'vestedCoins');
+  const price = await getPriceCoinGecko('tonomy', 'usd');
 
   return {
     symbol: 'TONO',
     decimals: 6,
+    price,
     totalCoins,
     circulatingSupply,
     staked: staked.toFixed(6),
@@ -396,27 +394,15 @@ async function getTokenInfo(): Promise<InfoStats['token']> {
 }
 
 async function getInfoStats(): Promise<InfoStats> {
-  console.log('Fetching info stats...');
-  console.log('Fetching apps count...');
   const appsCount = await fromCache(getAppsCount, 'appsCount');
-
-  console.log('Fetching people count...');
   const peopleCount = await fromCache(getPeopleCount, 'peopleCount');
-
-  console.log('Fetching network info...');
   const network = await fromCache(getNetwork, 'network');
-
-  console.log('Fetching transactions info...');
   const transactions24hr = await fromCache(
     getTransactionInfo,
     'transactions24hr',
   );
-
-  console.log('Fetching governance info...');
   const governance = await fromCache(getGovernanceInfo, 'governance');
-
-  console.log('Fetching token info...');
-  const token = await fromCache(getTokenInfo, 'token');
+  const token = await getTokenInfo();
 
   return {
     apps: {
@@ -477,6 +463,6 @@ export class InfoService {
   }
 
   private async getStats(): Promise<InfoStats> {
-    return await fromCache(getInfoStats, 'infoStats');
+    return await getInfoStats();
   }
 }
