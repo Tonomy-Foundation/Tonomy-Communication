@@ -7,8 +7,6 @@ import { Server } from 'socket.io';
 import {
   VerificationMessage,
   SwapTokenMessage,
-  SwapBaseTokenMessage,
-  TonomyToBaseTransfer,
   verifySignature,
   getAccountNameFromDid,
   getBaseTokenContract,
@@ -19,7 +17,6 @@ import {
   getSettings,
   getTokenContract,
   randomString,
-  waitForTonomyTrxFinalization,
   waitForEvmTrxFinalization,
 } from '@tonomy/tonomy-id-sdk';
 import { tonomySigner } from '../signer';
@@ -122,10 +119,7 @@ export class CommunicationService {
    * @throws if the receiving user isn't online or loggedIn
    * @returns boolean if message is sent to the user
    */
-  async swapToken(
-    socket: Client,
-    message: SwapTokenMessage | SwapBaseTokenMessage,
-  ): Promise<boolean> {
+  async swapToken(socket: Client, message: SwapTokenMessage): Promise<boolean> {
     const loggerId = randomString(6);
     const payload = message.getPayload();
     const issuer = message.getIssuer();
@@ -140,6 +134,18 @@ export class CommunicationService {
     const baseAddress = payload.baseAddress;
     const tonomyAccount = getAccountNameFromDid(issuer);
     const amount = new Decimal(payload.amount);
+    const { result, reason } = verifySignature(
+      payload.proof.message,
+      payload.proof.signature,
+      baseAddress,
+    );
+
+    if (!result) {
+      throw new HttpException(
+        `Invalid proof of base address: ${reason}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
 
     if (amount.lessThanOrEqualTo(0)) {
       throw new HttpException(
@@ -151,53 +157,7 @@ export class CommunicationService {
     const antelopeAsset = `${amount.toFixed(6)} ${getSettings().currencySymbol}`;
     const ethAmount = ethers.parseEther(amount.toFixed(6));
 
-    if (payload.destination === 'base') {
-      this.logger.log(
-        `[Swap: ${loggerId}]: Swapping ${antelopeAsset} from Tonomy account ${tonomyAccount} to Base address ${baseAddress}`,
-      );
-      const trx = await getTokenContract().bridgeRetire(
-        tonomyAccount,
-        antelopeAsset,
-        `$TONO swap to base ${loggerId}`,
-        tonomySigner,
-      );
-
-      this.logger.debug(
-        `[Swap: ${loggerId}]: Retired ${antelopeAsset} from Tonomy account ${tonomyAccount} with transaction ${trx.transaction_id}`,
-      );
-
-      if (settings.env === 'production' || settings.env === 'testnet') {
-        // Depends on Hyperion API which is only available on testnet and mainnet
-        await waitForTonomyTrxFinalization(trx.transaction_id);
-        this.logger.debug(
-          `[Swap: ${loggerId}]: Tonomy transaction ${trx.transaction_id} finalized`,
-        );
-      }
-
-      await TonomyToBaseTransfer(
-        tonomyAccount,
-        baseAddress,
-        antelopeAsset,
-        payload.memo,
-        payload.signer,
-      );
-      this.logger.debug(
-        `[Swap: ${loggerId}]: Minted ${antelopeAsset} to Base address ${baseAddress}`,
-      );
-    } else if (payload.destination === 'tonomy') {
-      const { result, reason } = verifySignature(
-        payload.proof.message,
-        payload.proof.signature,
-        baseAddress,
-      );
-
-      if (!result) {
-        throw new HttpException(
-          `Invalid proof of base address: ${reason}`,
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-
+    if (payload.destination === 'tonomy') {
       this.logger.log(
         `[Swap: ${loggerId}]: Swapping ${antelopeAsset} from Base address ${baseAddress} to Tonomy account ${tonomyAccount}`,
       );
