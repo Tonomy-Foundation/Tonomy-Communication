@@ -23,6 +23,7 @@ import { tonomySigner } from '../signer';
 import { ethers } from 'ethers';
 import settings from '../settings';
 import { Decimal } from 'decimal.js';
+import { Transaction } from '@wharfkit/antelope';
 
 @Injectable()
 export class CommunicationService {
@@ -215,6 +216,22 @@ export class CommunicationService {
     this.logger.debug(
       `Sent 'veriff' to DID ${did}: ${JSON.stringify(payload)}`,
     );
+    return true;
+  }
+
+  swapBaseToTonomy(did: string, memo: string): boolean {
+    const socket = this.userSockets.get(did);
+
+    if (!socket) {
+      this.logger.warn(`Swap: Tokens from base to tonomy is not connected`);
+      throw new HttpException(
+        `User with DID ${did} is not connected`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    socket.emit('v1/swap/base/token', memo);
+    this.logger.debug(`Sent 'token' from base to tonomy ${memo}}`);
     return true;
   }
 
