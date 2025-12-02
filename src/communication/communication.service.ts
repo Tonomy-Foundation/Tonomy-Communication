@@ -7,6 +7,8 @@ import { Server } from 'socket.io';
 import {
   VerificationMessage,
   SwapTokenMessage,
+  SwapBaseTokenMessage,
+  TonomyToBaseTransfer,
   verifySignature,
   getAccountNameFromDid,
   getBaseTokenContract,
@@ -120,7 +122,10 @@ export class CommunicationService {
    * @throws if the receiving user isn't online or loggedIn
    * @returns boolean if message is sent to the user
    */
-  async swapToken(socket: Client, message: SwapTokenMessage): Promise<boolean> {
+  async swapToken(
+    socket: Client,
+    message: SwapTokenMessage | SwapBaseTokenMessage,
+  ): Promise<boolean> {
     const loggerId = randomString(6);
     const payload = message.getPayload();
     const issuer = message.getIssuer();
@@ -135,18 +140,6 @@ export class CommunicationService {
     const baseAddress = payload.baseAddress;
     const tonomyAccount = getAccountNameFromDid(issuer);
     const amount = new Decimal(payload.amount);
-    const { result, reason } = verifySignature(
-      payload.proof.message,
-      payload.proof.signature,
-      baseAddress,
-    );
-
-    if (!result) {
-      throw new HttpException(
-        `Invalid proof of base address: ${reason}`,
-        HttpStatus.BAD_REQUEST,
-      );
-    }
 
     if (amount.lessThanOrEqualTo(0)) {
       throw new HttpException(
@@ -181,11 +174,30 @@ export class CommunicationService {
         );
       }
 
-      await getBaseTokenContract().bridgeMint(baseAddress, ethAmount);
+      await TonomyToBaseTransfer(
+        tonomyAccount,
+        baseAddress,
+        antelopeAsset,
+        payload.memo,
+        payload.signer,
+      );
       this.logger.debug(
         `[Swap: ${loggerId}]: Minted ${antelopeAsset} to Base address ${baseAddress}`,
       );
     } else if (payload.destination === 'tonomy') {
+      const { result, reason } = verifySignature(
+        payload.proof.message,
+        payload.proof.signature,
+        baseAddress,
+      );
+
+      if (!result) {
+        throw new HttpException(
+          `Invalid proof of base address: ${reason}`,
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
       this.logger.log(
         `[Swap: ${loggerId}]: Swapping ${antelopeAsset} from Base address ${baseAddress} to Tonomy account ${tonomyAccount}`,
       );
