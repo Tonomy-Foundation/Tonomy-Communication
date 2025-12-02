@@ -29,6 +29,7 @@
     "@nestjs/mapped-types": "^2.0.2",
     "@nestjs/platform-express": "^10.2.3",
     "@nestjs/platform-socket.io": "^10.2.3",
+    "@nestjs/schedule": "^6.0.1",
     "@nestjs/swagger": "^7.1.10",
     "@nestjs/websockets": "^10.2.3",
     "@tonomy/tonomy-id-sdk": "0.35.1",
