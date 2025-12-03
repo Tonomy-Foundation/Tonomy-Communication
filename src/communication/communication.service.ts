@@ -250,34 +250,54 @@ export class CommunicationService {
   }
 }
 
+let tonomyAppsAccountName: string | undefined;
+
+async function getAccountNameForTonomyAppsPlatform(
+  tonomyAppsWebsiteUsername?: string,
+): Promise<string> {
+  if (!tonomyAppsWebsiteUsername) {
+    tonomyAppsWebsiteUsername = 'tonomy-apps';
+    if (tonomyAppsAccountName) return tonomyAppsAccountName;
+  } else {
+    if (settings.isProduction())
+      throw new Error(
+        'tonomyAppsWebsiteUsername can only be used in non-production environments',
+      );
+  }
+
+  const app = await getTonomyContract().getApp(
+    TonomyUsername.fromUsername(
+      tonomyAppsWebsiteUsername,
+      AccountType.APP,
+      getSettings().accountSuffix,
+    ),
+  );
+
+  if (!tonomyAppsWebsiteUsername)
+    tonomyAppsAccountName = app.accountName.toString();
+  return app.accountName.toString();
+}
+
 async function checkIssuerFromTonomyPlatform(
   issuer: string,
   tonomyAppsWebsiteUsername?: string,
 ) {
   const { fragment } = parseDid(issuer);
 
-  let usernamePrefix = 'tonomy-apps';
-
-  if (tonomyAppsWebsiteUsername) {
-    if (settings.isProduction())
-      throw new Error(
-        '_testOnly_tonomyAppsWebsiteUsername can only be used in non-production environments',
-      );
-    usernamePrefix = tonomyAppsWebsiteUsername;
-  }
-
-  const app = await getTonomyContract().getApp(
-    TonomyUsername.fromUsername(
-      usernamePrefix,
-      AccountType.APP,
-      getSettings().accountSuffix,
-    ),
+  const accountName = await getAccountNameForTonomyAppsPlatform(
+    tonomyAppsWebsiteUsername,
   );
 
-  if (fragment !== app.accountName.toString()) {
+  if (fragment !== accountName.toString()) {
     throw new HttpException(
       `Invalid DID fragment ${fragment}, did not match the account name from the Tonomy apps platform`,
       HttpStatus.BAD_REQUEST,
     );
   }
+}
+
+export async function createDidFromTonomyAppsPlatform(accountName: string) {
+  const fragment = await getAccountNameForTonomyAppsPlatform();
+
+  return `did:tonomy:${accountName}#${fragment}`;
 }
