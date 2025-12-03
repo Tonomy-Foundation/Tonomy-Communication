@@ -234,7 +234,7 @@ export class CommunicationService {
       );
     }
 
-    socket.emit('v1/swap/base/token', memo);
+    socket.emit('v1/swap/token/confirm', memo);
     this.logger.debug(`Sent 'token' from base to tonomy ${memo}}`);
     return true;
   }
