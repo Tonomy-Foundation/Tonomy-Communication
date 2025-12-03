@@ -14,8 +14,8 @@ import {
 import { Decimal } from 'decimal.js';
 import { tonomySigner } from '../signer';
 import { CommunicationGateway } from '../communication/communication.gateway';
-import { createDidFromTonomyAppsPlatform } from 'src/communication/communication.service';
-import settings from 'src/settings';
+import { createDidFromTonomyAppsPlatform } from '../communication/communication.service';
+import settings from '../settings';
 
 @Injectable()
 export class BaseTokenTransferMonitorService
