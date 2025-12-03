@@ -16,17 +16,18 @@ type ConfigType = {
   accountSuffix: string;
   currencySymbol: string;
   loggerLevel:
-    | 'emergency'
-    | 'alert'
-    | 'critical'
-    | 'error'
-    | 'warning'
-    | 'notice'
-    | 'info'
-    | 'debug';
+  | 'emergency'
+  | 'alert'
+  | 'critical'
+  | 'error'
+  | 'warning'
+  | 'notice'
+  | 'info'
+  | 'debug';
   baseNetwork: 'base' | 'base-sepolia' | 'hardhat' | 'localhost';
   baseRpcUrl: string;
   baseTokenAddress?: string;
+  baseMintBurnAddress?: string;
 };
 
 type SettingsType = {
@@ -49,14 +50,14 @@ const settings: SettingsType = {
 
 type FixLoggerLevelEnumType<T> = Omit<T, 'loggerLevel'> & {
   loggerLevel:
-    | 'emergency'
-    | 'alert'
-    | 'critical'
-    | 'error'
-    | 'warning'
-    | 'notice'
-    | 'info'
-    | 'debug';
+  | 'emergency'
+  | 'alert'
+  | 'critical'
+  | 'error'
+  | 'warning'
+  | 'notice'
+  | 'info'
+  | 'debug';
 };
 
 switch (env) {
