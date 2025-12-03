@@ -6,82 +6,22 @@ import {
 } from '@nestjs/common';
 import {
     getBaseTokenContract,
+    getSettings,
+    getTokenContract,
     waitForEvmTrxFinalization,
 } from '@tonomy/tonomy-id-sdk';
-
-export interface TransferRecord {
-    finalized: boolean;
-    dateAdded: Date;
-    amount: string;
-    swapTransfer?: boolean;
-    swapId: string;
-    tonomyAccount: string;
-    dateFinalized?: Date;
-    confirmedToWallet: boolean;
-    from: string;
-    to: string;
-}
+import { Decimal } from 'decimal.js';
+import { tonomySigner } from '../signer';
+import { CommunicationGateway } from '../communication/communication.gateway';
 
 @Injectable()
 export class BaseTokenTransferMonitorService
     implements OnModuleInit, OnApplicationShutdown {
     private readonly logger = new Logger(BaseTokenTransferMonitorService.name);
 
-    private removeListener?: () => void;
-    private cleanupInterval?: NodeJS.Timeout;
-    private readonly transferRecords = new Map<string, TransferRecord>();
-
-    getTransferRecordBySwapId(swapId: string): TransferRecord | undefined {
-        for (const record of this.transferRecords.values()) {
-            if (record.swapId === swapId) {
-                return record;
-            }
-        }
-
-        return undefined;
-    }
-
-    markAsRead(txHash: string) {
-        const record = this.transferRecords.get(txHash);
-
-        if (record) {
-            record.confirmedToWallet = true;
-        }
-    }
-
-    private cleanupOldRecords() {
-        const now = Date.now();
-        const twentyFourHoursMs = 24 * 60 * 60 * 1000;
-        let removedCount = 0;
-
-        for (const [txHash, record] of this.transferRecords.entries()) {
-            const age = now - record.dateAdded.getTime();
-
-            if (age > twentyFourHoursMs) {
-                this.transferRecords.delete(txHash);
-                removedCount++;
-            }
-        }
-
-        if (removedCount > 0) {
-            this.logger.debug(
-                `Cleaned up ${removedCount} transfer record(s) older than 24 hours`,
-            );
-        }
-    }
+    constructor(private readonly communicationGateway: CommunicationGateway) { }
 
     async onModuleInit() {
-        // Clean up any stale records from previous run
-        this.cleanupOldRecords();
-
-        // Schedule periodic cleanup every hour
-        this.cleanupInterval = setInterval(
-            () => {
-                this.cleanupOldRecords();
-            },
-            60 * 60 * 1000,
-        ); // 1 hour
-
         const contract = getBaseTokenContract();
         const event = contract.getEvent('Transfer');
 
@@ -92,92 +32,92 @@ export class BaseTokenTransferMonitorService
             event: any,
         ) => {
             try {
-                console.log('Transfer event detected:', { from, to, amount, event });
                 /*
-                                                                                                                {
-                                                                                                                    from: '0x8DE48baf638e4Cd8Dab07Ef12375369Cb9b841dB',
-                                                                                                                    to: '0x76c6227dB16B6EE03E4f15cA64Cb1FBEbd530cEa',
-                                                                                                                    amount: 1000000000000000000n,
-                                                                                                                    event: ContractEventPayload {
-                                                                                                                        filter: [Function: Transfer] {
-                                                                                                                        name: 'Transfer',
-                                                                                                                        _contract: [Contract],
-                                                                                                                        _key: 'Transfer',
-                                                                                                                        getFragment: [Function: getFragment],
-                                                                                                                        fragment: [Getter]
-                                                                                                                        },
-                                                                                                                        emitter: Contract {
-                                                                                                                        target: '0x56aD9925f417358640746266eF44a701622c54Ba',
-                                                                                                                        interface: [Interface],
-                                                                                                                        runner: [Wallet],
-                                                                                                                        filters: {},
-                                                                                                                        fallback: null,
-                                                                                                                        [Symbol(_ethersInternal_contract)]: {}
-                                                                                                                        },
-                                                                                                                        log: EventLog {
-                                                                                                                        provider: JsonRpcProvider {},
-                                                                                                                        transactionHash: '0xbfe0162443259b0780c76cecca8762c3222e20ef8e35c82605814c3197a7c319',
-                                                                                                                        blockHash: '0x68b924d431fa368fa6a909fae028642148ec8ab3b6d4d55728153ab0f46e5153',
-                                                                                                                        blockNumber: 34458571,
-                                                                                                                        removed: false,
-                                                                                                                        address: '0x56aD9925f417358640746266eF44a701622c54Ba',
-                                                                                                                        data: '0x0000000000000000000000000000000000000000000000000de0b6b3a7640000',
-                                                                                                                        topics: [Array],
-                                                                                                                        index: 459,
-                                                                                                                        transactionIndex: 14,
-                                                                                                                        interface: [Interface],
-                                                                                                                        fragment: [EventFragment],
-                                                                                                                        args: [Result]
-                                                                                                                        },
-                                                                                                                        args: Result(3) [
-                                                                                                                        '0x8DE48baf638e4Cd8Dab07Ef12375369Cb9b841dB',
-                                                                                                                        '0x76c6227dB16B6EE03E4f15cA64Cb1FBEbd530cEa',
-                                                                                                                        1000000000000000000n
-                                                                                                                        ],
-                                                                                                                        fragment: EventFragment {
-                                                                                                                        type: 'event',
-                                                                                                                        inputs: [Array],
-                                                                                                                        name: 'Transfer',
-                                                                                                                        anonymous: false
-                                                                                                                        }
-                                                                                                                    }
-                                                                                                                }
-                                                                                                                */
+                                                                                                                                                                        {
+                                                                                                                                                                            from: '0x8DE48baf638e4Cd8Dab07Ef12375369Cb9b841dB',
+                                                                                                                                                                            to: '0x76c6227dB16B6EE03E4f15cA64Cb1FBEbd530cEa',
+                                                                                                                                                                            amount: 1000000000000000000n,
+                                                                                                                                                                            event: ContractEventPayload {
+                                                                                                                                                                                filter: [Function: Transfer] {
+                                                                                                                                                                                name: 'Transfer',
+                                                                                                                                                                                _contract: [Contract],
+                                                                                                                                                                                _key: 'Transfer',
+                                                                                                                                                                                getFragment: [Function: getFragment],
+                                                                                                                                                                                fragment: [Getter]
+                                                                                                                                                                                },
+                                                                                                                                                                                emitter: Contract {
+                                                                                                                                                                                target: '0x56aD9925f417358640746266eF44a701622c54Ba',
+                                                                                                                                                                                interface: [Interface],
+                                                                                                                                                                                runner: [Wallet],
+                                                                                                                                                                                filters: {},
+                                                                                                                                                                                fallback: null,
+                                                                                                                                                                                [Symbol(_ethersInternal_contract)]: {}
+                                                                                                                                                                                },
+                                                                                                                                                                                log: EventLog {
+                                                                                                                                                                                provider: JsonRpcProvider {},
+                                                                                                                                                                                transactionHash: '0xbfe0162443259b0780c76cecca8762c3222e20ef8e35c82605814c3197a7c319',
+                                                                                                                                                                                blockHash: '0x68b924d431fa368fa6a909fae028642148ec8ab3b6d4d55728153ab0f46e5153',
+                                                                                                                                                                                blockNumber: 34458571,
+                                                                                                                                                                                removed: false,
+                                                                                                                                                                                address: '0x56aD9925f417358640746266eF44a701622c54Ba',
+                                                                                                                                                                                data: '0x0000000000000000000000000000000000000000000000000de0b6b3a7640000',
+                                                                                                                                                                                topics: [Array],
+                                                                                                                                                                                index: 459,
+                                                                                                                                                                                transactionIndex: 14,
+                                                                                                                                                                                interface: [Interface],
+                                                                                                                                                                                fragment: [EventFragment],
+                                                                                                                                                                                args: [Result]
+                                                                                                                                                                                },
+                                                                                                                                                                                args: Result(3) [
+                                                                                                                                                                                '0x8DE48baf638e4Cd8Dab07Ef12375369Cb9b841dB',
+                                                                                                                                                                                '0x76c6227dB16B6EE03E4f15cA64Cb1FBEbd530cEa',
+                                                                                                                                                                                1000000000000000000n
+                                                                                                                                                                                ],
+                                                                                                                                                                                fragment: EventFragment {
+                                                                                                                                                                                type: 'event',
+                                                                                                                                                                                inputs: [Array],
+                                                                                                                                                                                name: 'Transfer',
+                                                                                                                                                                                anonymous: false
+                                                                                                                                                                                }
+                                                                                                                                                                            }
+                                                                                                                                                                        }
+                                                                                                                                                                        */
                 const txHash: string = event.log.transactionHash;
-
-                if (this.transferRecords.has(txHash)) return;
-
-                // Create initial record
-                const record: TransferRecord = {
-                    finalized: false,
-                    dateAdded: new Date(),
-                    amount: amount.toString(),
-                    swapTransfer: false, // TODO: populate from transaction extra data
-                    swapId: '', // TODO: populate from transaction extra data
-                    tonomyAccount: '', // TODO: populate from transaction extra data
-                    confirmedToWallet: false,
-                    from,
-                    to,
-                };
-
-                this.transferRecords.set(txHash, record);
+                const amountDecimal = new Decimal(amount.toString()).div(
+                    new Decimal(10).pow(18),
+                );
+                const antelopeAsset = `${amountDecimal.toFixed(6)} ${getSettings().currencySymbol}`;
 
                 this.logger.debug(
-                    `Transfer detected (pending): from ${from} to ${to} amount ${amount.toString() ?? amount}`,
+                    `Transfer detected (pending):  tx ${txHash} from ${from} to ${to} amount ${antelopeAsset}`,
                 );
+
+                // somewhere else you can get the transaction
+                // const tx = provider.getTransaction(txHash)
+
+                // // 0x + function selector 4bytes-8chars + 2 32bytes arguments = 138
+                // const hexMemo = tx.data.substring(138, tx.data.length);
+
+                // const memoString = ethers.toUtf8String("0x" + txMemo1);
 
                 await waitForEvmTrxFinalization(txHash);
 
-                // Update record with finalization
-                record.finalized = true;
-                record.dateFinalized = new Date();
-
                 this.logger.debug(
-                    `Transfer finalized: tx ${txHash} from ${from} to ${to} amount ${amount.toString() ?? amount}`,
+                    `Transfer finalized: tx ${txHash} from ${from} to ${to} amount ${antelopeAsset}`,
                 );
 
-                // TODO: do the swap
-                // TODO: send a message back to the FE in websocket event
+                await getTokenContract().bridgeIssue(
+                    tonomyAccount,
+                    antelopeAsset,
+                    `$TONO swap to tonomy ${loggerId}`,
+                    tonomySigner,
+                );
+
+                // Send notification to wallet via WebSocket
+                this.communicationGateway.sendBaseToTonomySwapTransaction(
+                    did,
+                    `$TONO swap to tonomy ${loggerId}`,
+                );
             } catch (err) {
                 this.logger.error('Error processing Transfer event', err as Error);
                 // Keep the record even on error so we can track failed attempts

@@ -23,7 +23,6 @@ import { tonomySigner } from '../signer';
 import { ethers } from 'ethers';
 import settings from '../settings';
 import { Decimal } from 'decimal.js';
-import { Transaction } from '@wharfkit/antelope';
 
 @Injectable()
 export class CommunicationService {
