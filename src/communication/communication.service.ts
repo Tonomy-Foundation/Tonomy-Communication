@@ -158,7 +158,12 @@ export class CommunicationService {
     const antelopeAsset = `${amount.toFixed(6)} ${getSettings().currencySymbol}`;
     const ethAmount = ethers.parseEther(amount.toFixed(6));
 
-    if (payload.destination === 'tonomy') {
+    if (payload.destination === 'base') {
+      throw new HttpException(
+        `Invalid base destination`,
+        HttpStatus.BAD_REQUEST,
+      );
+    } else if (payload.destination === 'tonomy') {
       this.logger.log(
         `[Swap: ${loggerId}]: Swapping ${antelopeAsset} from Base address ${baseAddress} to Tonomy account ${tonomyAccount}`,
       );
