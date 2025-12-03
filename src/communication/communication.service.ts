@@ -17,13 +17,13 @@ import {
   getSettings,
   getTokenContract,
   randomString,
-  waitForTonomyTrxFinalization,
   waitForEvmTrxFinalization,
 } from '@tonomy/tonomy-id-sdk';
 import { tonomySigner } from '../signer';
 import { ethers } from 'ethers';
 import settings from '../settings';
 import { Decimal } from 'decimal.js';
+import { Transaction } from '@wharfkit/antelope';
 
 @Injectable()
 export class CommunicationService {
@@ -159,31 +159,9 @@ export class CommunicationService {
     const ethAmount = ethers.parseEther(amount.toFixed(6));
 
     if (payload.destination === 'base') {
-      this.logger.log(
-        `[Swap: ${loggerId}]: Swapping ${antelopeAsset} from Tonomy account ${tonomyAccount} to Base address ${baseAddress}`,
-      );
-      const trx = await getTokenContract().bridgeRetire(
-        tonomyAccount,
-        antelopeAsset,
-        `$TONO swap to base ${loggerId}`,
-        tonomySigner,
-      );
-
-      this.logger.debug(
-        `[Swap: ${loggerId}]: Retired ${antelopeAsset} from Tonomy account ${tonomyAccount} with transaction ${trx.transaction_id}`,
-      );
-
-      if (settings.env === 'production' || settings.env === 'testnet') {
-        // Depends on Hyperion API which is only available on testnet and mainnet
-        await waitForTonomyTrxFinalization(trx.transaction_id);
-        this.logger.debug(
-          `[Swap: ${loggerId}]: Tonomy transaction ${trx.transaction_id} finalized`,
-        );
-      }
-
-      await getBaseTokenContract().bridgeMint(baseAddress, ethAmount);
-      this.logger.debug(
-        `[Swap: ${loggerId}]: Minted ${antelopeAsset} to Base address ${baseAddress}`,
+      throw new HttpException(
+        `Invalid base destination`,
+        HttpStatus.BAD_REQUEST,
       );
     } else if (payload.destination === 'tonomy') {
       this.logger.log(
@@ -243,6 +221,22 @@ export class CommunicationService {
     this.logger.debug(
       `Sent 'veriff' to DID ${did}: ${JSON.stringify(payload)}`,
     );
+    return true;
+  }
+
+  swapBaseToTonomy(did: string, memo: string): boolean {
+    const socket = this.userSockets.get(did);
+
+    if (!socket) {
+      this.logger.warn(`Swap: Tokens from base to tonomy is not connected`);
+      throw new HttpException(
+        `User with DID ${did} is not connected`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    socket.emit('v1/swap/base/token', memo);
+    this.logger.debug(`Sent 'token' from base to tonomy ${memo}}`);
     return true;
   }
 

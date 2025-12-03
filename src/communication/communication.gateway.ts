@@ -28,6 +28,7 @@ import { CommunicationGuard } from './communication.guard';
 import { BodyDto } from './dto/body.dto';
 import { Server } from 'socket.io';
 import { SwapBodyDto } from './dto/swapBody.dto';
+import { Transaction } from 'typeorm';
 
 export type WebsocketReturnType = {
   status: HttpStatus;
@@ -153,6 +154,16 @@ export class CommunicationGateway
       this.usersService.sendVeriffToDid(did, payload);
     } catch (err) {
       this.logger.error(`Failed to send veriff to ${did}: ${err.message}`);
+    }
+  }
+
+  sendBaseToTonomySwapTransaction(did: string, memo: string) {
+    try {
+      this.usersService.swapBaseToTonomy(did, memo);
+    } catch (err) {
+      this.logger.error(
+        `Failed to send swap from base to tonomy ${memo}: ${err.message}`,
+      );
     }
   }
 }
