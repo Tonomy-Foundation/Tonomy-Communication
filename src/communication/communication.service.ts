@@ -183,7 +183,25 @@ export class CommunicationService {
       );
     }
 
-    await getBaseTokenContract().bridgeMint(baseAddress, ethAmount);
+    if (settings.env === 'production') {
+      // Need to do a more complicated DAO transaction...
+      throw new HttpException(
+        `Swap from Tonomy to Base is not yet supported in production`,
+        HttpStatus.NOT_IMPLEMENTED,
+      );
+    } else {
+      const mintTrx = await getBaseTokenContract().transfer(
+        baseAddress,
+        ethAmount,
+      );
+
+      await waitForEvmTrxFinalization(mintTrx.hash);
+
+      this.logger.debug(
+        `[Swap: ${loggerId}]: Mint transaction submitted to Base with transaction hash ${mintTrx.hash}`,
+      );
+    }
+
     this.logger.debug(
       `[Swap: ${loggerId}]: Minted ${antelopeAsset} to Base address ${baseAddress}`,
     );
