@@ -18,6 +18,7 @@ import {
   getTokenContract,
   randomString,
   waitForEvmTrxFinalization,
+  waitForTonomyTrxFinalization,
 } from '@tonomy/tonomy-id-sdk';
 import { tonomySigner } from '../signer';
 import { ethers } from 'ethers';
@@ -119,7 +120,10 @@ export class CommunicationService {
    * @throws if the receiving user isn't online or loggedIn
    * @returns boolean if message is sent to the user
    */
-  async swapToken(socket: Client, message: SwapTokenMessage): Promise<boolean> {
+  async swapTokenTonomyToBase(
+    socket: Client,
+    message: SwapTokenMessage,
+  ): Promise<boolean> {
     const loggerId = randomString(6);
     const payload = message.getPayload();
     const issuer = message.getIssuer();
@@ -157,38 +161,32 @@ export class CommunicationService {
     const antelopeAsset = `${amount.toFixed(6)} ${getSettings().currencySymbol}`;
     const ethAmount = ethers.parseEther(amount.toFixed(6));
 
-    if (payload.destination === 'tonomy') {
-      this.logger.log(
-        `[Swap: ${loggerId}]: Swapping ${antelopeAsset} from Base address ${baseAddress} to Tonomy account ${tonomyAccount}`,
-      );
-      const trx = await getBaseTokenContract().bridgeBurn(
-        baseAddress,
-        ethAmount,
-      );
+    this.logger.log(
+      `[Swap: ${loggerId}]: Swapping ${antelopeAsset} from Tonomy account ${tonomyAccount} to Base address ${baseAddress}`,
+    );
+    const trx = await getTokenContract().bridgeRetire(
+      tonomyAccount,
+      antelopeAsset,
+      `$TONO swap to base ${loggerId}`,
+      tonomySigner,
+    );
 
+    this.logger.debug(
+      `[Swap: ${loggerId}]: Retired ${antelopeAsset} from Tonomy account ${tonomyAccount} with transaction ${trx.transaction_id}`,
+    );
+
+    if (settings.env === 'production' || settings.env === 'testnet') {
+      // Depends on Hyperion API which is only available on testnet and mainnet
+      await waitForTonomyTrxFinalization(trx.transaction_id);
       this.logger.debug(
-        `[Swap: ${loggerId}]: Burned ${antelopeAsset} from Base address ${baseAddress} with transaction ${trx.hash}`,
-      );
-      await waitForEvmTrxFinalization(trx.hash);
-      this.logger.debug(
-        `[Swap: ${loggerId}]: Base transaction ${trx.hash} finalized`,
-      );
-      await getTokenContract().bridgeIssue(
-        tonomyAccount,
-        antelopeAsset,
-        `$TONO swap to tonomy ${loggerId}`,
-        tonomySigner,
-      );
-      this.logger.debug(
-        `[Swap: ${loggerId}]: Issued ${antelopeAsset} to Tonomy account ${tonomyAccount}`,
-      );
-    } else {
-      throw new HttpException(
-        `Invalid destination ${payload.destination}`,
-        HttpStatus.BAD_REQUEST,
+        `[Swap: ${loggerId}]: Tonomy transaction ${trx.transaction_id} finalized`,
       );
     }
 
+    await getBaseTokenContract().bridgeMint(baseAddress, ethAmount);
+    this.logger.debug(
+      `[Swap: ${loggerId}]: Minted ${antelopeAsset} to Base address ${baseAddress}`,
+    );
     this.logger.log(`[Swap: ${loggerId}]: Swap completed successfully`);
 
     return true;
@@ -218,7 +216,7 @@ export class CommunicationService {
     return true;
   }
 
-  swapBaseToTonomy(did: string, memo: string): boolean {
+  emitBaseToTonomySwapConfirmation(did: string, memo: string): boolean {
     const socket = this.userSockets.get(did);
 
     if (!socket) {

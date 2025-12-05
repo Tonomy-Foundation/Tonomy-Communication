@@ -47,13 +47,12 @@ export type WebsocketReturnType = {
 })
 @UseFilters(new BaseWsExceptionFilter())
 export class CommunicationGateway
-  implements OnGatewayDisconnect, OnGatewayInit
-{
+  implements OnGatewayDisconnect, OnGatewayInit {
   @WebSocketServer()
   server!: Server;
 
   private readonly logger = new Logger(CommunicationGateway.name);
-  constructor(private readonly usersService: CommunicationService) {}
+  constructor(private readonly usersService: CommunicationService) { }
 
   afterInit(server: Server) {
     this.usersService.setServer(server);
@@ -121,9 +120,9 @@ export class CommunicationGateway
    * @param {SwapBodyDto} body - The swap token message VC or an error from the transformer
    * @param client user socket
    */
-  @SubscribeMessage('v1/swap/token/tono')
+  @SubscribeMessage('v2/swap/token/tono')
   @UseGuards(CommunicationGuard)
-  async swapToken(
+  async swapTokenTonomyToBase(
     @MessageBody() body: SwapBodyDto,
     @ConnectedSocket() client: Client,
   ) {
@@ -134,7 +133,7 @@ export class CommunicationGateway
 
       return {
         status: HttpStatus.OK,
-        details: await this.usersService.swapToken(client, message),
+        details: await this.usersService.swapTokenTonomyToBase(client, message),
       };
     } catch (e) {
       return this.usersService.handleError(e);
@@ -157,9 +156,9 @@ export class CommunicationGateway
     }
   }
 
-  sendBaseToTonomySwapTransaction(did: string, memo: string) {
+  emitBaseToTonomySwapConfirmation(did: string, memo: string) {
     try {
-      this.usersService.swapBaseToTonomy(did, memo);
+      this.usersService.emitBaseToTonomySwapConfirmation(did, memo);
     } catch (err) {
       this.logger.error(
         `Failed to send swap from base to tonomy ${memo}: ${err.message}`,

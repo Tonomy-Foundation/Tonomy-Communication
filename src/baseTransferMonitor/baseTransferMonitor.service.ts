@@ -10,6 +10,7 @@ import {
     getTokenContract,
     waitForEvmTrxFinalization,
     decodeTransferTransaction,
+    parseSwapMemo,
 } from '@tonomy/tonomy-id-sdk';
 import { Decimal } from 'decimal.js';
 import { tonomySigner } from '../signer';
@@ -51,8 +52,7 @@ export class BaseTokenTransferMonitorService
                     return;
                 }
 
-                const swapId = memo.split(':')[1];
-                const tonomyAccount = memo.split(':')[2];
+                const { swapId, tonomyAccount } = parseSwapMemo(memo);
                 const amountDecimal = new Decimal(amount.toString()).div(
                     new Decimal(10).pow(18),
                 );
@@ -78,7 +78,7 @@ export class BaseTokenTransferMonitorService
                 this.logger.log(`Swap completed: tx ${txHash} swapId ${swapId}`);
 
                 // Send notification to wallet via WebSocket
-                this.communicationGateway.sendBaseToTonomySwapTransaction(did, memo);
+                this.communicationGateway.emitBaseToTonomySwapConfirmation(did, memo);
             } catch (err) {
                 this.logger.error('Error processing Transfer event', err as Error);
                 // Keep the record even on error so we can track failed attempts
