@@ -19,6 +19,7 @@ import {
   randomString,
   waitForEvmTrxFinalization,
   waitForTonomyTrxFinalization,
+  sendSafeWalletTransfer,
 } from '@tonomy/tonomy-id-sdk';
 import { tonomySigner } from '../signer';
 import { ethers } from 'ethers';
@@ -185,9 +186,13 @@ export class CommunicationService {
 
     if (settings.env === 'production') {
       // Need to do a more complicated DAO transaction...
-      throw new HttpException(
-        `Swap from Tonomy to Base is not yet supported in production`,
-        HttpStatus.NOT_IMPLEMENTED,
+      const safeClientResult = await sendSafeWalletTransfer(
+        baseAddress,
+        ethAmount,
+      );
+
+      this.logger.debug(
+        `[Swap: ${loggerId}]: Safe wallet transfer to Base address ${baseAddress} completed with safe transaction hash ${safeClientResult.safeTxHash}`,
       );
     } else {
       const mintTrx = await getBaseTokenContract().transfer(
