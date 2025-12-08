@@ -25,6 +25,9 @@ import { tonomySigner } from '../signer';
 import { ethers } from 'ethers';
 import settings from '../settings';
 import { Decimal } from 'decimal.js';
+import Debug from 'debug';
+
+const debug = Debug('tonomy-communication:communication.service');
 
 @Injectable()
 export class CommunicationService {
@@ -72,7 +75,7 @@ export class CommunicationService {
    * @returns boolean if user is connected successfully
    */
   login(did: string, socket: Client): boolean {
-    this.logger.debug('login()', did, socket.id);
+    this.logger.debug(`login() ${did} ${socket.id}`);
 
     if (this.loggedInUsers.get(did) === socket.id) return false;
     this.loggedInUsers.set(did, socket.id);
@@ -93,11 +96,7 @@ export class CommunicationService {
     const recipient = this.loggedInUsers.get(message.getRecipient());
 
     this.logger.debug(
-      'sendMessage()',
-      message.getIssuer(),
-      message.getRecipient(),
-      message.getType(),
-      recipient,
+      `sendMessage() ${message.getIssuer()} ${message.getRecipient()} ${message.getType()} ${recipient}`,
     );
 
     if (!recipient) {
@@ -130,7 +129,7 @@ export class CommunicationService {
     const issuer = message.getIssuer();
 
     this.logger.debug(
-      `[Swap: ${loggerId}]: swapToken() from ${issuer} to Base address ${payload.baseAddress}`,
+      `[Swap T->B: ${loggerId}]: swapToken() from ${issuer} to Base address ${payload.baseAddress}`,
     );
 
     await checkIssuerFromTonomyPlatform(
@@ -165,7 +164,7 @@ export class CommunicationService {
     const ethAmount = ethers.parseEther(amount.toFixed(6));
 
     this.logger.log(
-      `[Swap: ${loggerId}]: Swapping ${antelopeAsset} from Tonomy account ${tonomyAccount} to Base address ${baseAddress}`,
+      `[Swap T->B: ${loggerId}]: Swapping ${antelopeAsset} from Tonomy account ${tonomyAccount} to Base address ${baseAddress}`,
     );
     const trx = await getTokenContract().bridgeRetire(
       tonomyAccount,
@@ -175,14 +174,14 @@ export class CommunicationService {
     );
 
     this.logger.debug(
-      `[Swap: ${loggerId}]: Retired ${antelopeAsset} from Tonomy account ${tonomyAccount} with transaction ${trx.transaction_id}`,
+      `[Swap T->B: ${loggerId}]: Retired ${antelopeAsset} from Tonomy account ${tonomyAccount} with transaction ${trx.transaction_id}`,
     );
 
     if (settings.env === 'production' || settings.env === 'testnet') {
       // Depends on Hyperion API which is only available on testnet and mainnet
       await waitForTonomyTrxFinalization(trx.transaction_id);
       this.logger.debug(
-        `[Swap: ${loggerId}]: Tonomy transaction ${trx.transaction_id} finalized`,
+        `[Swap T->B: ${loggerId}]: Tonomy transaction ${trx.transaction_id} finalized`,
       );
     }
 
@@ -192,9 +191,19 @@ export class CommunicationService {
         baseAddress,
         ethAmount,
       );
+      const trxHash = safeClientResult.transactions?.ethereumTxHash;
+
+      if (!trxHash) {
+        throw new HttpException(
+          `Safe wallet transfer failed for Base address ${baseAddress}`,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      await waitForEvmTrxFinalization(trxHash);
 
       this.logger.debug(
-        `[Swap: ${loggerId}]: Safe wallet transfer to Base address ${baseAddress} completed with Base transaction hash ${safeClientResult.transactions?.ethereumTxHash}`,
+        `[Swap T->B: ${loggerId}]: Safe wallet transfer to Base address ${baseAddress} submitted with transaction hash ${trxHash}`,
       );
     } else {
       const mintTrx = await getBaseTokenContract().transfer(
@@ -205,15 +214,11 @@ export class CommunicationService {
       await waitForEvmTrxFinalization(mintTrx.hash);
 
       this.logger.debug(
-        `[Swap: ${loggerId}]: Mint transaction submitted to Base with transaction hash ${mintTrx.hash}`,
+        `[Swap T->B: ${loggerId}]: Mint transaction submitted to Base with transaction hash ${mintTrx.hash}`,
       );
     }
 
-    this.logger.debug(
-      `[Swap: ${loggerId}]: Minted ${antelopeAsset} to Base address ${baseAddress}`,
-    );
-    this.logger.log(`[Swap: ${loggerId}]: Swap completed successfully`);
-
+    this.logger.log(`[Swap T->B: ${loggerId}]: Swap completed successfully`);
     return true;
   }
 
@@ -273,9 +278,15 @@ let tonomyAppsAccountName: string | undefined;
 async function getAccountNameForTonomyAppsPlatform(
   tonomyAppsWebsiteUsername?: string,
 ): Promise<string> {
+  debug(`getAccountNameForTonomyAppsPlatform() ${tonomyAppsWebsiteUsername}`);
+
   if (!tonomyAppsWebsiteUsername) {
     tonomyAppsWebsiteUsername = 'tonomy-apps';
-    if (tonomyAppsAccountName) return tonomyAppsAccountName;
+
+    if (tonomyAppsAccountName) {
+      debug(`Using cached tonomyAppsAccountName: ${tonomyAppsAccountName}`);
+      return tonomyAppsAccountName;
+    }
   } else {
     if (settings.isProduction())
       throw new Error(

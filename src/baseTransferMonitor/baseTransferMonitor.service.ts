@@ -11,6 +11,7 @@ import {
   waitForEvmTrxFinalization,
   decodeTransferTransaction,
   parseSwapMemo,
+  waitForTonomyTrxFinalization,
 } from '@tonomy/tonomy-id-sdk';
 import { Decimal } from 'decimal.js';
 import { tonomySigner } from '../signer';
@@ -51,36 +52,43 @@ export class BaseTokenTransferMonitorService
             `Ignoring Transfer event without swap memo: tx ${txHash} to ${to} from ${from} amount ${amount} memo ${memo}`,
           );
           return;
-        } else {
-          this.logger.debug(
-            `Processing Transfer event with swap memo: tx ${txHash} to ${to} from ${from} amount ${amount} memo ${memo}`,
-          );
         }
 
         const { swapId, tonomyAccount } = parseSwapMemo(memo);
+
         const amountDecimal = new Decimal(amount.toString()).div(
           new Decimal(10).pow(18),
         );
         const antelopeAsset = `${amountDecimal.toFixed(6)} ${getSettings().currencySymbol}`;
 
         this.logger.log(
-          `Transfer detected (pending): tx ${txHash} from ${from} to ${to} amount ${antelopeAsset} memo ${memo}`,
+          `Swap B->T ${swapId}: Transfer detected (pending) with hash ${txHash}: from ${from} to ${to} amount ${antelopeAsset} which should be swapped to Tonomy account ${tonomyAccount}`,
         );
 
         const did = await createDidFromTonomyAppsPlatform(tonomyAccount);
 
         await waitForEvmTrxFinalization(txHash);
 
-        this.logger.log(`Transfer finalized: tx ${txHash}`);
+        this.logger.debug(
+          `Swap B->T ${swapId}: Transaction finalized with hash ${txHash}`,
+        );
 
-        await getTokenContract().bridgeIssue(
+        const trx = await getTokenContract().bridgeIssue(
           tonomyAccount,
           antelopeAsset,
           `$TONO swap to tonomy ${swapId}`,
           tonomySigner,
         );
 
-        this.logger.log(`Swap completed: tx ${txHash} swapId ${swapId}`);
+        this.logger.debug(
+          `Swap B->T ${swapId}: Issued ${antelopeAsset} to Tonomy account ${tonomyAccount} with transaction ${trx.transaction_id}`,
+        );
+
+        await waitForTonomyTrxFinalization(trx.transaction_id);
+
+        this.logger.log(
+          `Swap B->T ${swapId}: Swap completed, assets minted to Tonomy account ${tonomyAccount}`,
+        );
 
         // Send notification to wallet via WebSocket
         this.communicationGateway.emitBaseToTonomySwapConfirmation(did, memo);
