@@ -129,7 +129,9 @@ export class CommunicationService {
     const payload = message.getPayload();
     const issuer = message.getIssuer();
 
-    this.logger.debug(`[Swap: ${loggerId}]: swapToken()`, issuer, payload);
+    this.logger.debug(
+      `[Swap: ${loggerId}]: swapToken() from ${issuer} to Base address ${payload.baseAddress}`,
+    );
 
     await checkIssuerFromTonomyPlatform(
       issuer,
@@ -192,7 +194,7 @@ export class CommunicationService {
       );
 
       this.logger.debug(
-        `[Swap: ${loggerId}]: Safe wallet transfer to Base address ${baseAddress} completed with safe transaction hash ${safeClientResult.safeTxHash}`,
+        `[Swap: ${loggerId}]: Safe wallet transfer to Base address ${baseAddress} completed with Base transaction hash ${safeClientResult.transactions?.ethereumTxHash}`,
       );
     } else {
       const mintTrx = await getBaseTokenContract().transfer(
