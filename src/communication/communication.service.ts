@@ -278,22 +278,24 @@ export class CommunicationService {
 let tonomyAppsAccountName: string | undefined;
 
 async function getAccountNameForTonomyAppsPlatform(
-  tonomyAppsWebsiteUsername?: string,
+  _testOnly_tonomyAppsWebsiteUsername?: string,
 ): Promise<string> {
-  debug(`getAccountNameForTonomyAppsPlatform() ${tonomyAppsWebsiteUsername}`);
+  let tonomyAppsWebsiteUsername = 'tonomy-apps';
 
-  if (!tonomyAppsWebsiteUsername) {
-    tonomyAppsWebsiteUsername = 'tonomy-apps';
-
-    if (tonomyAppsAccountName) {
-      debug(`Using cached tonomyAppsAccountName: ${tonomyAppsAccountName}`);
-      return tonomyAppsAccountName;
+  if (settings.env === 'development' || settings.env === 'test') {
+    if (_testOnly_tonomyAppsWebsiteUsername) {
+      tonomyAppsWebsiteUsername = _testOnly_tonomyAppsWebsiteUsername;
     }
   } else {
-    if (settings.isProduction())
+    if (_testOnly_tonomyAppsWebsiteUsername) {
       throw new Error(
         'tonomyAppsWebsiteUsername can only be used in non-production environments',
       );
+    }
+
+    if (tonomyAppsAccountName) {
+      return tonomyAppsAccountName;
+    }
   }
 
   const app = await getTonomyContract().getApp(
@@ -304,7 +306,7 @@ async function getAccountNameForTonomyAppsPlatform(
     ),
   );
 
-  if (!tonomyAppsWebsiteUsername)
+  if (!_testOnly_tonomyAppsWebsiteUsername)
     tonomyAppsAccountName = app.accountName.toString();
   return app.accountName.toString();
 }
@@ -327,8 +329,13 @@ async function checkIssuerFromTonomyPlatform(
   }
 }
 
-export async function createDidFromTonomyAppsPlatform(accountName: string) {
-  const appName = await getAccountNameForTonomyAppsPlatform();
+export async function createDidFromTonomyAppsPlatform(
+  accountName: string,
+  _testOnly_tonomyAppsWebsiteUsername?: string,
+): Promise<string> {
+  const appName = await getAccountNameForTonomyAppsPlatform(
+    _testOnly_tonomyAppsWebsiteUsername,
+  );
 
   return await createAntelopeDid(accountName, appName);
 }

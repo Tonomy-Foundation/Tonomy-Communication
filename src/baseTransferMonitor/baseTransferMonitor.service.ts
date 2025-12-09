@@ -54,7 +54,8 @@ export class BaseTokenTransferMonitorService
           return;
         }
 
-        const { swapId, tonomyAccount } = parseSwapMemo(memo);
+        const { swapId, tonomyAccount, _testOnly_tonomyAppsWebsiteUsername } =
+          parseSwapMemo(memo);
 
         const amountDecimal = new Decimal(amount.toString()).div(
           new Decimal(10).pow(18),
@@ -62,10 +63,13 @@ export class BaseTokenTransferMonitorService
         const antelopeAsset = `${amountDecimal.toFixed(6)} ${getSettings().currencySymbol}`;
 
         this.logger.log(
-          `Swap B->T ${swapId}: Transfer detected (pending) with hash ${txHash}: from ${from} to ${to} amount ${antelopeAsset} which should be swapped to Tonomy account ${tonomyAccount}`,
+          `Swap B->T ${swapId}: Transfer detected (pending) with hash ${txHash}: from ${from} to ${to} amount ${antelopeAsset} which should be swapped to Tonomy account ${tonomyAccount}${_testOnly_tonomyAppsWebsiteUsername ? ` (Tonomy Apps username: ${_testOnly_tonomyAppsWebsiteUsername})` : ''}`,
         );
 
-        const did = await createDidFromTonomyAppsPlatform(tonomyAccount);
+        const did = await createDidFromTonomyAppsPlatform(
+          tonomyAccount,
+          _testOnly_tonomyAppsWebsiteUsername,
+        );
 
         await waitForEvmTrxFinalization(txHash);
 
