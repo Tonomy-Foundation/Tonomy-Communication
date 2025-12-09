@@ -20,6 +20,7 @@ import {
   waitForEvmTrxFinalization,
   waitForTonomyTrxFinalization,
   sendSafeWalletTransfer,
+  createAntelopeDid,
 } from '@tonomy/tonomy-id-sdk';
 import { tonomySigner } from '../signer';
 import { ethers } from 'ethers';
@@ -247,6 +248,7 @@ export class CommunicationService {
   }
 
   emitBaseToTonomySwapConfirmation(did: string, memo: string): boolean {
+    this.logger.debug(`emitBaseToTonomySwapConfirmation() ${did} ${memo}`);
     const socket = this.userSockets.get(did);
 
     if (!socket) {
@@ -258,7 +260,7 @@ export class CommunicationService {
     }
 
     socket.emit('v1/swap/token/confirm', memo);
-    this.logger.debug(`Sent 'token' from base to tonomy ${memo}}`);
+    this.logger.debug(`Sent ${did} 'token' from base to tonomy ${memo}}`);
     return true;
   }
 
@@ -326,7 +328,7 @@ async function checkIssuerFromTonomyPlatform(
 }
 
 export async function createDidFromTonomyAppsPlatform(accountName: string) {
-  const fragment = await getAccountNameForTonomyAppsPlatform();
+  const appName = await getAccountNameForTonomyAppsPlatform();
 
-  return `did:tonomy:${accountName}#${fragment}`;
+  return await createAntelopeDid(accountName, appName);
 }

@@ -70,7 +70,7 @@ export class BaseTokenTransferMonitorService
         await waitForEvmTrxFinalization(txHash);
 
         this.logger.debug(
-          `Swap B->T ${swapId}: Transaction finalized with hash ${txHash}`,
+          `Swap B->T ${swapId}: Base transaction finalized with hash ${txHash}`,
         );
 
         const trx = await getTokenContract().bridgeIssue(
@@ -84,7 +84,10 @@ export class BaseTokenTransferMonitorService
           `Swap B->T ${swapId}: Issued ${antelopeAsset} to Tonomy account ${tonomyAccount} with transaction ${trx.transaction_id}`,
         );
 
-        await waitForTonomyTrxFinalization(trx.transaction_id);
+        if (settings.env === 'production' || settings.env === 'testnet') {
+          // Depends on Hyperion API which is only available on testnet and mainnet
+          await waitForTonomyTrxFinalization(trx.transaction_id);
+        }
 
         this.logger.log(
           `Swap B->T ${swapId}: Swap completed, assets minted to Tonomy account ${tonomyAccount}`,
