@@ -12,4 +12,4 @@ import { TransformVcPipe } from './transform-vc/transform-vc.pipe';
   ],
   exports: [CommunicationService, CommunicationGateway],
 })
-export class CommunicationModule { }
+export class CommunicationModule {}

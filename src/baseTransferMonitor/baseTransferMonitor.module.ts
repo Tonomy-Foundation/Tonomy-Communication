@@ -3,7 +3,7 @@ import { BaseTokenTransferMonitorService } from './baseTransferMonitor.service';
 import { CommunicationModule } from '../communication/communication.module';
 
 @Module({
-    imports: [CommunicationModule],
-    providers: [BaseTokenTransferMonitorService],
+  imports: [CommunicationModule],
+  providers: [BaseTokenTransferMonitorService],
 })
-export class BaseTransferMonitorModule { }
+export class BaseTransferMonitorModule {}

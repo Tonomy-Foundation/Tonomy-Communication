@@ -18,4 +18,4 @@ import { BaseTransferMonitorModule } from './baseTransferMonitor/baseTransferMon
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}
