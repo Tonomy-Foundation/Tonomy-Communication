@@ -90,14 +90,6 @@ if (process.env.BLOCKCHAIN_URL) {
   settings.config.blockchainUrl = process.env.BLOCKCHAIN_URL;
 }
 
-if (process.env.BASE_TOKEN_ADDRESS) {
-  logger.log(
-    `Using BASE_TOKEN_ADDRESS from env:  ${process.env.BASE_TOKEN_ADDRESS}`,
-  );
-
-  settings.config.baseTokenAddress = process.env.BASE_TOKEN_ADDRESS;
-}
-
 logger.debug('settings', settings);
 
 settings.secrets = {
