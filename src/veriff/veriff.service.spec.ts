@@ -95,6 +95,7 @@ describe('VeriffService', () => {
     await setSettings({
       blockchainUrl: settings.config.blockchainUrl,
       loggerLevel: settings.config.loggerLevel,
+      baseTokenAddress: settings.config.baseTokenAddress,
     });
 
     jest.clearAllMocks();
