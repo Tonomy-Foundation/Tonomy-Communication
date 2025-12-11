@@ -28,6 +28,7 @@ import { CommunicationGuard } from './communication.guard';
 import { BodyDto } from './dto/body.dto';
 import { Server } from 'socket.io';
 import { SwapBodyDto } from './dto/swapBody.dto';
+import { Transaction } from 'typeorm';
 
 export type WebsocketReturnType = {
   status: HttpStatus;
@@ -120,9 +121,9 @@ export class CommunicationGateway
    * @param {SwapBodyDto} body - The swap token message VC or an error from the transformer
    * @param client user socket
    */
-  @SubscribeMessage('v1/swap/token/tono')
+  @SubscribeMessage('v2/swap/token/tono')
   @UseGuards(CommunicationGuard)
-  async swapToken(
+  async swapTokenTonomyToBase(
     @MessageBody() body: SwapBodyDto,
     @ConnectedSocket() client: Client,
   ) {
@@ -133,7 +134,7 @@ export class CommunicationGateway
 
       return {
         status: HttpStatus.OK,
-        details: await this.usersService.swapToken(client, message),
+        details: await this.usersService.swapTokenTonomyToBase(client, message),
       };
     } catch (e) {
       return this.usersService.handleError(e);
@@ -153,6 +154,16 @@ export class CommunicationGateway
       this.usersService.sendVeriffToDid(did, payload);
     } catch (err) {
       this.logger.error(`Failed to send veriff to ${did}: ${err.message}`);
+    }
+  }
+
+  emitBaseToTonomySwapConfirmation(did: string, memo: string) {
+    try {
+      this.usersService.emitBaseToTonomySwapConfirmation(did, memo);
+    } catch (err) {
+      this.logger.error(
+        `Failed to send swap from base to tonomy ${memo}: ${err.message}`,
+      );
     }
   }
 }
