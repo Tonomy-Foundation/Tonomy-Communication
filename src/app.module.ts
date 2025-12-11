@@ -5,9 +5,16 @@ import { CommunicationModule } from './communication/communication.module';
 import { AccountsModule } from './accounts/accounts.module';
 import { VerffModule } from './veriff/veriff.module';
 import { InfoModule } from './info/info.module';
+import { BaseTransferMonitorModule } from './baseTransferMonitor/baseTransferMonitor.module';
 
 @Module({
-  imports: [CommunicationModule, AccountsModule, VerffModule, InfoModule],
+  imports: [
+    CommunicationModule,
+    AccountsModule,
+    VerffModule,
+    InfoModule,
+    BaseTransferMonitorModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

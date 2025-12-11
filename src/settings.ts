@@ -39,6 +39,7 @@ type SettingsType = {
     hCaptchaSecret: string;
     basePrivateKey: string;
     veriffSecret: string;
+    safeApiKey: string;
   };
 };
 
@@ -89,14 +90,6 @@ if (process.env.BLOCKCHAIN_URL) {
   settings.config.blockchainUrl = process.env.BLOCKCHAIN_URL;
 }
 
-if (process.env.BASE_TOKEN_ADDRESS) {
-  logger.log(
-    `Using BASE_TOKEN_ADDRESS from env:  ${process.env.BASE_TOKEN_ADDRESS}`,
-  );
-
-  settings.config.baseTokenAddress = process.env.BASE_TOKEN_ADDRESS;
-}
-
 logger.debug('settings', settings);
 
 settings.secrets = {
@@ -106,6 +99,7 @@ settings.secrets = {
   basePrivateKey:
     '0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e', // Hardhat account #19
   veriffSecret: 'default_secret',
+  safeApiKey: '',
 };
 
 if (process.env.HCAPTCHA_SECRET) {
@@ -135,6 +129,11 @@ if (process.env.TONOMY_OPS_PRIVATE_KEY) {
 if (process.env.VERIFF_API_SECRET_KEY) {
   logger.log('Using VERIFF_API_SECRET_KEY from env');
   settings.secrets.veriffSecret = process.env.VERIFF_API_SECRET_KEY;
+}
+
+if (process.env.SAFE_API_KEY) {
+  logger.log('Using SAFE_API_KEY from env');
+  settings.secrets.safeApiKey = process.env.SAFE_API_KEY;
 }
 
 export default settings;

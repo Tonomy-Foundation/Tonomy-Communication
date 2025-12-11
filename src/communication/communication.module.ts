@@ -10,6 +10,6 @@ import { TransformVcPipe } from './transform-vc/transform-vc.pipe';
     Logger,
     TransformVcPipe,
   ],
-  exports: [CommunicationService],
+  exports: [CommunicationService, CommunicationGateway],
 })
 export class CommunicationModule {}

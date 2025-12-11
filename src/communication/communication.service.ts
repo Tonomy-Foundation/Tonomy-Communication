@@ -18,12 +18,17 @@ import {
   getTokenContract,
   randomString,
   waitForEvmTrxFinalization,
+  waitForTonomyTrxFinalization,
+  sendSafeWalletTransfer,
+  createAntelopeDid,
 } from '@tonomy/tonomy-id-sdk';
 import { tonomySigner } from '../signer';
 import { ethers } from 'ethers';
 import settings from '../settings';
 import { Decimal } from 'decimal.js';
-import { Transaction } from '@wharfkit/antelope';
+import Debug from 'debug';
+
+const debug = Debug('tonomy-communication:communication.service');
 
 @Injectable()
 export class CommunicationService {
@@ -71,7 +76,7 @@ export class CommunicationService {
    * @returns boolean if user is connected successfully
    */
   login(did: string, socket: Client): boolean {
-    this.logger.debug('login()', did, socket.id);
+    this.logger.debug(`login() ${did} ${socket.id}`);
 
     if (this.loggedInUsers.get(did) === socket.id) return false;
     this.loggedInUsers.set(did, socket.id);
@@ -92,11 +97,7 @@ export class CommunicationService {
     const recipient = this.loggedInUsers.get(message.getRecipient());
 
     this.logger.debug(
-      'sendMessage()',
-      message.getIssuer(),
-      message.getRecipient(),
-      message.getType(),
-      recipient,
+      `sendMessage() ${message.getIssuer()} ${message.getRecipient()} ${message.getType()} ${recipient}`,
     );
 
     if (!recipient) {
@@ -120,12 +121,17 @@ export class CommunicationService {
    * @throws if the receiving user isn't online or loggedIn
    * @returns boolean if message is sent to the user
    */
-  async swapToken(socket: Client, message: SwapTokenMessage): Promise<boolean> {
+  async swapTokenTonomyToBase(
+    socket: Client,
+    message: SwapTokenMessage,
+  ): Promise<boolean> {
     const loggerId = randomString(6);
     const payload = message.getPayload();
     const issuer = message.getIssuer();
 
-    this.logger.debug(`[Swap: ${loggerId}]: swapToken()`, issuer, payload);
+    this.logger.debug(
+      `[Swap T->B: ${loggerId}]: swapToken() from ${issuer} to Base address ${payload.baseAddress}`,
+    );
 
     await checkIssuerFromTonomyPlatform(
       issuer,
@@ -158,45 +164,62 @@ export class CommunicationService {
     const antelopeAsset = `${amount.toFixed(6)} ${getSettings().currencySymbol}`;
     const ethAmount = ethers.parseEther(amount.toFixed(6));
 
-    if (payload.destination === 'base') {
-      throw new HttpException(
-        `Invalid base destination`,
-        HttpStatus.BAD_REQUEST,
+    this.logger.log(
+      `[Swap T->B: ${loggerId}]: Swapping ${antelopeAsset} from Tonomy account ${tonomyAccount} to Base address ${baseAddress}`,
+    );
+    const trx = await getTokenContract().bridgeRetire(
+      tonomyAccount,
+      antelopeAsset,
+      `$TONO swap to base ${loggerId}`,
+      tonomySigner,
+    );
+
+    this.logger.debug(
+      `[Swap T->B: ${loggerId}]: Retired ${antelopeAsset} from Tonomy account ${tonomyAccount} with transaction ${trx.transaction_id}`,
+    );
+
+    if (settings.env === 'production' || settings.env === 'testnet') {
+      // Depends on Hyperion API which is only available on testnet and mainnet
+      await waitForTonomyTrxFinalization(trx.transaction_id);
+      this.logger.debug(
+        `[Swap T->B: ${loggerId}]: Tonomy transaction ${trx.transaction_id} finalized`,
       );
-    } else if (payload.destination === 'tonomy') {
-      this.logger.log(
-        `[Swap: ${loggerId}]: Swapping ${antelopeAsset} from Base address ${baseAddress} to Tonomy account ${tonomyAccount}`,
+    }
+
+    if (settings.env === 'production') {
+      // Need to do a more complicated DAO transaction...
+      const safeClientResult = await sendSafeWalletTransfer(
+        baseAddress,
+        ethAmount,
       );
-      const trx = await getBaseTokenContract().bridgeBurn(
+      const trxHash = safeClientResult.transactions?.ethereumTxHash;
+
+      if (!trxHash) {
+        throw new HttpException(
+          `Safe wallet transfer failed for Base address ${baseAddress}`,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      await waitForEvmTrxFinalization(trxHash);
+
+      this.logger.debug(
+        `[Swap T->B: ${loggerId}]: Safe wallet transfer to Base address ${baseAddress} submitted with transaction hash ${trxHash}`,
+      );
+    } else {
+      const mintTrx = await getBaseTokenContract().transfer(
         baseAddress,
         ethAmount,
       );
 
+      await waitForEvmTrxFinalization(mintTrx.hash);
+
       this.logger.debug(
-        `[Swap: ${loggerId}]: Burned ${antelopeAsset} from Base address ${baseAddress} with transaction ${trx.hash}`,
-      );
-      await waitForEvmTrxFinalization(trx.hash);
-      this.logger.debug(
-        `[Swap: ${loggerId}]: Base transaction ${trx.hash} finalized`,
-      );
-      await getTokenContract().bridgeIssue(
-        tonomyAccount,
-        antelopeAsset,
-        `$TONO swap to tonomy ${loggerId}`,
-        tonomySigner,
-      );
-      this.logger.debug(
-        `[Swap: ${loggerId}]: Issued ${antelopeAsset} to Tonomy account ${tonomyAccount}`,
-      );
-    } else {
-      throw new HttpException(
-        `Invalid destination ${payload.destination}`,
-        HttpStatus.BAD_REQUEST,
+        `[Swap T->B: ${loggerId}]: Mint transaction submitted to Base with transaction hash ${mintTrx.hash}`,
       );
     }
 
-    this.logger.log(`[Swap: ${loggerId}]: Swap completed successfully`);
-
+    this.logger.log(`[Swap T->B: ${loggerId}]: Swap completed successfully`);
     return true;
   }
 
@@ -224,7 +247,8 @@ export class CommunicationService {
     return true;
   }
 
-  swapBaseToTonomy(did: string, memo: string): boolean {
+  emitBaseToTonomySwapConfirmation(did: string, memo: string): boolean {
+    this.logger.debug(`emitBaseToTonomySwapConfirmation() ${did} ${memo}`);
     const socket = this.userSockets.get(did);
 
     if (!socket) {
@@ -235,8 +259,8 @@ export class CommunicationService {
       );
     }
 
-    socket.emit('v1/swap/base/token', memo);
-    this.logger.debug(`Sent 'token' from base to tonomy ${memo}}`);
+    socket.emit('v1/swap/token/confirm', memo);
+    this.logger.debug(`Sent ${did} 'token' from base to tonomy ${memo}}`);
     return true;
   }
 
@@ -251,34 +275,67 @@ export class CommunicationService {
   }
 }
 
+let tonomyAppsAccountName: string | undefined;
+
+async function getAccountNameForTonomyAppsPlatform(
+  _testOnly_tonomyAppsWebsiteUsername?: string,
+): Promise<string> {
+  let tonomyAppsWebsiteUsername = 'tonomy-apps';
+
+  if (settings.env === 'development' || settings.env === 'test') {
+    if (_testOnly_tonomyAppsWebsiteUsername) {
+      tonomyAppsWebsiteUsername = _testOnly_tonomyAppsWebsiteUsername;
+    }
+  } else {
+    if (_testOnly_tonomyAppsWebsiteUsername) {
+      throw new Error(
+        'tonomyAppsWebsiteUsername can only be used in non-production environments',
+      );
+    }
+
+    if (tonomyAppsAccountName) {
+      return tonomyAppsAccountName;
+    }
+  }
+
+  const app = await getTonomyContract().getApp(
+    TonomyUsername.fromUsername(
+      tonomyAppsWebsiteUsername,
+      AccountType.APP,
+      getSettings().accountSuffix,
+    ),
+  );
+
+  if (!_testOnly_tonomyAppsWebsiteUsername)
+    tonomyAppsAccountName = app.accountName.toString();
+  return app.accountName.toString();
+}
+
 async function checkIssuerFromTonomyPlatform(
   issuer: string,
   tonomyAppsWebsiteUsername?: string,
 ) {
   const { fragment } = parseDid(issuer);
 
-  let usernamePrefix = 'tonomy-apps';
-
-  if (tonomyAppsWebsiteUsername) {
-    if (settings.isProduction())
-      throw new Error(
-        '_testOnly_tonomyAppsWebsiteUsername can only be used in non-production environments',
-      );
-    usernamePrefix = tonomyAppsWebsiteUsername;
-  }
-
-  const app = await getTonomyContract().getApp(
-    TonomyUsername.fromUsername(
-      usernamePrefix,
-      AccountType.APP,
-      getSettings().accountSuffix,
-    ),
+  const accountName = await getAccountNameForTonomyAppsPlatform(
+    tonomyAppsWebsiteUsername,
   );
 
-  if (fragment !== app.accountName.toString()) {
+  if (fragment !== accountName.toString()) {
     throw new HttpException(
       `Invalid DID fragment ${fragment}, did not match the account name from the Tonomy apps platform`,
       HttpStatus.BAD_REQUEST,
     );
   }
+}
+
+export async function createDidFromTonomyAppsPlatform(
+  accountName: string,
+  _testOnly_tonomyAppsWebsiteUsername?: string,
+): Promise<string> {
+  const appName = await getAccountNameForTonomyAppsPlatform(
+    _testOnly_tonomyAppsWebsiteUsername,
+  );
+
+  return await createAntelopeDid(accountName, appName);
 }
