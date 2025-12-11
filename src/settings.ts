@@ -27,6 +27,7 @@ type ConfigType = {
   baseNetwork: 'base' | 'base-sepolia' | 'hardhat' | 'localhost';
   baseRpcUrl: string;
   baseTokenAddress?: string;
+  baseMintBurnAddress?: string;
 };
 
 type SettingsType = {
