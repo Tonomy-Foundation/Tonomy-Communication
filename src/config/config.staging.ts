@@ -6,4 +6,5 @@ export default {
   baseNetwork: 'base-sepolia' as const,
   baseRpcUrl: 'https://base-sepolia.infura.io/v3/',
   baseTokenAddress: '0xC71Ae7EBa91037Ff145671D0d25Ba415BB69450c',
+  baseMintBurnAddress: '0x8DE48baf638e4Cd8Dab07Ef12375369Cb9b841dB',
 };
