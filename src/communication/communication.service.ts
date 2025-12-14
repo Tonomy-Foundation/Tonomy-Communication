@@ -38,6 +38,12 @@ export class CommunicationService {
 
   private readonly loggedInUsers = new Map<string, Socket['id']>();
   private readonly userSockets = new Map<string, Client>();
+  private readonly faucetRequestTracker = new Map<
+    string,
+    { amount: Decimal; timestamp: number }[]
+  >();
+  private readonly FAUCET_LIMIT_24H = new Decimal('20000');
+  private readonly THROTTLE_WINDOW_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
   private server!: Server;
 
@@ -251,7 +257,7 @@ export class CommunicationService {
     const tonomyAccount = getAccountNameFromDid(issuer);
     const asset = payload.asset;
 
-    if (!asset || asset.trim().length === 0) {
+    if (!asset || asset.trim().length === 0 || !asset.endsWith(' TONO')) {
       throw new HttpException(
         `Invalid asset format ${asset}`,
         HttpStatus.BAD_REQUEST,
@@ -271,6 +277,9 @@ export class CommunicationService {
         HttpStatus.BAD_REQUEST,
       );
     }
+
+    // Check 24-hour throttling
+    this.checkFaucetThrottle(issuer, assetAmount, loggerId);
 
     this.logger.log(
       `[Faucet: ${loggerId}]: Transferring ${asset} to Tonomy account ${tonomyAccount}`,
@@ -296,10 +305,69 @@ export class CommunicationService {
       );
     }
 
+    // Track this request for throttling purposes
+    this.trackFaucetRequest(issuer, assetAmount);
+
     this.logger.log(
       `[Faucet: ${loggerId}]: Faucet transfer completed successfully`,
     );
     return true;
+  }
+
+  /**
+   * Check if account has exceeded 24-hour faucet limit
+   * @param issuer the DID of the requester
+   * @param requestAmount the amount being requested
+   * @param loggerId logging identifier
+   * @throws HttpException if throttle limit exceeded
+   */
+  private checkFaucetThrottle(
+    issuer: string,
+    requestAmount: Decimal,
+    loggerId: string,
+  ): void {
+    const now = Date.now();
+    const requests = this.faucetRequestTracker.get(issuer) || [];
+
+    // Remove requests older than 24 hours
+    const recentRequests = requests.filter(
+      (req) => now - req.timestamp < this.THROTTLE_WINDOW_MS,
+    );
+
+    // Calculate total requested in last 24 hours
+    const totalRequested = recentRequests.reduce(
+      (sum, req) => sum.plus(req.amount),
+      new Decimal(0),
+    );
+
+    const newTotal = totalRequested.plus(requestAmount);
+
+    if (newTotal.greaterThan(this.FAUCET_LIMIT_24H)) {
+      const remainingAllowance = this.FAUCET_LIMIT_24H.minus(totalRequested);
+
+      this.logger.warn(
+        `[Faucet: ${loggerId}]: Account ${issuer} exceeded 24-hour limit. Requested: ${requestAmount.toString()}, Remaining allowance: ${remainingAllowance.toString()}`,
+      );
+      throw new HttpException(
+        `Daily faucet limit exceeded. You have requested ${totalRequested.toString()} TONO in the last 24 hours. Maximum allowed: ${this.FAUCET_LIMIT_24H.toString()} TONO. Remaining allowance: ${remainingAllowance.toString()} TONO`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  /**
+   * Track a faucet request for throttling purposes
+   * @param issuer the DID of the requester
+   * @param amount the amount requested
+   */
+  private trackFaucetRequest(issuer: string, amount: Decimal): void {
+    const requests = this.faucetRequestTracker.get(issuer) || [];
+
+    requests.push({
+      amount,
+      timestamp: Date.now(),
+    });
+    this.faucetRequestTracker.set(issuer, requests);
   }
 
   /**
