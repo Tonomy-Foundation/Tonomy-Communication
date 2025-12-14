@@ -21,6 +21,8 @@ import {
   waitForTonomyTrxFinalization,
   sendSafeWalletTransfer,
   createAntelopeDid,
+  FaucetTokenMessage,
+  assetToDecimal,
 } from '@tonomy/tonomy-id-sdk';
 import { tonomySigner } from '../signer';
 import { ethers } from 'ethers';
@@ -224,6 +226,83 @@ export class CommunicationService {
   }
 
   /**
+   * Requests testnet tokens from the faucet service
+   * @param {Client} socket user socket
+   * @param {SwapTokenMessage} message signed VC containing faucet request
+   * @returns boolean if tokens were transferred successfully
+   */
+  async requestFaucetToken(
+    socket: Client,
+    message: FaucetTokenMessage,
+  ): Promise<boolean> {
+    const loggerId = randomString(6);
+    const payload = message.getPayload();
+    const issuer = message.getIssuer();
+
+    this.logger.debug(
+      `[Faucet: ${loggerId}]: requestFaucetToken() from ${issuer}`,
+    );
+
+    await checkIssuerFromTonomyPlatform(
+      issuer,
+      payload._testOnly_tonomyAppsWebsiteUsername,
+    );
+
+    const tonomyAccount = getAccountNameFromDid(issuer);
+    const asset = payload.asset;
+
+    if (!asset || asset.trim().length === 0) {
+      throw new HttpException(
+        `Invalid asset format ${asset}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const assetAmount = assetToDecimal(asset);
+
+    if (assetAmount.lessThanOrEqualTo(0)) {
+      throw new HttpException(
+        `Invalid asset amount ${asset}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    } else if (assetAmount.greaterThan(1000)) {
+      throw new HttpException(
+        `Requested asset amount exceeds faucet limit: ${asset}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    this.logger.log(
+      `[Faucet: ${loggerId}]: Transferring ${asset} to Tonomy account ${tonomyAccount}`,
+    );
+
+    const trx = await getTokenContract().transfer(
+      'ops.tmy',
+      tonomyAccount,
+      asset,
+      `Faucet token request ${loggerId}`,
+      tonomySigner,
+    );
+
+    this.logger.debug(
+      `[Faucet: ${loggerId}]: Faucet transaction submitted with ID ${trx.transaction_id}`,
+    );
+
+    if (settings.env === 'production' || settings.env === 'testnet') {
+      // Depends on Hyperion API which is only available on testnet and mainnet
+      await waitForTonomyTrxFinalization(trx.transaction_id);
+      this.logger.debug(
+        `[Faucet: ${loggerId}]: Tonomy transaction ${trx.transaction_id} finalized`,
+      );
+    }
+
+    this.logger.log(
+      `[Faucet: ${loggerId}]: Faucet transfer completed successfully`,
+    );
+    return true;
+  }
+
+  /**
    * Send a 'veriff' event to a specific user by DID
    * @param did recipient DID
    * @param payload data to send
@@ -289,7 +368,7 @@ async function getAccountNameForTonomyAppsPlatform(
   } else {
     if (_testOnly_tonomyAppsWebsiteUsername) {
       throw new Error(
-        'tonomyAppsWebsiteUsername can only be used in non-production environments',
+        'tonomyAppsWebsiteUsername can only be used in testing/development environments',
       );
     }
 
