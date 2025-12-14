@@ -249,6 +249,13 @@ export class CommunicationService {
       `[Faucet: ${loggerId}]: requestFaucetToken() from ${issuer}`,
     );
 
+    if (settings.env === 'production') {
+      throw new HttpException(
+        `Faucet service is not available in production`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     await checkIssuerFromTonomyPlatform(
       issuer,
       payload._testOnly_tonomyAppsWebsiteUsername,
