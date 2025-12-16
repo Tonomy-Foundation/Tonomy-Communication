@@ -29,7 +29,7 @@ export class BaseTokenTransferMonitorService
   constructor(private readonly communicationGateway: CommunicationGateway) {}
 
   async onModuleInit() {
-    const contract = getBaseTokenContract();
+    const contract = getBaseTokenContract(undefined, true);
     const event = contract.getEvent('Transfer');
 
     const listener = async (
@@ -40,6 +40,8 @@ export class BaseTokenTransferMonitorService
     ) => {
       try {
         const txHash: string = event.log.transactionHash;
+
+        this.logger.debug(`Event transaction hash: tx ${txHash}`);
 
         if (to !== settings.config.baseMintBurnAddress) {
           return;
