@@ -45,7 +45,7 @@ export class BaseTokenTransferMonitorService
           `Event transaction hash: tx ${txHash},  to ${to} from ${from} amount ${amount} baseMintBurnAddress ${settings.config.baseMintBurnAddress} `,
         );
 
-        if (to !== settings.config.baseMintBurnAddress) {
+        if (to !== settings.config.baseTokenAddress) {
           return;
         }
 
