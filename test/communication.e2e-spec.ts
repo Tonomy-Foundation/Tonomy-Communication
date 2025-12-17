@@ -6,13 +6,8 @@ import { Socket } from 'socket.io-client';
 import {
   AuthenticationMessage,
   generateRandomKeyPair,
-  setSettings,
   util,
 } from '@tonomy/tonomy-id-sdk';
-
-setSettings({
-  blockchainUrl: 'http://localhost:8888',
-});
 
 describe('CommunicationGateway (e2e)', () => {
   let app: INestApplication;
@@ -24,9 +19,11 @@ describe('CommunicationGateway (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    app.listen(5000);
+    await app.listen(0);
+    const server: any = app.getHttpServer();
+    const port: number = server.address().port;
 
-    socket = await connectSocket();
+    socket = await connectSocket(port);
   });
 
   afterEach(async () => {

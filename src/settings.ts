@@ -117,7 +117,7 @@ if (process.env.BASE_TOKEN_ADDRESS) {
   settings.config.baseTokenAddress = process.env.BASE_TOKEN_ADDRESS;
 }
 
-console.log(
+logger.log(
   `Ethereum signing address: ${new ethers.Wallet(settings.secrets.basePrivateKey).address}`,
 );
 
