@@ -42,10 +42,16 @@ export class BaseTokenTransferMonitorService
         const txHash: string = event.log.transactionHash;
 
         this.logger.debug(
-          `Event transaction hash: tx ${txHash},  to ${to} from ${from} amount ${amount} baseMintBurnAddress ${settings.config.baseMintBurnAddress} `,
+          `Event transaction hash: tx ${txHash},  to ${to} from ${from} amount ${amount} baseMintBurnAddress ${settings.config.baseMintBurnAddress} ${
+            to.toLowerCase() !==
+            settings.config.baseMintBurnAddress?.toLowerCase()
+          } `,
         );
 
-        if (to !== settings.config.baseMintBurnAddress) {
+        if (
+          to.toLowerCase() !==
+          settings.config.baseMintBurnAddress?.toLowerCase()
+        ) {
           return;
         }
 
