@@ -29,7 +29,7 @@ export class BaseTokenTransferMonitorService
   constructor(private readonly communicationGateway: CommunicationGateway) {}
 
   async onModuleInit() {
-    const contract = getBaseTokenContract(undefined, true);
+    const contract = getBaseTokenContract();
     const event = contract.getEvent('Transfer');
 
     const listener = async (
