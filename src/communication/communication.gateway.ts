@@ -47,12 +47,13 @@ export type WebsocketReturnType = {
 })
 @UseFilters(new BaseWsExceptionFilter())
 export class CommunicationGateway
-  implements OnGatewayDisconnect, OnGatewayInit {
+  implements OnGatewayDisconnect, OnGatewayInit
+{
   @WebSocketServer()
   server!: Server;
 
   private readonly logger = new Logger(CommunicationGateway.name);
-  constructor(private readonly usersService: CommunicationService) { }
+  constructor(private readonly usersService: CommunicationService) {}
 
   afterInit(server: Server) {
     this.usersService.setServer(server);
