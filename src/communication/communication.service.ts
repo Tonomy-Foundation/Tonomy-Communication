@@ -19,7 +19,7 @@ import {
   randomString,
   waitForEvmTrxFinalization,
   waitForTonomyTrxFinalization,
-  sendSafeWalletTransfer,
+  prepareSafeWalletTransfer,
   createAntelopeDid,
   getSigner,
 } from '@tonomy/tonomy-id-sdk';
@@ -28,6 +28,7 @@ import { ethers } from 'ethers';
 import settings from '../settings';
 import { Decimal } from 'decimal.js';
 import Debug from 'debug';
+import { createSafeClient } from '@safe-global/sdk-starter-kit';
 
 const debug = Debug('tonomy-communication:communication.service');
 
@@ -189,10 +190,18 @@ export class CommunicationService {
 
     if (settings.env === 'production') {
       // Need to do a more complicated DAO transaction...
-      const safeClientResult = await sendSafeWalletTransfer(
+      const transactions = await prepareSafeWalletTransfer(
         baseAddress,
         ethAmount,
       );
+      const safeClient = await createSafeClient({
+        provider: getSettings().baseRpcUrl,
+        signer: getSettings().basePrivateKey,
+        safeAddress: getSettings().baseMintBurnAddress, // This is a nested safe in production
+        apiKey: getSettings().safeApiKey,
+      });
+
+      const safeClientResult = await safeClient.send({ transactions });
       const trxHash = safeClientResult.transactions?.ethereumTxHash;
 
       if (!trxHash) {
