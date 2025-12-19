@@ -21,6 +21,7 @@ import {
   waitForTonomyTrxFinalization,
   sendSafeWalletTransfer,
   createAntelopeDid,
+  getSigner,
 } from '@tonomy/tonomy-id-sdk';
 import { tonomySigner } from '../signer';
 import { ethers } from 'ethers';
@@ -207,7 +208,8 @@ export class CommunicationService {
         `[Swap T->B: ${loggerId}]: Safe wallet transfer to Base address ${baseAddress} submitted with transaction hash ${trxHash}`,
       );
     } else {
-      const mintTrx = await getBaseTokenContract().transfer(
+      const signer = getSigner();
+      const mintTrx = await getBaseTokenContract(signer).transfer(
         baseAddress,
         ethAmount,
       );
