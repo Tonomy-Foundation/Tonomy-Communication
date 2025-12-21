@@ -3730,12 +3730,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tonomy/tonomy-id-sdk@npm:0.37.0-development.1":
-  version: 0.37.0-development.1
-  resolution: "@tonomy/tonomy-id-sdk@npm:0.37.0-development.1"
+"@tonomy/tonomy-id-sdk@npm:0.37.0-development.2":
+  version: 0.37.0-development.2
+  resolution: "@tonomy/tonomy-id-sdk@npm:0.37.0-development.2"
   dependencies:
     "@consento/sync-randombytes": "npm:^1.0.5"
-    "@safe-global/sdk-starter-kit": "npm:^3.0.2"
     "@tonomy/antelope-did-resolver": "npm:^0.10.0"
     "@veramo/core": "npm:^6.0.0"
     "@veramo/credential-w3c": "npm:^6.0.0"
@@ -3761,7 +3760,7 @@ __metadata:
     typeorm: "npm:0.3.22"
     universal-base64url: "npm:^1.1.0"
     web-did-resolver: "npm:^2.0.27"
-  checksum: 10c0/d57e8bae046e9a573a56b5e4b36dca2d3bb5afd33f105b1509ec143af7672499f36c05f94e7adbdf1d796edec61e12ba6506f20c15b8fd35f97c238d9a0c4d17
+  checksum: 10c0/9aeb510ac542e34b3631e7a7a3ff8e5173bb9810b232053f9d32c0c1f5434a8ec49b3407f2709b06aea0174bb6497473da185231831901967232688f4620df4b
   languageName: node
   linkType: hard
 
@@ -13789,8 +13788,9 @@ __metadata:
     "@nestjs/swagger": "npm:^7.1.10"
     "@nestjs/testing": "npm:^10.2.3"
     "@nestjs/websockets": "npm:^10.2.3"
+    "@safe-global/sdk-starter-kit": "npm:^3.0.2"
     "@semantic-release/git": "npm:^10.0.1"
-    "@tonomy/tonomy-id-sdk": "npm:0.37.0-development.1"
+    "@tonomy/tonomy-id-sdk": "npm:0.37.0-development.2"
     "@types/eslint__js": "npm:^8.42.3"
     "@types/express": "npm:^4.17.13"
     "@types/jest": "npm:^29.5.14"
