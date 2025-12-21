@@ -16,6 +16,8 @@ setSettings({
   baseNetwork: settings.config.baseNetwork,
   baseRpcUrl: settings.config.baseRpcUrl,
   baseTokenAddress: settings.config.baseTokenAddress,
+  baseMintBurnAddress: settings.config.baseMintBurnAddress,
+  safeApiKey: settings.secrets.safeApiKey,
 });
 
 async function bootstrap() {
