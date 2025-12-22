@@ -112,7 +112,12 @@ if (process.env.ETHEREUM_PRIVATE_KEY) {
   settings.secrets.basePrivateKey = process.env.ETHEREUM_PRIVATE_KEY;
 }
 
-console.log(
+if (process.env.BASE_TOKEN_ADDRESS) {
+  logger.log('Using BASE_TOKEN_ADDRESS from env');
+  settings.config.baseTokenAddress = process.env.BASE_TOKEN_ADDRESS;
+}
+
+logger.log(
   `Ethereum signing address: ${new ethers.Wallet(settings.secrets.basePrivateKey).address}`,
 );
 

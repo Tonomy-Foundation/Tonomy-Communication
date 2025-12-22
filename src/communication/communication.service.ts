@@ -21,6 +21,8 @@ import {
   waitForTonomyTrxFinalization,
   prepareSafeWalletTransfer,
   createAntelopeDid,
+  FaucetTokenMessage,
+  assetToDecimal,
   getSigner,
 } from '@tonomy/tonomy-id-sdk';
 import { tonomySigner } from '../signer';
@@ -38,6 +40,12 @@ export class CommunicationService {
 
   private readonly loggedInUsers = new Map<string, Socket['id']>();
   private readonly userSockets = new Map<string, Client>();
+  private readonly faucetRequestTracker = new Map<
+    string,
+    { amount: Decimal; timestamp: number }[]
+  >();
+  private readonly FAUCET_LIMIT_24H = new Decimal('20000');
+  private readonly THROTTLE_WINDOW_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
   private server!: Server;
 
@@ -235,6 +243,152 @@ export class CommunicationService {
   }
 
   /**
+   * Requests testnet tokens from the faucet service
+   * @param {Client} socket user socket
+   * @param {SwapTokenMessage} message signed VC containing faucet request
+   * @returns boolean if tokens were transferred successfully
+   */
+  async requestFaucetToken(
+    socket: Client,
+    message: FaucetTokenMessage,
+  ): Promise<boolean> {
+    const loggerId = randomString(6);
+    const payload = message.getPayload();
+    const issuer = message.getIssuer();
+
+    this.logger.debug(
+      `[Faucet: ${loggerId}]: requestFaucetToken() from ${issuer}`,
+    );
+
+    if (settings.env === 'production') {
+      throw new HttpException(
+        `Faucet service is not available in production`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    await checkIssuerFromTonomyPlatform(
+      issuer,
+      payload._testOnly_tonomyAppsWebsiteUsername,
+    );
+
+    const tonomyAccount = getAccountNameFromDid(issuer);
+    const asset = payload.asset;
+
+    if (!asset || asset.trim().length === 0 || !asset.endsWith(' TONO')) {
+      throw new HttpException(
+        `Invalid asset format ${asset}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const assetAmount = assetToDecimal(asset);
+
+    if (assetAmount.lessThanOrEqualTo(0)) {
+      throw new HttpException(
+        `Invalid asset amount ${asset}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    } else if (assetAmount.greaterThan(1000)) {
+      throw new HttpException(
+        `Requested asset amount exceeds faucet limit: ${asset}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // Check 24-hour throttling
+    this.checkFaucetThrottle(issuer, assetAmount, loggerId);
+
+    this.logger.log(
+      `[Faucet: ${loggerId}]: Transferring ${asset} to Tonomy account ${tonomyAccount}`,
+    );
+
+    const trx = await getTokenContract().transfer(
+      'ops.tmy',
+      tonomyAccount,
+      asset,
+      `Faucet token request ${loggerId}`,
+      tonomySigner,
+    );
+
+    this.logger.debug(
+      `[Faucet: ${loggerId}]: Faucet transaction submitted with ID ${trx.transaction_id}`,
+    );
+
+    if (settings.env === 'production' || settings.env === 'testnet') {
+      // Depends on Hyperion API which is only available on testnet and mainnet
+      await waitForTonomyTrxFinalization(trx.transaction_id);
+      this.logger.debug(
+        `[Faucet: ${loggerId}]: Tonomy transaction ${trx.transaction_id} finalized`,
+      );
+    }
+
+    // Track this request for throttling purposes
+    this.trackFaucetRequest(issuer, assetAmount);
+
+    this.logger.log(
+      `[Faucet: ${loggerId}]: Faucet transfer completed successfully`,
+    );
+    return true;
+  }
+
+  /**
+   * Check if account has exceeded 24-hour faucet limit
+   * @param issuer the DID of the requester
+   * @param requestAmount the amount being requested
+   * @param loggerId logging identifier
+   * @throws HttpException if throttle limit exceeded
+   */
+  private checkFaucetThrottle(
+    issuer: string,
+    requestAmount: Decimal,
+    loggerId: string,
+  ): void {
+    const now = Date.now();
+    const requests = this.faucetRequestTracker.get(issuer) || [];
+
+    // Remove requests older than 24 hours
+    const recentRequests = requests.filter(
+      (req) => now - req.timestamp < this.THROTTLE_WINDOW_MS,
+    );
+
+    // Calculate total requested in last 24 hours
+    const totalRequested = recentRequests.reduce(
+      (sum, req) => sum.plus(req.amount),
+      new Decimal(0),
+    );
+
+    const newTotal = totalRequested.plus(requestAmount);
+
+    if (newTotal.greaterThan(this.FAUCET_LIMIT_24H)) {
+      const remainingAllowance = this.FAUCET_LIMIT_24H.minus(totalRequested);
+
+      this.logger.warn(
+        `[Faucet: ${loggerId}]: Account ${issuer} exceeded 24-hour limit. Requested: ${requestAmount.toString()}, Remaining allowance: ${remainingAllowance.toString()}`,
+      );
+      throw new HttpException(
+        `Daily faucet limit exceeded. You have requested ${totalRequested.toString()} TONO in the last 24 hours. Maximum allowed: ${this.FAUCET_LIMIT_24H.toString()} TONO. Remaining allowance: ${remainingAllowance.toString()} TONO`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  /**
+   * Track a faucet request for throttling purposes
+   * @param issuer the DID of the requester
+   * @param amount the amount requested
+   */
+  private trackFaucetRequest(issuer: string, amount: Decimal): void {
+    const requests = this.faucetRequestTracker.get(issuer) || [];
+
+    requests.push({
+      amount,
+      timestamp: Date.now(),
+    });
+    this.faucetRequestTracker.set(issuer, requests);
+  }
+
+  /**
    * Send a 'veriff' event to a specific user by DID
    * @param did recipient DID
    * @param payload data to send
@@ -300,7 +454,7 @@ async function getAccountNameForTonomyAppsPlatform(
   } else {
     if (_testOnly_tonomyAppsWebsiteUsername) {
       throw new Error(
-        'tonomyAppsWebsiteUsername can only be used in non-production environments',
+        'tonomyAppsWebsiteUsername can only be used in testing/development environments',
       );
     }
 

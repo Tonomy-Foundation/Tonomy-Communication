@@ -4,8 +4,8 @@ import { WebsocketReturnType } from 'src/communication/communication.gateway';
 
 export const SOCKET_TIMEOUT = 1000;
 
-export async function connectSocket(): Promise<Socket> {
-  const socket = io('http://localhost:5000', {
+export async function connectSocket(port = 5000): Promise<Socket> {
+  const socket = io(`http://localhost:${port}`, {
     autoConnect: false,
     transports: ['websocket'],
   });

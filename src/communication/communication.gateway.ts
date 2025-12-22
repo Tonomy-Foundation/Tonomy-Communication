@@ -28,7 +28,7 @@ import { CommunicationGuard } from './communication.guard';
 import { BodyDto } from './dto/body.dto';
 import { Server } from 'socket.io';
 import { SwapBodyDto } from './dto/swapBody.dto';
-import { Transaction } from 'typeorm';
+import { FaucetBodyDto } from './dto/faucetBody.dto';
 
 export type WebsocketReturnType = {
   status: HttpStatus;
@@ -135,6 +135,31 @@ export class CommunicationGateway
       return {
         status: HttpStatus.OK,
         details: await this.usersService.swapTokenTonomyToBase(client, message),
+      };
+    } catch (e) {
+      return this.usersService.handleError(e);
+    }
+  }
+
+  /**
+   * Requests testnet tokens from the faucet
+   * @param {FaucetBodyDto} body - The faucet token message VC or an error from the transformer
+   * @param client user socket
+   */
+  @SubscribeMessage('v1/faucet/token/tono')
+  @UseGuards(CommunicationGuard)
+  async requestFaucetToken(
+    @MessageBody() body: FaucetBodyDto,
+    @ConnectedSocket() client: Client,
+  ) {
+    try {
+      if (body.error) throw body.error;
+      if (!body.value) throw new Error('Body not found');
+      const message = body.value;
+
+      return {
+        status: HttpStatus.OK,
+        details: await this.usersService.requestFaucetToken(client, message),
       };
     } catch (e) {
       return this.usersService.handleError(e);
